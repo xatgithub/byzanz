@@ -308,8 +308,9 @@ byzanz_recorder_filter_damage_event (GdkXEvent *xevent, GdkEvent *event, gpointe
   if (gdk_rectangle_intersect (&rect, &rec->area, &rect))
     gdk_region_union_with_rect (rec->region, &rect);
 
-  if (rec->timeout == 0 && !dev->more)
-    byzanz_recorder_queue_image (rec);
+  if (rec->timeout == 0)
+    rec->timeout = g_idle_add_full (G_PRIORITY_DEFAULT,
+	byzanz_recorder_timeout_cb, rec, NULL);
   return GDK_FILTER_REMOVE;
 }
 
