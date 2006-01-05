@@ -1,0 +1,55 @@
+# SOME DESCRIPTIVE TITLE.
+# This file is put in the public domain.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Byzanz\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/\n"
+"POT-Creation-Date: 2006-01-04 20:01+0100\n"
+"PO-Revision-Date: 2006-01-04 20:01+0100\n"
+"Last-Translator: Benjamin Otte <otte@gnome.org>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/record.c:37
+msgid "Duration of animation"
+msgstr "Dauer der Animation"
+
+#: src/record.c:37 src/record.c:38
+msgid "SECS"
+msgstr "SEK"
+
+#: src/record.c:38
+msgid "Delay before start"
+msgstr ""
+
+#: src/record.c:39
+msgid "Let the animation loop"
+msgstr "Animation als Schleife"
+
+#: src/record.c:40
+msgid "X coordinate of rectangle to record"
+msgstr "X Koordinate des aufzunehmenden Rechtecks"
+
+#: src/record.c:40 src/record.c:41 src/record.c:42 src/record.c:43
+msgid "PIXEL"
+msgstr "PIXEL"
+
+#: src/record.c:41
+msgid "Y coordinate of rectangle to record"
+msgstr "Y Koordinate des aufzunehmenden Rechtecks"
+
+#: src/record.c:42
+msgid "Width of recording rectangle"
+msgstr "Weite des aufzunehmenden Rechtecks"
+
+#: src/record.c:43
+msgid "Height of recording rectangle"
+msgstr "Hoehe des aufzunehmenden Rechtecks"
+
+#: src/record.c:92
+msgid "record your current desktop session"
+msgstr "Nehmen Sie Ihren Desktop auf"

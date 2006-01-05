@@ -1,0 +1,2 @@
+# Files which have already been marked to allow runtime translations of messages
+src/record.c
