@@ -99,12 +99,16 @@ dnl Check for essential libraries first:
 dnl ====================================
 
 GTK_REQ="2.6.0"
+GTHREAD_REQ="2.6.0"
 
-dnl Check for glib2 with sugar on top
 PKG_CHECK_MODULES(GTK, gtk+-2.0 >= $GTK_REQ,HAVE_GTK=yes,HAVE_GTK=no)
-
 if test "x$HAVE_GTK" = "xno"; then
   AC_MSG_ERROR([Byzanz requires Gtk+-2.0 >= $GTK_REQ to compile.])
+fi
+
+PKG_CHECK_MODULES(GTHREAD, gthread-2.0 >= $GTHREAD_REQ,HAVE_GLTHREAD=yes,HAVE_GTHREAD=no)
+if test "x$HAVE_GTHREAD" = "xno"; then
+  AC_MSG_ERROR([Byzanz requires GThread-2.0 >= $GLIB_REQ to compile.])
 fi
 
 
@@ -114,9 +118,9 @@ AS_SCRUB_INCLUDE(GIFENC_CFLAGS)
 AC_SUBST(GIFENC_CFLAGS)
 AC_SUBST(GIFENC_LIBS)
 
-BYZANZ_CFLAGS="$GTK_CFLAGS $ERROR_CFLAGS"
+BYZANZ_CFLAGS="$GTK_CFLAGS $GTHREAD_CFLAGS $ERROR_CFLAGS"
 dnl FIXME FIXME FIXME
-BYZANZ_LIBS="$GTK_LIBS -lX11 -L/usr/X11R6/lib -lXdamage -lXfixes"
+BYZANZ_LIBS="$GTK_LIBS $GTHREAD_LIBS -lX11 -L/usr/X11R6/lib -lXdamage -lXfixes"
 AS_SCRUB_INCLUDE(BYZANZ_CFLAGS)
 AC_SUBST(BYZANZ_CFLAGS)
 AC_SUBST(BYZANZ_LIBS)

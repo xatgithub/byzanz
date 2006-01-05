@@ -402,7 +402,7 @@ gifenc_add_image (Gifenc *enc, guint x, guint y, guint width, guint height,
   gifenc_write_image_data (enc, &image);
 }
 
-void
+gboolean
 gifenc_close (Gifenc *enc)
 {
   gifenc_write_byte (enc, 0x3B);
@@ -411,6 +411,8 @@ gifenc_close (Gifenc *enc)
   if (enc->palette)
     gifenc_palette_free (enc->palette);
   g_free (enc);
+
+  return TRUE;
 }
 
 void

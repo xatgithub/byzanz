@@ -1,3 +1,23 @@
+2006-01-05  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
+	* configure.ac:
+	  check for gthread-2.0 for the app
+	* gifenc/gifenc.c: (gifenc_close):
+	* gifenc/gifenc.h:
+	  make gifenc_close return a boolean to indicate successful creation
+	  of a file. (Currently always returns TRUE)
+	* gifenc/quantize.c: (gifenc_quantize_image):
+	  comment out last print statement
+	* po/de.po:
+	  update
+	* src/Makefile.am:
+	* src/byzanzrecorder.c: 
+	* src/byzanzrecorder.h:
+	  add these 2 files and split out the recording functionality in them.
+	* src/record.c: (verbose_print), (usage), (stop_recording),
+	(start_recording), (prepare_recording), (main):
+	  use ByzanzRecorder and a main loop.
+
 2006-01-05  Benjamin Otte  <otte@gnome.org>
 
 	initial import

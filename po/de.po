@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Byzanz\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/\n"
-"POT-Creation-Date: 2006-01-04 20:01+0100\n"
+"POT-Creation-Date: 2006-01-05 20:35+0100\n"
 "PO-Revision-Date: 2006-01-04 20:01+0100\n"
 "Last-Translator: Benjamin Otte <otte@gnome.org>\n"
 "Language-Team: German <de@li.org>\n"
@@ -48,8 +48,33 @@ msgstr "Weite des aufzunehmenden Rechtecks"
 
 #: src/record.c:43
 msgid "Height of recording rectangle"
-msgstr "Hoehe des aufzunehmenden Rechtecks"
+msgstr "Höhe des aufzunehmenden Rechtecks"
 
-#: src/record.c:92
+#: src/record.c:50
+#, c-format
+msgid "usage: %s [OPTIONS] filename\n"
+msgstr "Benutzung: %s [OPTIONEN] Dateiname\n"
+
+#: src/record.c:51
+#, c-format
+msgid "       %s --help\n"
+msgstr "           %s --help"
+
+#: src/record.c:96
 msgid "record your current desktop session"
 msgstr "Nehmen Sie Ihren Desktop auf"
+
+#: src/record.c:100
+#, c-format
+msgid "Wrong option: %s\n"
+msgstr "Falsche Option: %s\n"
+
+#: src/record.c:110
+#, c-format
+msgid ""
+"Could not prepare recording.\n"
+"Most likely the Damage extension is not available on the X server or the "
+"file \"%s\" is not writable.\n"
+msgstr "Konnte die Aufnahme nicht vorbereiten.\n"
+"Höchstwahrscheinlich ist die Damage Erweiterung auf dem X Server nicht installiert."
+"Oder die Datei \"%s\" kann nicht geschrieben werden.\n"

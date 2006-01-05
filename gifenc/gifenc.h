@@ -68,7 +68,7 @@ void		gifenc_add_image	(Gifenc *	enc,
 					 guint		display_millis,
 					 guint8 *	data,
 					 guint		rowstride);
-void		gifenc_close		(Gifenc *	enc);
+gboolean	gifenc_close		(Gifenc *	enc);
 
 guint8 *	gifenc_dither_pixbuf	(GdkPixbuf *	pixbuf,
 					 const GifencPalette *	palette);

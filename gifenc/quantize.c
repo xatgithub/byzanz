@@ -406,8 +406,8 @@ gifenc_quantize_image (const guint8 *data, guint width, guint height, guint bpp,
   gifenc_octree_finalize (info.tree, 0);
 
   //gifenc_octree_print (info.tree, 1);
-  g_print ("total: %u colors (%u non-leaves)\n", info.num_leaves, 
-      g_slist_length (info.non_leaves));
+  //g_print ("total: %u colors (%u non-leaves)\n", info.num_leaves, 
+  //    g_slist_length (info.non_leaves));
 
   palette = g_new (GifencPalette, 1);
   palette->alpha = alpha;
