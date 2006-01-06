@@ -29,6 +29,9 @@
 #include "gifenc.h"
 #include "i18n.h"
 
+/* use a maximum of 50 Mbytes for cache images */
+#define BYZANZ_RECORDER_MAX_CACHE (50*1024*1024)
+
 typedef enum {
   RECORDER_STATE_ERROR,
   RECORDER_STATE_CREATED,
@@ -56,7 +59,9 @@ struct _ByzanzRecorder {
   GdkRectangle		area;		/* area of the screen we record */
   gboolean		loop;		/* wether the resulting gif should loop */
   guint			frame_duration;	/* minimum frame duration in msecs */
+  gint			max_cache_size;	/* maximum allowed size of cache */
   /* state */
+  gint			cache_size;	/* current cache size */
   RecorderState		state;		/* state the recorder is in */
   guint			timeout;	/* signal id for timeout */
   GdkWindow *		window;		/* root window we record */
@@ -81,6 +86,25 @@ static int dmg_error_base = 0;
 
 /*** JOB FUNCTIONS ***/
 
+static gint
+compute_image_size (GdkImage *image)
+{
+  return (gint) image->bpl * image->height;
+}
+
+static void
+recorder_job_free (ByzanzRecorder *rec, RecorderJob *job)
+{
+  if (job->image) {
+    rec->cache_size -= compute_image_size (job->image);
+    g_object_unref (job->image);
+  }
+  if (job->region)
+    gdk_region_destroy (job->region);
+
+  g_free (job);
+}
+
 /* UGH: This function takes ownership of region, but only if a job could be created */
 static RecorderJob *
 recorder_job_new (ByzanzRecorder *rec, RecorderJobType type, 
@@ -88,7 +112,14 @@ recorder_job_new (ByzanzRecorder *rec, RecorderJobType type,
 {
   RecorderJob *job;
 
-  job = g_async_queue_try_pop (rec->finished);
+  for (;;) {
+    job = g_async_queue_try_pop (rec->finished);
+    if (!job || !job->image)
+      break;
+    if (rec->cache_size - compute_image_size (job->image) <= rec->max_cache_size)
+      break;
+    recorder_job_free (rec, job);
+  }
   if (!job) 
     job = g_new0 (RecorderJob, 1);
   
@@ -101,9 +132,12 @@ recorder_job_new (ByzanzRecorder *rec, RecorderJobType type,
     GdkRectangle *rects;
     gint nrects, i;
     if (!job->image) {
-      job->image = gdk_image_new (GDK_IMAGE_FASTEST,
-	  gdk_drawable_get_visual (rec->window),
-	  rec->area.width, rec->area.height);
+      if (rec->cache_size <= rec->max_cache_size) {
+	job->image = gdk_image_new (GDK_IMAGE_FASTEST,
+	    gdk_drawable_get_visual (rec->window),
+	    rec->area.width, rec->area.height);
+	rec->cache_size += compute_image_size (job->image);
+      }
       if (!job->image) {
 	g_free (job);
 	return NULL;
@@ -119,17 +153,6 @@ recorder_job_new (ByzanzRecorder *rec, RecorderJobType type,
     gdk_region_offset (region, -rec->area.x, -rec->area.y);
   }
   return job;
-}
-
-static void
-recorder_job_free (RecorderJob *job)
-{
-  if (job->image)
-    g_object_unref (job->image);
-  if (job->region)
-    gdk_region_destroy (job->region);
-
-  g_free (job);
 }
 
 /*** THREAD FUNCTIONS ***/
@@ -222,9 +245,9 @@ byzanz_recorder_run_encoder (gpointer data)
 	break;
       case RECORDER_JOB_QUIT:
 	byzanz_recorder_add_image (rec, &job->tv, &current);
-	recorder_job_free (job);
+	recorder_job_free (rec, job);
 	while ((job = g_async_queue_try_pop (rec->finished)) != NULL)
-	  recorder_job_free (job);
+	  recorder_job_free (rec, job);
 	g_free (rec->data);
 	rec->data = NULL;
 	return rec;
@@ -258,16 +281,24 @@ byzanz_recorder_queue_image (ByzanzRecorder *rec)
 
   g_get_current_time (&tv);
   job = recorder_job_new (rec, RECORDER_JOB_ENCODE, &tv, rec->region);
-  g_async_queue_push (rec->jobs, job);
-  rec->region = gdk_region_new ();
-  display = gdk_display_get_default ();
-  dpy = gdk_x11_display_get_xdisplay (display);
-  XDamageSubtract (dpy, rec->damage, rec->damaged, None);
-  XFixesSetRegion (dpy, rec->damaged, 0, 0);
-  gdk_display_flush (display);
-  if (rec->timeout == 0)
-    rec->timeout = g_timeout_add (rec->frame_duration, 
-	byzanz_recorder_timeout_cb, rec);
+  if (job) {
+    g_async_queue_push (rec->jobs, job);
+    rec->region = gdk_region_new ();
+    display = gdk_display_get_default ();
+    dpy = gdk_x11_display_get_xdisplay (display);
+    XDamageSubtract (dpy, rec->damage, rec->damaged, None);
+    XFixesSetRegion (dpy, rec->damaged, 0, 0);
+    gdk_display_flush (display);
+    if (rec->timeout == 0)
+      rec->timeout = g_timeout_add (rec->frame_duration, 
+	  byzanz_recorder_timeout_cb, rec);
+  } else {
+    /* FIXME: no more polling plz */
+    if (rec->timeout == 0) {
+      rec->timeout = g_timeout_add (rec->frame_duration, 
+	  byzanz_recorder_timeout_cb, rec);
+    }
+  }
 }
 
 static gboolean
@@ -377,6 +408,8 @@ byzanz_recorder_new (const gchar *filename, gint x, gint y,
   recorder->area.height = height;
   recorder->loop = loop;
   recorder->frame_duration = 1000 / 25;
+  recorder->max_cache_size = BYZANZ_RECORDER_MAX_CACHE;
+  recorder->cache_size = 0;
   
   /* prepare thread first, so we can easily error out on failure */
   recorder->window = gdk_get_default_root_window ();
@@ -401,8 +434,6 @@ byzanz_recorder_new (const gchar *filename, gint x, gint y,
   }
 
   /* do setup work */
-  recorder->damage = XDamageCreate (dpy, GDK_DRAWABLE_XID (recorder->window), 
-      XDamageReportDeltaRectangles);
   recorder->region = gdk_region_new ();
   recorder->damaged = XFixesCreateRegion (dpy, 0, 0);
   recorder->tmp_region = XFixesCreateRegion (dpy, 0, 0);
@@ -435,14 +466,20 @@ byzanz_recorder_prepare (ByzanzRecorder *rec)
 void
 byzanz_recorder_start (ByzanzRecorder *rec)
 {
+  Display *dpy;
+
   g_return_if_fail (BYZANZ_IS_RECORDER (rec));
   g_return_if_fail (rec->state == RECORDER_STATE_PREPARED);
 
   g_assert (rec->region == NULL);
+
+  dpy = gdk_x11_display_get_xdisplay (gdk_display_get_default ());
   rec->region = gdk_region_rectangle (&rec->area);
   gdk_window_add_filter (NULL, 
       byzanz_recorder_filter_damage_event, rec);
-  byzanz_recorder_queue_image (rec);
+  rec->damage = XDamageCreate (dpy, GDK_DRAWABLE_XID (rec->window), 
+      XDamageReportDeltaRectangles);
+  /* byzanz_recorder_queue_image (rec); - we'll get a damage event anyway */
   
   rec->state = RECORDER_STATE_RECORDING;
 }
@@ -475,6 +512,7 @@ void
 byzanz_recorder_destroy (ByzanzRecorder *rec)
 {
   Display *dpy;
+  RecorderJob *job;
 
   g_return_if_fail (BYZANZ_IS_RECORDER (rec));
 
@@ -484,7 +522,9 @@ byzanz_recorder_destroy (ByzanzRecorder *rec)
 
   if (g_thread_join (rec->encoder) != rec)
     g_assert_not_reached ();
-	  
+
+  while ((job = g_async_queue_try_pop (rec->finished)) != NULL)
+    recorder_job_free (rec, job);
   dpy = gdk_x11_display_get_xdisplay (gdk_display_get_default ());
   XFixesDestroyRegion (dpy, rec->damaged);
   XFixesDestroyRegion (dpy, rec->tmp_region);
@@ -493,6 +533,69 @@ byzanz_recorder_destroy (ByzanzRecorder *rec)
 
   gifenc_close (rec->gifenc);
 
+  g_assert (rec->cache_size == 0);
+  
   g_free (rec);
+}
+
+/**
+ * byzanz_recorder_set_max_cache:
+ * @rec: a recording session
+ * @max_cache_bytes: maximum allowed cache size in bytes
+ *
+ * Sets the maximum allowed cache size. Since the recorder uses two threads -
+ * one for taking screenshots and one for encoding these screenshots into the
+ * final file, on heavy screen changes a big number of screenshot images can 
+ * build up waiting to be encoded. This value is used to determine the maximum
+ * allowed amount of memory these images may take. You can adapt this value 
+ * during a recording session.
+ **/
+void
+byzanz_recorder_set_max_cache (ByzanzRecorder *rec,
+    guint max_cache_bytes)
+{
+  g_return_if_fail (BYZANZ_IS_RECORDER (rec));
+  g_return_if_fail (max_cache_bytes > G_MAXINT);
+
+  rec->max_cache_size = max_cache_bytes;
+  while (rec->cache_size > max_cache_bytes) {
+    RecorderJob *job = g_async_queue_try_pop (rec->finished);
+    if (!job)
+      break;
+    recorder_job_free (rec, job);
+  }
+}
+
+/**
+ * byzanz_recorder_get_max_cache:
+ * @rec: a recording session
+ *
+ * Gets the maximum allowed cache size. See byzanz_recorder_set_max_cache()
+ * for details.
+ *
+ * Returns: the maximum allowed cache size in bytes
+ **/
+guint
+byzanz_recorder_get_max_cache (ByzanzRecorder *rec)
+{
+  g_return_val_if_fail (BYZANZ_IS_RECORDER (rec), 0);
+
+  return rec->max_cache_size;
+}
+
+/**
+ * byzanz_recorder_get_cache:
+ * @rec: a recording session
+ *
+ * Determines the current amount of image cache used.
+ *
+ * Returns: current cache used in bytes
+ **/
+guint
+byzanz_recorder_get_cache (ByzanzRecorder *rec)
+{
+  g_return_val_if_fail (BYZANZ_IS_RECORDER (rec), 0);
+  
+  return rec->cache_size;
 }
 

@@ -1,5 +1,22 @@
 2006-01-06  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
+	* src/byzanzapplet.c: (button_clicked_cb), (byzanz_applet_fill):
+	  use a togglebutton to record (it's still a very simple applet ;))
+	* src/byzanzrecorder.c: (compute_image_size), (recorder_job_free),
+	(recorder_job_new), (byzanz_recorder_run_encoder),
+	(byzanz_recorder_destroy), (byzanz_recorder_queue_image), 
+	(byzanz_recorder_set_max_cache), (byzanz_recorder_get_max_cache),
+	(byzanz_recorder_get_cache):
+	* src/byzanzrecorder.h:
+	  monitor memory usage of cache to avoid eating all memory
+	* src/byzanzrecorder.c: (byzanz_recorder_start),
+	(byzanz_recorder_new):
+	  create the Damage object when starting - that way we can do all
+	  drawing based on Damage events and avoid drawing the whole screen
+	  twice at the start.
+
+2006-01-06  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
 	* Makefile.am:
 	* autogen.sh:
 	* configure.ac:

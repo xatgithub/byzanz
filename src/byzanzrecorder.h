@@ -36,6 +36,11 @@ void			byzanz_recorder_prepare		(ByzanzRecorder *	recorder);
 void			byzanz_recorder_start		(ByzanzRecorder *	recorder);
 void			byzanz_recorder_stop		(ByzanzRecorder *	recorder);
 void			byzanz_recorder_destroy		(ByzanzRecorder *	recorder);
+/* property functions */
+void			byzanz_recorder_set_max_cache	(ByzanzRecorder *	recorder,
+							 guint			max_cache_bytes);
+guint			byzanz_recorder_get_max_cache	(ByzanzRecorder *       recorder);
+guint			byzanz_recorder_get_cache	(ByzanzRecorder *       recorder);
 					
 
 #endif /* __HAVE_BYZANZ_RECORDER_H__ */

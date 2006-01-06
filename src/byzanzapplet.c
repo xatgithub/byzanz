@@ -31,20 +31,24 @@ typedef struct {
 } AppletPrivate;
 
 static void
-button_clicked_cb (GtkButton *button, AppletPrivate *priv)
+button_clicked_cb (GtkToggleButton *button, AppletPrivate *priv)
 {
-  if (priv->rec) {
+  gboolean active = gtk_toggle_button_get_active (button);
+  
+  if (priv->rec && !active) {
     byzanz_recorder_stop (priv->rec);
     byzanz_recorder_destroy (priv->rec);
-    gtk_button_set_label (button, GTK_STOCK_MEDIA_RECORD);
-  } else {
+    priv->rec = NULL;
+  } else if (!priv->rec && active) {
     priv->rec = byzanz_recorder_new ("/root/test.gif", 0, 0, G_MAXINT / 2, G_MAXINT / 2, TRUE);
     if (priv->rec) {
       byzanz_recorder_prepare (priv->rec);
-      gtk_button_set_label (button, GTK_STOCK_MEDIA_PLAY);
       byzanz_recorder_start (priv->rec);
+    } else {
+      gtk_toggle_button_set_active (button, FALSE);
     }
   }
+
 }
 
 static void
@@ -57,14 +61,17 @@ static gboolean
 byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
 {
   AppletPrivate *priv;
-  GtkWidget *button;
+  GtkWidget *button, *image;
   
   priv = g_new0 (AppletPrivate, 1);
   priv->applet = applet;
   g_signal_connect (applet, "destroy", G_CALLBACK (destroy_applet), priv);
 
-  button = gtk_button_new_from_stock (GTK_STOCK_MEDIA_RECORD);
-  g_signal_connect (button, "clicked", G_CALLBACK (button_clicked_cb), priv);
+  button = gtk_toggle_button_new ();
+  image = gtk_image_new_from_stock (GTK_STOCK_MEDIA_RECORD, 
+      GTK_ICON_SIZE_SMALL_TOOLBAR);
+  gtk_container_add (GTK_CONTAINER (button), image);
+  g_signal_connect (button, "toggled", G_CALLBACK (button_clicked_cb), priv);
   gtk_container_add (GTK_CONTAINER (applet), button);
   gtk_widget_show_all (GTK_WIDGET (applet));
   return TRUE;
