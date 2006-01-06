@@ -1,5 +1,21 @@
 2006-01-06  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
+	* src/Makefile.am:
+	* src/panelstuffer.c:
+	* src/panelstuffer.h:
+	  added PanelStuffer from battstat applet patch. Added function to
+	  automaticaclly track orientation changes if parent is an applet.
+	* src/byzanzapplet.c: (byzanz_applet_update),
+	(byzanz_applet_is_recording), (byzanz_applet_start_recording),
+	(byzanz_applet_stop_recording), (button_clicked_cb),
+	(destroy_applet), (byzanz_applet_fill):
+	  add a funky label counting the elapsed time
+	* src/byzanzrecorder.c: (byzanz_recorder_idle_cb),
+	(byzanz_recorder_filter_damage_event):
+	  use a different callback in idle and timeout functions
+
+2006-01-06  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
 	* src/byzanzapplet.c: (button_clicked_cb), (byzanz_applet_fill):
 	  use a togglebutton to record (it's still a very simple applet ;))
 	* src/byzanzrecorder.c: (compute_image_size), (recorder_job_free),

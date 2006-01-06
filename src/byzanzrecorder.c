@@ -314,6 +314,17 @@ byzanz_recorder_timeout_cb (gpointer recorder)
   return TRUE;
 }
 
+static gboolean
+byzanz_recorder_idle_cb (gpointer recorder)
+{
+  ByzanzRecorder *rec = recorder;
+
+  g_assert (!gdk_region_empty (rec->region));
+  rec->timeout = 0;
+  byzanz_recorder_queue_image (rec);
+  return FALSE;
+}
+
 static GdkFilterReturn
 byzanz_recorder_filter_damage_event (GdkXEvent *xevent, GdkEvent *event, gpointer data)
 {
@@ -339,9 +350,9 @@ byzanz_recorder_filter_damage_event (GdkXEvent *xevent, GdkEvent *event, gpointe
   if (gdk_rectangle_intersect (&rect, &rec->area, &rect))
     gdk_region_union_with_rect (rec->region, &rect);
 
-  if (rec->timeout == 0)
+  if (rec->timeout == 0) 
     rec->timeout = g_idle_add_full (G_PRIORITY_DEFAULT,
-	byzanz_recorder_timeout_cb, rec, NULL);
+	byzanz_recorder_idle_cb, rec, NULL);
   return GDK_FILTER_REMOVE;
 }
 

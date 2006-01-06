@@ -24,11 +24,85 @@
 #include <panel-applet.h>
 #include <gtk/gtklabel.h>
 #include "byzanzrecorder.h"
+#include "panelstuffer.h"
+#include "i18n.h"
 
 typedef struct {
-  PanelApplet *applet;
-  ByzanzRecorder *rec;
+  PanelApplet *		applet;		/* the applet we manage */
+
+  GtkWidget *		button;		/* recording button */
+  GtkWidget *		label;		/* infotext label */
+  GtkWidget *		progress;	/* progressbar showing cache effects */
+  
+  ByzanzRecorder *	rec;		/* the recorder (if recording) */
+  GTimeVal		start;		/* time the recording started */
+  guint			idle_func;	/* id of idle function that updates state */
 } AppletPrivate;
+
+static gboolean
+byzanz_applet_update (gpointer data)
+{
+  GTimeVal tv;
+  guint elapsed;
+  gchar *str;
+  
+  AppletPrivate *priv = data;
+
+  g_get_current_time (&tv);
+  elapsed = tv.tv_sec - priv->start.tv_sec;
+  if (tv.tv_usec < priv->start.tv_usec)
+    elapsed--;
+  str = g_strdup_printf ("%u", elapsed);
+  gtk_label_set_text (GTK_LABEL (priv->label), str);
+  g_free (str);
+
+  return TRUE;
+}
+
+static gboolean
+byzanz_applet_is_recording (AppletPrivate *priv)
+{
+  return priv->rec != NULL;
+}
+
+static void
+byzanz_applet_start_recording (AppletPrivate *priv)
+{
+  gboolean active;
+  
+  g_assert (!byzanz_applet_is_recording (priv));
+  
+  priv->rec = byzanz_recorder_new ("/root/test.gif", 0, 0, G_MAXINT / 2, G_MAXINT / 2, TRUE);
+  if (priv->rec) {
+    byzanz_recorder_prepare (priv->rec);
+    byzanz_recorder_start (priv->rec);
+    g_get_current_time (&priv->start);
+    priv->idle_func = g_timeout_add (1000, byzanz_applet_update, priv);
+  }
+
+  active = (priv->rec != NULL);
+  if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (priv->button)) != active)
+    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (priv->button), active);
+}
+
+static void
+byzanz_applet_stop_recording (AppletPrivate *priv)
+{
+  gboolean active;
+  
+  g_assert (byzanz_applet_is_recording (priv));
+  
+  byzanz_recorder_stop (priv->rec);
+  byzanz_recorder_destroy (priv->rec);
+  priv->rec = NULL;
+  g_source_remove (priv->idle_func);
+  priv->idle_func = 0;
+  gtk_label_set_text (GTK_LABEL (priv->label), _("OFF"));
+
+  active = (priv->rec != NULL);
+  if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (priv->button)) != active)
+    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (priv->button), active);
+}
 
 static void
 button_clicked_cb (GtkToggleButton *button, AppletPrivate *priv)
@@ -36,24 +110,17 @@ button_clicked_cb (GtkToggleButton *button, AppletPrivate *priv)
   gboolean active = gtk_toggle_button_get_active (button);
   
   if (priv->rec && !active) {
-    byzanz_recorder_stop (priv->rec);
-    byzanz_recorder_destroy (priv->rec);
-    priv->rec = NULL;
+    byzanz_applet_stop_recording (priv);
   } else if (!priv->rec && active) {
-    priv->rec = byzanz_recorder_new ("/root/test.gif", 0, 0, G_MAXINT / 2, G_MAXINT / 2, TRUE);
-    if (priv->rec) {
-      byzanz_recorder_prepare (priv->rec);
-      byzanz_recorder_start (priv->rec);
-    } else {
-      gtk_toggle_button_set_active (button, FALSE);
-    }
+    byzanz_applet_start_recording (priv);
   }
-
 }
 
 static void
 destroy_applet (GtkWidget *widget, AppletPrivate *priv)
 {
+  if (byzanz_applet_is_recording (priv))
+    byzanz_applet_stop_recording (priv);
   g_free (priv);
 }
 
@@ -61,18 +128,30 @@ static gboolean
 byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
 {
   AppletPrivate *priv;
-  GtkWidget *button, *image;
+  GtkWidget *image, *stuffer;
   
   priv = g_new0 (AppletPrivate, 1);
   priv->applet = applet;
   g_signal_connect (applet, "destroy", G_CALLBACK (destroy_applet), priv);
 
-  button = gtk_toggle_button_new ();
+  panel_applet_set_flags (applet, PANEL_APPLET_EXPAND_MINOR);
+  /* create UI */
+  stuffer = panel_stuffer_new (GTK_ORIENTATION_VERTICAL);
+  gtk_container_add (GTK_CONTAINER (applet), stuffer);
+
+  priv->button = gtk_toggle_button_new ();
   image = gtk_image_new_from_stock (GTK_STOCK_MEDIA_RECORD, 
       GTK_ICON_SIZE_SMALL_TOOLBAR);
-  gtk_container_add (GTK_CONTAINER (button), image);
-  g_signal_connect (button, "toggled", G_CALLBACK (button_clicked_cb), priv);
-  gtk_container_add (GTK_CONTAINER (applet), button);
+  gtk_container_add (GTK_CONTAINER (priv->button), image);
+  g_signal_connect (priv->button, "toggled", G_CALLBACK (button_clicked_cb), priv);
+  panel_stuffer_add_full (PANEL_STUFFER (stuffer), priv->button, FALSE, TRUE);
+
+  /* translators: the label advertises a width of 5 characters */
+  priv->label = gtk_label_new ("i");//_("OFF"));
+  gtk_label_set_width_chars (GTK_LABEL (priv->label), 5);
+  gtk_label_set_justify (GTK_LABEL (priv->label), GTK_JUSTIFY_CENTER);
+  panel_stuffer_add_full (PANEL_STUFFER (stuffer), priv->label, FALSE, FALSE);
+
   gtk_widget_show_all (GTK_WIDGET (applet));
   return TRUE;
 }

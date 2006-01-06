@@ -1,12 +1,13 @@
 bin_PROGRAMS = record
 
+noinst_HEADERS = \
+	byzanzrecorder.h \
+	panelstuffer.h
+		 
 record_SOURCES = \
 	byzanzrecorder.c \
 	record.c
 
-noinst_HEADERS = \
-	byzanzrecorder.h
-		 
 record_CFLAGS = $(BYZANZ_CFLAGS) -I$(top_srcdir)/gifenc
 record_LDADD = $(BYZANZ_LIBS) $(top_builddir)/gifenc/libgifenc.la
 
@@ -15,7 +16,8 @@ libexec_PROGRAMS = byzanz-applet
 
 byzanz_applet_SOURCES = \
 	byzanzapplet.c \
-	byzanzrecorder.c
+	byzanzrecorder.c \
+	panelstuffer.c
 
 byzanz_applet_CFLAGS = $(APPLET_CFLAGS) -I$(top_srcdir)/gifenc
 byzanz_applet_LDADD = $(APPLET_LIBS) $(top_builddir)/gifenc/libgifenc.la
