@@ -347,12 +347,12 @@ byzanz_recorder_filter_damage_event (GdkXEvent *xevent, GdkEvent *event, gpointe
   rect.height = dev->area.height;
   XFixesSetRegion (dpy, rec->tmp_region, &dev->area, 1);
   XFixesUnionRegion (dpy, rec->damaged, rec->damaged, rec->tmp_region);
-  if (gdk_rectangle_intersect (&rect, &rec->area, &rect))
+  if (gdk_rectangle_intersect (&rect, &rec->area, &rect)) {
     gdk_region_union_with_rect (rec->region, &rect);
-
-  if (rec->timeout == 0) 
-    rec->timeout = g_idle_add_full (G_PRIORITY_DEFAULT,
-	byzanz_recorder_idle_cb, rec, NULL);
+    if (rec->timeout == 0) 
+      rec->timeout = g_idle_add_full (G_PRIORITY_DEFAULT,
+	  byzanz_recorder_idle_cb, rec, NULL);
+  }
   return GDK_FILTER_REMOVE;
 }
 
