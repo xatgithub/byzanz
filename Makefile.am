@@ -1,8 +1,12 @@
-include $(top_srcdir)/common/release.mak
-include $(top_srcdir)/common/po.mak
+SUBDIRS=macros gifenc src po
 
-SUBDIRS=gifenc src po common
+EXTRA_DIST = \
+	depcomp \
+	intltool-update.in \
+	intltool-extract.in \
+	intltool-merge.in
 
-EXTRA_DIST=				\
-	depcomp
-
+DISTCLEANFILES = \
+	intltool-extract \
+	intltool-merge \
+	intltool-update

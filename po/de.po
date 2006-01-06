@@ -58,7 +58,7 @@ msgstr "Benutzung: %s [OPTIONEN] Dateiname\n"
 #: src/record.c:51
 #, c-format
 msgid "       %s --help\n"
-msgstr "           %s --help"
+msgstr "           %s --help\n"
 
 #: src/record.c:96
 msgid "record your current desktop session"

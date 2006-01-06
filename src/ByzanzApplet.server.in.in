@@ -1,0 +1,36 @@
+<oaf_info>
+
+<oaf_server iid="OAFIID:ByzanzApplet_Factory"
+	    type="exe"
+	    location="@LIBEXECDIR@/byzanz-applet">
+
+	<oaf_attribute name="repo_ids" type="stringv">
+		<item value="IDL:Bonobo/GenericFactory:1.0"/>
+		<item value="IDL:Bonobo/Unknown:1.0"/>
+	</oaf_attribute>
+	<oaf_attribute name="name" type="string" _value="Byzanz Factory"/>
+	<oaf_attribute name="description" type="string" _value="Byzanz Factory"/>
+
+</oaf_server>
+
+<oaf_server iid="OAFIID:ByzanzApplet"
+	    type="factory" 
+	    location="OAFIID:ByzanzApplet_Factory">
+
+	<oaf_attribute name="repo_ids" type="stringv">
+		<item value="IDL:GNOME/Vertigo/PanelAppletShell:1.0"/>
+		<item value="IDL:Bonobo/Control:1.0"/>
+		<item value="IDL:Bonobo/Unknown:1.0"/>
+	</oaf_attribute>
+	<oaf_attribute name="name" type="string" _value="Desktop Recorder"/>
+	<oaf_attribute name="description" type="string" _value="Record what's happening on your desktop"/>
+	<oaf_attribute name="panel:icon" type="string" value="byzanz"/>
+	<oaf_attribute name="bugzilla:bugzilla" type="string" value="GNOME"/>
+        <oaf_attribute name="bugzilla:product" type="string" value="byzanz"/>
+        <oaf_attribute name="bugzilla:component" type="string" value="applet"/>
+        <oaf_attribute name="bugzilla:other_binaries" type="string" value="byzanz-applet"/>
+
+
+</oaf_server>
+
+</oaf_info>

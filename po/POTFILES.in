@@ -1,2 +1,4 @@
 # Files which have already been marked to allow runtime translations of messages
+src/byzanzapplet.c
+src/ByzanzApplet.server.in.in
 src/record.c

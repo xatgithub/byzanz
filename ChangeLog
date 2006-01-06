@@ -1,5 +1,26 @@
 2006-01-06  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
+	* Makefile.am:
+	* autogen.sh:
+	* configure.ac:
+	* macros/ac-define-dir.m4:
+	* macros/as-ac-expand.m4:
+	* macros/as-compiler-flag.m4:
+	* macros/as-scrub-include.m4:
+	* macros/as-version.m4:
+	* po/LINGUAS:
+	* po/POTFILES.in:
+	* po/de.po:
+	* src/Makefile.am:
+	  update this whole mess to use gnome-autogen instead of the GStreamer
+	  common/ thingy.
+	* src/ByzanzApplet.server.in.in:
+	* src/byzanzapplet.c: (button_clicked_cb), (destroy_applet),
+	(byzanz_applet_fill):
+	  add a first approach at a recording applet
+
+2006-01-06  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
 	* src/byzanzrecorder.c: (byzanz_recorder_filter_damage_event):
 	  do not immediately process a long-awaited damage event, but try to
 	  process multiple Damage events by registering an idle function

@@ -16,14 +16,18 @@ AC_CONFIG_SRCDIR([gifenc/gifenc.c])
 AM_CONFIG_HEADER(config.h)
 
 dnl Add parameters for aclocal
-AC_SUBST(ACLOCAL_AMFLAGS, "-I common/m4")
+AC_CONFIG_MACRO_DIR(macros)
+AC_SUBST(ACLOCAL_AMFLAGS, "-I macros")
+AC_PROG_INTLTOOL
 
 dnl the gettext stuff needed
+ALL_LINGUAS="de"
 AM_GNU_GETTEXT_VERSION(0.12)
 AM_GNU_GETTEXT([external])
 
 GETTEXT_PACKAGE=$PACKAGE
 AC_SUBST(GETTEXT_PACKAGE)
+AC_DEFINE_DIR(GNOMELOCALEDIR, "${datadir}/locale", [locale directory])
 AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE], "$GETTEXT_PACKAGE",
                    [gettext package name])
 
@@ -57,9 +61,6 @@ dnl ##############################
 
 dnl Check for tools:
 dnl ================
-
-dnl allow for different autotools
-AS_AUTOTOOLS_ALTERNATE()
 
 dnl modify pkg-config path
 AC_ARG_WITH(pkg-config-path, 
@@ -100,17 +101,22 @@ dnl ====================================
 
 GTK_REQ="2.6.0"
 GTHREAD_REQ="2.6.0"
+APPLET_REQ="2.10.0"
 
 PKG_CHECK_MODULES(GTK, gtk+-2.0 >= $GTK_REQ,HAVE_GTK=yes,HAVE_GTK=no)
 if test "x$HAVE_GTK" = "xno"; then
   AC_MSG_ERROR([Byzanz requires Gtk+-2.0 >= $GTK_REQ to compile.])
 fi
 
-PKG_CHECK_MODULES(GTHREAD, gthread-2.0 >= $GTHREAD_REQ,HAVE_GLTHREAD=yes,HAVE_GTHREAD=no)
+PKG_CHECK_MODULES(GTHREAD, gthread-2.0 >= $GTHREAD_REQ,HAVE_GTHREAD=yes,HAVE_GTHREAD=no)
 if test "x$HAVE_GTHREAD" = "xno"; then
   AC_MSG_ERROR([Byzanz requires GThread-2.0 >= $GLIB_REQ to compile.])
 fi
 
+PKG_CHECK_MODULES(APPLET, libpanelapplet-2.0 >= $APPLET_REQ,HAVE_APPLET=yes,HAVE_APPLET=no)
+if test "x$HAVE_APPLET" = "xno"; then
+  AC_MSG_ERROR([Byzanz requires libpanelapplet-2.0 >= $APPLET_REQ to compile.])
+fi
 
 GIFENC_CFLAGS="$GTK_CFLAGS $ERROR_CFLAGS"
 GIFENC_LIBS="$GTK_LIBS"
@@ -125,6 +131,10 @@ AS_SCRUB_INCLUDE(BYZANZ_CFLAGS)
 AC_SUBST(BYZANZ_CFLAGS)
 AC_SUBST(BYZANZ_LIBS)
 
+APPLET_CFLAGS="$APPLET_CFLAGS $BYZANZ_CFLAGS"
+APPLET_LIBS="$APPLET_LIBS $BYZANZ_LIBS"
+AS_SCRUB_INCLUDE(APPLET_CFLAGS)
+
 dnl #########################
 dnl # Make the output files #
 dnl #########################
@@ -132,9 +142,8 @@ dnl #########################
 AC_OUTPUT(
 Makefile
 gifenc/Makefile
-src/Makefile
+macros/Makefile
 po/Makefile.in
-common/Makefile
-common/m4/Makefile
+src/Makefile
 )
 
