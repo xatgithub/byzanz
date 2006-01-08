@@ -1,3 +1,10 @@
+==================== 0.0.1 ====================
+
+2006-01-08  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
+	* configure.ac:
+	  release version 0.0.1
+
 2006-01-08  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
 	* configure.ac:
