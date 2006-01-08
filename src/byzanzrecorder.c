@@ -23,6 +23,10 @@
 
 #include "byzanzrecorder.h"
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <glib/gstdio.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkx.h>
 #include <X11/extensions/Xdamage.h>
@@ -380,10 +384,7 @@ byzanz_recorder_state_advance (ByzanzRecorder *recorder)
  * byzanz_recorder_new:
  * @filename: filename to record to
  * @window: window to record
- * @x: x coordinate on window
- * @y: y coordinate on window
- * @width: width of recording rectangle
- * @height: height of recoirding rectangle
+ * @area: area of window that should be recorded
  *
  * Creates a new #ByzanzRecorder and initializes all basic variables. 
  * gtk_init() and g_thread_init() must have been called before.
@@ -393,18 +394,36 @@ byzanz_recorder_state_advance (ByzanzRecorder *recorder)
  *          then. Another reason would be a thread creation failure.
  **/
 ByzanzRecorder *
-byzanz_recorder_new (const gchar *filename, GdkWindow *window, gint x, gint y, 
-    gint width, gint height, gboolean loop)
+byzanz_recorder_new (const gchar *filename, GdkWindow *window, GdkRectangle *area,
+    gboolean loop)
+{
+  gint fd;
+
+  g_return_val_if_fail (filename != NULL, NULL);
+  g_return_val_if_fail (area->x >= 0, NULL);
+  g_return_val_if_fail (area->y >= 0, NULL);
+  g_return_val_if_fail (area->width > 0, NULL);
+  g_return_val_if_fail (area->height > 0, NULL);
+  
+  fd = g_open (filename, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+  if (fd < 0)
+    return NULL;
+
+  return byzanz_recorder_new_fd (fd, window, area, loop);
+}
+
+ByzanzRecorder *
+byzanz_recorder_new_fd (gint fd, GdkWindow *window, GdkRectangle *area,
+    gboolean loop)
 {
   ByzanzRecorder *recorder;
   Display *dpy;
   GdkRectangle root_rect;
 
-  g_return_val_if_fail (filename != NULL, NULL);
-  g_return_val_if_fail (x >= 0, NULL);
-  g_return_val_if_fail (y >= 0, NULL);
-  g_return_val_if_fail (width > 0, NULL);
-  g_return_val_if_fail (height > 0, NULL);
+  g_return_val_if_fail (area->x >= 0, NULL);
+  g_return_val_if_fail (area->y >= 0, NULL);
+  g_return_val_if_fail (area->width > 0, NULL);
+  g_return_val_if_fail (area->height > 0, NULL);
   
   dpy = gdk_x11_display_get_xdisplay (gdk_display_get_default ());
   if (dmg_event_base == 0) {
@@ -415,10 +434,7 @@ byzanz_recorder_new (const gchar *filename, GdkWindow *window, gint x, gint y,
   recorder = g_new (ByzanzRecorder, 1);
 
   /* set user properties */
-  recorder->area.x = x;
-  recorder->area.y = y;
-  recorder->area.width = width;
-  recorder->area.height = height;
+  recorder->area = *area;
   recorder->loop = loop;
   recorder->frame_duration = 1000 / 25;
   recorder->max_cache_size = BYZANZ_RECORDER_MAX_CACHE;
@@ -430,7 +446,7 @@ byzanz_recorder_new (const gchar *filename, GdkWindow *window, gint x, gint y,
   gdk_drawable_get_size (recorder->window,
       &root_rect.width, &root_rect.height);
   gdk_rectangle_intersect (&recorder->area, &root_rect, &recorder->area);
-  recorder->gifenc = gifenc_open (recorder->area.width, recorder->area.height, filename);
+  recorder->gifenc = gifenc_open_fd (fd, recorder->area.width, recorder->area.height);
   if (!recorder->gifenc) {
     g_free (recorder);
     return NULL;

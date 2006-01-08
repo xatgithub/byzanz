@@ -28,10 +28,11 @@ typedef struct _ByzanzRecorder ByzanzRecorder;
 
 ByzanzRecorder *	byzanz_recorder_new		(const gchar *		filename,
 							 GdkWindow *		window,
-							 gint			x,
-							 gint			y,
-							 gint		  	width,
-							 gint			height,
+							 GdkRectangle *		area,
+							 gboolean		loop);
+ByzanzRecorder *	byzanz_recorder_new_fd		(gint			fd,
+							 GdkWindow *		window,
+							 GdkRectangle *		area,
 							 gboolean		loop);
 void			byzanz_recorder_prepare		(ByzanzRecorder *	recorder);
 void			byzanz_recorder_start		(ByzanzRecorder *	recorder);

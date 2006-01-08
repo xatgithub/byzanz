@@ -17,7 +17,7 @@ libbyzanz_la_LIBADD = $(BYZANZ_LIBS) $(top_builddir)/gifenc/libgifenc.la
 record_SOURCES = \
 	record.c
 
-record_CFLAGS = $(BYZANZ_CFLAGS) 
+record_CFLAGS = $(BYZANZ_CFLAGS) -I$(top_srcdir)/gifenc
 record_LDADD = $(BYZANZ_LIBS) ./libbyzanz.la
 
 
@@ -25,7 +25,7 @@ byzanz_applet_SOURCES = \
 	byzanzapplet.c \
 	panelstuffer.c
 
-byzanz_applet_CFLAGS = $(APPLET_CFLAGS) 
+byzanz_applet_CFLAGS = $(APPLET_CFLAGS) -I$(top_srcdir)/gifenc
 byzanz_applet_LDADD = $(APPLET_LIBS) ./libbyzanz.la
 
 serverdir       = $(libdir)/bonobo/servers

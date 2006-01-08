@@ -54,9 +54,13 @@ struct _Gifenc {
   GifencPalette *	palette;
 };
 
-Gifenc *	gifenc_open		(guint		width,
-					 guint		height,
-					 const char *	filename);
+Gifenc *	gifenc_open		(const char *	filename,
+					 guint		width,
+					 guint		height);
+Gifenc *	gifenc_open_fd		(int		fd,
+					 guint		width,
+					 guint		height);
+					 
 void		gifenc_set_palette	(Gifenc *	enc,
 					 GifencPalette *palette);
 void		gifenc_set_looping	(Gifenc *	enc);

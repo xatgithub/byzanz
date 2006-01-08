@@ -77,8 +77,7 @@ byzanz_applet_start_recording (AppletPrivate *priv)
   
   window = byzanz_select_method_select (0, &area); 
   if (window)
-    priv->rec = byzanz_recorder_new ("/root/test.gif", window, area.x, area.y, 
-	area.width, area.height, TRUE);
+    priv->rec = byzanz_recorder_new ("/root/test.gif", window, &area, TRUE);
   if (priv->rec) {
     byzanz_recorder_prepare (priv->rec);
     byzanz_recorder_start (priv->rec);

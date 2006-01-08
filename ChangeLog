@@ -1,5 +1,20 @@
 2006-01-08  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
+	* src/Makefile.am:
+	  include gifenc dir, the i18n.h file is there
+	* gifenc/gifenc.c: (gifenc_open), (gifenc_open_fd):
+	* gifenc/gifenc.h:
+	  change gifenc_open function argument order, add gifenc_open_fd
+	* src/byzanzapplet.c: (byzanz_applet_start_recording):
+	* src/byzanzrecorder.c: (byzanz_recorder_new),
+	(byzanz_recorder_new_fd):
+	* src/byzanzrecorder.h:
+	* src/record.c: (main):
+	  make byzanz_recorder_new take a GdkRectangle as area, add
+	  byzanz_recorder_new_fd
+
+2006-01-08  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
 	* configure.ac:
 	  correctly check for XDamage
 	* src/byzanzrecorder.c: (byzanz_recorder_new):

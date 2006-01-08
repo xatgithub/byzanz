@@ -28,20 +28,17 @@ static int duration = 10;
 static int delay = 1;
 static gboolean loop = FALSE;
 static gboolean verbose = FALSE;
-static gint x = 0;
-static gint y = 0;
-static gint width = G_MAXINT / 2;
-static gint height = G_MAXINT / 2;
+static GdkRectangle area = { 0, 0, G_MAXINT / 2, G_MAXINT / 2 };
 
 static GOptionEntry entries[] = 
 {
   { "duration", 'd', 0, G_OPTION_ARG_INT, &duration, N_("Duration of animation"), N_("SECS") },
   { "delay", 0, 0, G_OPTION_ARG_INT, &delay, N_("Delay before start"), N_("SECS") },
   { "loop", 'l', 0, G_OPTION_ARG_NONE, &loop, N_("Let the animation loop"), NULL },
-  { "x", 'x', 0, G_OPTION_ARG_INT, &x, N_("X coordinate of rectangle to record"), N_("PIXEL") },
-  { "y", 'y', 0, G_OPTION_ARG_INT, &y, N_("Y coordinate of rectangle to record"), N_("PIXEL") },
-  { "width", 'w', 0, G_OPTION_ARG_INT, &width, N_("Width of recording rectangle"), N_("PIXEL") },
-  { "height", 'h', 0, G_OPTION_ARG_INT, &height, N_("Height of recording rectangle"), N_("PIXEL") },
+  { "x", 'x', 0, G_OPTION_ARG_INT, &area.x, N_("X coordinate of rectangle to record"), N_("PIXEL") },
+  { "y", 'y', 0, G_OPTION_ARG_INT, &area.y, N_("Y coordinate of rectangle to record"), N_("PIXEL") },
+  { "width", 'w', 0, G_OPTION_ARG_INT, &area.width, N_("Width of recording rectangle"), N_("PIXEL") },
+  { "height", 'h', 0, G_OPTION_ARG_INT, &area.height, N_("Height of recording rectangle"), N_("PIXEL") },
   { "verbose", 'v', 0, G_OPTION_ARG_NONE, &verbose, N_("Be verbose"), NULL },
   { NULL }
 };
@@ -126,7 +123,7 @@ main (int argc, char **argv)
     return 0;
   }
   rec = byzanz_recorder_new (argv[1], gdk_get_default_root_window (),
-      x, y, width, height, loop);
+      &area, loop);
   if (rec == NULL) {
     g_print (_("Could not prepare recording.\n"
 	  "Most likely the Damage extension is not available on the X server "

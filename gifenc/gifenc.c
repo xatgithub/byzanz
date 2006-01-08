@@ -26,6 +26,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <glib/gstdio.h>
 #include "gifenc.h"
 #include "gifenc-readbits.h"
 
@@ -350,7 +351,22 @@ gifenc_write_loop (Gifenc *enc)
 /*** PUBLIC API ***/
 
 Gifenc *
-gifenc_open (guint width, guint height, const char *filename)
+gifenc_open (const char *filename, guint width, guint height)
+{
+  guint fd;
+
+  g_return_val_if_fail (width <= G_MAXUINT16, NULL);
+  g_return_val_if_fail (height <= G_MAXUINT16, NULL);
+
+  fd = g_open (filename, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+  if (fd < 0)
+    return NULL;
+
+  return gifenc_open_fd (fd, width, height);
+}
+
+Gifenc *
+gifenc_open_fd (gint fd, guint width, guint height)
 {
   Gifenc *enc;
 
@@ -358,19 +374,13 @@ gifenc_open (guint width, guint height, const char *filename)
   g_return_val_if_fail (height <= G_MAXUINT16, NULL);
 
   enc = g_new0 (Gifenc, 1);
-  enc->fd = open (filename, O_WRONLY | O_CREAT | O_TRUNC, 0666);
-  if (enc->fd < 0)
-    goto err;
+  enc->fd = fd;
   enc->width = width;
   enc->height = height;
   //g_print ("created new image with size %ux%u\n", width, height);
   gifenc_write_header (enc);
   
   return enc;
-  
-err:
-  g_free (enc);
-  return NULL;
 }
 
 void
