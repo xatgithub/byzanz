@@ -23,6 +23,7 @@
 
 #include <panel-applet.h>
 #include <gtk/gtklabel.h>
+#include <glib/gstdio.h>
 #include "byzanzrecorder.h"
 #include "byzanzselect.h"
 #include "panelstuffer.h"
@@ -36,6 +37,7 @@ typedef struct {
   GtkWidget *		progress;	/* progressbar showing cache effects */
   
   ByzanzRecorder *	rec;		/* the recorder (if recording) */
+  char *		tmp_file;	/* filename that's recorded to */
   GTimeVal		start;		/* time the recording started */
   guint			idle_func;	/* id of idle function that updates state */
 } AppletPrivate;
@@ -76,8 +78,11 @@ byzanz_applet_start_recording (AppletPrivate *priv)
   g_assert (!byzanz_applet_is_recording (priv));
   
   window = byzanz_select_method_select (0, &area); 
-  if (window)
-    priv->rec = byzanz_recorder_new ("/root/test.gif", window, &area, TRUE);
+  if (window) {
+    int fd = g_file_open_tmp ("byzanzXXXXXX", &priv->tmp_file, NULL);
+    if (fd > 0)
+      priv->rec = byzanz_recorder_new_fd (fd, window, &area, TRUE);
+  }
   if (priv->rec) {
     byzanz_recorder_prepare (priv->rec);
     byzanz_recorder_start (priv->rec);
@@ -94,15 +99,32 @@ static void
 byzanz_applet_stop_recording (AppletPrivate *priv)
 {
   gboolean active;
+  GtkWidget *dialog;
   
   g_assert (byzanz_applet_is_recording (priv));
   
   byzanz_recorder_stop (priv->rec);
-  byzanz_recorder_destroy (priv->rec);
-  priv->rec = NULL;
   g_source_remove (priv->idle_func);
   priv->idle_func = 0;
+  gtk_label_set_text (GTK_LABEL (priv->label), _("SAVE"));
+  dialog = gtk_file_chooser_dialog_new (_("Save Recorded File"),
+      NULL, GTK_FILE_CHOOSER_ACTION_SAVE,
+      GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+      GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
+      NULL);
+  gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), g_get_home_dir ());
+  if (GTK_RESPONSE_ACCEPT == gtk_dialog_run (GTK_DIALOG (dialog))) {
+    gchar *filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
+    g_rename (priv->tmp_file, filename);
+    g_free (filename);
+  } else {
+    g_unlink (priv->tmp_file);
+  }
+  gtk_widget_destroy (dialog);
+  g_free (priv->tmp_file);
   gtk_label_set_text (GTK_LABEL (priv->label), _("OFF"));
+  byzanz_recorder_destroy (priv->rec);
+  priv->rec = NULL;
 
   active = (priv->rec != NULL);
   if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (priv->button)) != active)

@@ -1,5 +1,12 @@
 2006-01-08  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
+	* src/byzanzapplet.c: (byzanz_applet_start_recording),
+	(byzanz_applet_stop_recording):
+	  record to temp file and then allow the user to save it to where
+	  he wants
+
+2006-01-08  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
 	* src/Makefile.am:
 	  include gifenc dir, the i18n.h file is there
 	* gifenc/gifenc.c: (gifenc_open), (gifenc_open_fd):
