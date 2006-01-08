@@ -5,8 +5,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Byzanz\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/\n"
-"POT-Creation-Date: 2006-01-05 20:35+0100\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2006-01-08 22:40+0100\n"
 "PO-Revision-Date: 2006-01-04 20:01+0100\n"
 "Last-Translator: Benjamin Otte <otte@gnome.org>\n"
 "Language-Team: German <de@li.org>\n"
@@ -14,67 +14,114 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/record.c:37
+#: ../src/byzanzapplet.c:109
+msgid "SAVE"
+msgstr "ENDE"
+
+#: ../src/byzanzapplet.c:110
+msgid "Save Recorded File"
+msgstr "Speichere Aufgenommene Datei"
+
+#. translators: the label advertises a width of 5 characters
+#: ../src/byzanzapplet.c:125 ../src/byzanzapplet.c:177
+msgid "OFF"
+msgstr "AUS"
+
+#: ../src/byzanzselect.c:219
+msgid "Select area"
+msgstr "Bereich auswählen"
+
+#: ../src/ByzanzApplet.server.in.h:1
+msgid "Byzanz Factory"
+msgstr "Byzanz Fabrik"
+
+#: ../src/ByzanzApplet.server.in.h:2
+msgid "Desktop Recorder"
+msgstr "Desktop Rekorder"
+
+#: ../src/ByzanzApplet.server.in.h:3
+msgid "Record what's happening on your desktop"
+msgstr "Nehmen Sie auf, was auf Ihrem Desktop passiert"
+
+#: ../src/record.c:35
 msgid "Duration of animation"
 msgstr "Dauer der Animation"
 
-#: src/record.c:37 src/record.c:38
+#: ../src/record.c:35 ../src/record.c:36
 msgid "SECS"
 msgstr "SEK"
 
-#: src/record.c:38
+#: ../src/record.c:36
 msgid "Delay before start"
-msgstr ""
+msgstr "Pause vor Start"
 
-#: src/record.c:39
+#: ../src/record.c:37
 msgid "Let the animation loop"
 msgstr "Animation als Schleife"
 
-#: src/record.c:40
+#: ../src/record.c:38
 msgid "X coordinate of rectangle to record"
 msgstr "X Koordinate des aufzunehmenden Rechtecks"
 
-#: src/record.c:40 src/record.c:41 src/record.c:42 src/record.c:43
+#: ../src/record.c:38 ../src/record.c:39 ../src/record.c:40 ../src/record.c:41
 msgid "PIXEL"
 msgstr "PIXEL"
 
-#: src/record.c:41
+#: ../src/record.c:39
 msgid "Y coordinate of rectangle to record"
 msgstr "Y Koordinate des aufzunehmenden Rechtecks"
 
-#: src/record.c:42
+#: ../src/record.c:40
 msgid "Width of recording rectangle"
 msgstr "Weite des aufzunehmenden Rechtecks"
 
-#: src/record.c:43
+#: ../src/record.c:41
 msgid "Height of recording rectangle"
 msgstr "Höhe des aufzunehmenden Rechtecks"
 
-#: src/record.c:50
+#: ../src/record.c:42
+msgid "Be verbose"
+msgstr "Sei redselig"
+
+#: ../src/record.c:64
 #, c-format
 msgid "usage: %s [OPTIONS] filename\n"
 msgstr "Benutzung: %s [OPTIONEN] Dateiname\n"
 
-#: src/record.c:51
+#: ../src/record.c:65
 #, c-format
 msgid "       %s --help\n"
 msgstr "           %s --help\n"
 
-#: src/record.c:96
+#: ../src/record.c:71
+msgid "Recording done. Cleaning up...\n"
+msgstr "Aufnahme beendet. Räume auf...\n"
+
+#: ../src/record.c:81
+#, c-format
+msgid "Recording starts. Will record %d seconds...\n"
+msgstr "Aufnahme beginnt. Sie wird %d Sekunden dauern...\n"
+
+#: ../src/record.c:91
+msgid "Preparing recording. Will start in 1 second...\n"
+msgstr "Bereite Aufnahme vor. Aufnahme beginnt in 1 Sekunde...\n"
+
+#: ../src/record.c:113
 msgid "record your current desktop session"
 msgstr "Nehmen Sie Ihren Desktop auf"
 
-#: src/record.c:100
+#: ../src/record.c:117
 #, c-format
 msgid "Wrong option: %s\n"
 msgstr "Falsche Option: %s\n"
 
-#: src/record.c:110
+#: ../src/record.c:128
 #, c-format
 msgid ""
 "Could not prepare recording.\n"
 "Most likely the Damage extension is not available on the X server or the "
 "file \"%s\" is not writable.\n"
-msgstr "Konnte die Aufnahme nicht vorbereiten.\n"
-"Höchstwahrscheinlich ist die Damage Erweiterung auf dem X Server nicht installiert."
-"Oder die Datei \"%s\" kann nicht geschrieben werden.\n"
+msgstr ""
+"Konnte die Aufnahme nicht vorbereiten.\n"
+"Höchstwahrscheinlich ist die Damage Erweiterung auf dem X Server nicht "
+"installiert.Oder die Datei \"%s\" kann nicht geschrieben werden.\n"

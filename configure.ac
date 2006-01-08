@@ -22,14 +22,12 @@ AC_PROG_INTLTOOL
 
 dnl the gettext stuff needed
 ALL_LINGUAS="de"
-AM_GNU_GETTEXT_VERSION(0.12)
-AM_GNU_GETTEXT([external])
-
 GETTEXT_PACKAGE=$PACKAGE
 AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_DIR(GNOMELOCALEDIR, "${datadir}/locale", [locale directory])
 AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE], "$GETTEXT_PACKAGE",
                    [gettext package name])
+AM_GLIB_GNU_GETTEXT
 
 dnl define LOCALEDIR in config.h
 AS_AC_EXPAND(LOCALEDIR, $datadir/locale)

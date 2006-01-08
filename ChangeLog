@@ -1,5 +1,13 @@
 2006-01-08  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
+	* configure.ac:
+	* po/POTFILES.in:
+	  Fixes so translation works now. make distcheck passes.
+	* po/de.po:
+	  update
+
+2006-01-08  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
 	* src/byzanzapplet.c: (byzanz_applet_start_recording),
 	(byzanz_applet_stop_recording):
 	  record to temp file and then allow the user to save it to where
