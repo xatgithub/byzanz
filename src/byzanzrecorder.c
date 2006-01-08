@@ -378,8 +378,10 @@ byzanz_recorder_state_advance (ByzanzRecorder *recorder)
 
 /**
  * byzanz_recorder_new:
- * @x: x coordinate on default root window
- * @y: y coordinate on default root window
+ * @filename: filename to record to
+ * @window: window to record
+ * @x: x coordinate on window
+ * @y: y coordinate on window
  * @width: width of recording rectangle
  * @height: height of recoirding rectangle
  *
@@ -391,7 +393,7 @@ byzanz_recorder_state_advance (ByzanzRecorder *recorder)
  *          then. Another reason would be a thread creation failure.
  **/
 ByzanzRecorder *
-byzanz_recorder_new (const gchar *filename, gint x, gint y, 
+byzanz_recorder_new (const gchar *filename, GdkWindow *window, gint x, gint y, 
     gint width, gint height, gboolean loop)
 {
   ByzanzRecorder *recorder;
@@ -423,7 +425,7 @@ byzanz_recorder_new (const gchar *filename, gint x, gint y,
   recorder->cache_size = 0;
   
   /* prepare thread first, so we can easily error out on failure */
-  recorder->window = gdk_get_default_root_window ();
+  recorder->window = window;
   root_rect.x = root_rect.y = 0;
   gdk_drawable_get_size (recorder->window,
       &root_rect.width, &root_rect.height);

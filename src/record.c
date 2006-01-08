@@ -125,7 +125,8 @@ main (int argc, char **argv)
     usage ();
     return 0;
   }
-  rec = byzanz_recorder_new (argv[1], x, y, width, height, loop);
+  rec = byzanz_recorder_new (argv[1], gdk_get_default_root_window (),
+      x, y, width, height, loop);
   if (rec == NULL) {
     g_print (_("Could not prepare recording.\n"
 	  "Most likely the Damage extension is not available on the X server "

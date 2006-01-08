@@ -1,3 +1,19 @@
+2006-01-08  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
+	* configure.ac:
+	  correctly check for XDamage
+	* src/byzanzrecorder.c: (byzanz_recorder_new):
+	* src/byzanzrecorder.h:
+	* src/record.c: (main):
+	  adapt byzanz_recorder_new so it takes a GdkWindow to record
+	* src/Makefile.am:
+	* src/byzanzselect.c:
+	* src/byzanzselect.h:
+	  add code for doing selections of desktop areas
+	* src/byzanzapplet.c: (byzanz_applet_start_recording),
+	(byzanz_applet_fill):
+	  use new selection mechanism
+
 2006-01-06  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
 	* src/byzanzrecorder.c: (byzanz_recorder_filter_damage_event):

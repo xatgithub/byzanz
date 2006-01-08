@@ -24,6 +24,7 @@
 #include <panel-applet.h>
 #include <gtk/gtklabel.h>
 #include "byzanzrecorder.h"
+#include "byzanzselect.h"
 #include "panelstuffer.h"
 #include "i18n.h"
 
@@ -69,10 +70,15 @@ static void
 byzanz_applet_start_recording (AppletPrivate *priv)
 {
   gboolean active;
+  GdkWindow *window;
+  GdkRectangle area;
   
   g_assert (!byzanz_applet_is_recording (priv));
   
-  priv->rec = byzanz_recorder_new ("/root/test.gif", 0, 0, G_MAXINT / 2, G_MAXINT / 2, TRUE);
+  window = byzanz_select_method_select (0, &area); 
+  if (window)
+    priv->rec = byzanz_recorder_new ("/root/test.gif", window, area.x, area.y, 
+	area.width, area.height, TRUE);
   if (priv->rec) {
     byzanz_recorder_prepare (priv->rec);
     byzanz_recorder_start (priv->rec);
@@ -147,7 +153,7 @@ byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
   panel_stuffer_add_full (PANEL_STUFFER (stuffer), priv->button, FALSE, TRUE);
 
   /* translators: the label advertises a width of 5 characters */
-  priv->label = gtk_label_new ("i");//_("OFF"));
+  priv->label = gtk_label_new (_("OFF"));
   gtk_label_set_width_chars (GTK_LABEL (priv->label), 5);
   gtk_label_set_justify (GTK_LABEL (priv->label), GTK_JUSTIFY_CENTER);
   panel_stuffer_add_full (PANEL_STUFFER (stuffer), priv->label, FALSE, FALSE);

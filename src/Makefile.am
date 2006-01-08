@@ -1,26 +1,32 @@
+noinst_LTLIBRARIES = libbyzanz.la
 bin_PROGRAMS = record
+libexec_PROGRAMS = byzanz-applet
 
 noinst_HEADERS = \
 	byzanzrecorder.h \
+	byzanzselect.h \
 	panelstuffer.h
+
+libbyzanz_la_SOURCES = \
+	byzanzrecorder.c \
+	byzanzselect.c
+
+libbyzanz_la_CFLAGS = $(BYZANZ_CFLAGS) -I$(top_srcdir)/gifenc
+libbyzanz_la_LIBADD = $(BYZANZ_LIBS) $(top_builddir)/gifenc/libgifenc.la
 		 
 record_SOURCES = \
-	byzanzrecorder.c \
 	record.c
 
-record_CFLAGS = $(BYZANZ_CFLAGS) -I$(top_srcdir)/gifenc
-record_LDADD = $(BYZANZ_LIBS) $(top_builddir)/gifenc/libgifenc.la
+record_CFLAGS = $(BYZANZ_CFLAGS) 
+record_LDADD = $(BYZANZ_LIBS) ./libbyzanz.la
 
-
-libexec_PROGRAMS = byzanz-applet
 
 byzanz_applet_SOURCES = \
 	byzanzapplet.c \
-	byzanzrecorder.c \
 	panelstuffer.c
 
-byzanz_applet_CFLAGS = $(APPLET_CFLAGS) -I$(top_srcdir)/gifenc
-byzanz_applet_LDADD = $(APPLET_LIBS) $(top_builddir)/gifenc/libgifenc.la
+byzanz_applet_CFLAGS = $(APPLET_CFLAGS) 
+byzanz_applet_LDADD = $(APPLET_LIBS) ./libbyzanz.la
 
 serverdir       = $(libdir)/bonobo/servers
 server_in_files = ByzanzApplet.server.in

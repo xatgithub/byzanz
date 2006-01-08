@@ -27,6 +27,7 @@ typedef struct _ByzanzRecorder ByzanzRecorder;
 #define BYZANZ_IS_RECORDER(obj) ((obj) != NULL)
 
 ByzanzRecorder *	byzanz_recorder_new		(const gchar *		filename,
+							 GdkWindow *		window,
 							 gint			x,
 							 gint			y,
 							 gint		  	width,
