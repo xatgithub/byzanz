@@ -1,5 +1,11 @@
 2006-01-10  Benjamin Otte  <otte@gnome.org>
 
+	* src/byzanzrecorder.c: (recorder_job_new):
+	  That should have been g_async_queue_push_unlocked from the start.
+	  Wonder why that didn't matter on PPC.
+
+2006-01-10  Benjamin Otte  <otte@gnome.org>
+
 	* gifenc/quantize.c: (gifenc_octree_write):
 	  fix writeout on little endian.
 	* src/byzanzselect.c: (expose_cb), (button_pressed_cb),

@@ -182,7 +182,7 @@ recorder_job_new (ByzanzRecorder *rec, RecorderJobType type,
 	  /* push job to the front */
 	  g_async_queue_lock (rec->jobs);
 	  count = g_async_queue_length_unlocked (rec->jobs);
-	  g_async_queue_push (rec->jobs, job);
+	  g_async_queue_push_unlocked (rec->jobs, job);
 	  while (count > 0) {
 	    job = g_async_queue_pop_unlocked (rec->jobs);
 	    g_async_queue_push_unlocked (rec->jobs, job);
