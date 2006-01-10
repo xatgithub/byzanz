@@ -176,11 +176,19 @@ recorder_job_new (ByzanzRecorder *rec, RecorderJobType type,
 	if (!rec->use_file_cache &&
 	    rec->cache_size >= rec->max_cache_size / 2) {
 	  RecorderJob *job;
+	  guint count;
 	  rec->use_file_cache = TRUE;
-	  /* FIXME: this should probably be pushed to the front,
-	   * but there's no simple API for it and I'm lazy */
 	  job = recorder_job_new (rec, RECORDER_JOB_USE_FILE_CACHE, NULL, NULL);
+	  /* push job to the front */
+	  g_async_queue_lock (rec->jobs);
+	  count = g_async_queue_length_unlocked (rec->jobs);
 	  g_async_queue_push (rec->jobs, job);
+	  while (count > 0) {
+	    job = g_async_queue_pop_unlocked (rec->jobs);
+	    g_async_queue_push_unlocked (rec->jobs, job);
+	    count--;
+	  }
+	  g_async_queue_unlock (rec->jobs);
 	}
       }
       if (!job->image) {

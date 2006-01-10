@@ -28,6 +28,7 @@
 
 typedef struct {
   GtkWidget *window;
+  GdkImage *root; /* only used without XComposite, NULL otherwise */
   GMainLoop *loop;
   gint x0;
   gint y0;
@@ -48,11 +49,17 @@ expose_cb (GtkWidget *widget, GdkEventExpose *event, gpointer datap)
 #endif
 
   cr = gdk_cairo_create (widget->window);
-  cairo_rectangle (cr, event->area.x, event->area.y, event->area.width, event->area.height);
   cairo_clip (cr);
-  cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
-  cairo_set_source_rgba (cr, 0.0, 0.0, 0.0, 0.0);
-  cairo_paint (cr);
+  if (data->root) {
+    gdk_draw_image (widget->window, widget->style->black_gc, data->root,
+	event->area.x, event->area.y, event->area.x, event->area.y,
+	event->area.width, event->area.height);
+  } else {
+    cairo_rectangle (cr, event->area.x, event->area.y, event->area.width, event->area.height);
+    cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
+    cairo_set_source_rgba (cr, 0.0, 0.0, 0.0, 0.0);
+    cairo_paint (cr);
+  }
   /* FIXME: make colors use theme */
   cairo_set_line_width (cr, 1.0);
 #ifdef TARGET_LINE
@@ -153,7 +160,6 @@ realize_cb (GtkWidget *widget, gpointer datap)
 {
   GdkWindow *window = widget->window;
   GdkCursor *cursor;
-  GdkEventExpose event;
 
   gdk_window_set_events (window, gdk_window_get_events (window) |
       GDK_BUTTON_PRESS_MASK |
@@ -162,12 +168,6 @@ realize_cb (GtkWidget *widget, gpointer datap)
   cursor = gdk_cursor_new (GDK_CROSSHAIR);
   gdk_window_set_cursor (window, cursor);
   gdk_cursor_unref (cursor);
-  /* HACK HACK HACK */
-  event.area.x = event.area.y = 0;
-  gdk_drawable_get_size (GDK_DRAWABLE (widget->window), &event.area.width, &event.area.height);
-  gdk_window_begin_paint_rect (widget->window, &event.area);
-  expose_cb (widget, &event, datap);
-  gdk_window_end_paint (widget->window);
 }
 
 static GdkWindow *
@@ -186,7 +186,14 @@ byzanz_select_area (GdkRectangle *rect)
   data->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   data->loop = g_main_loop_new (NULL, FALSE);
   data->x0 = data->y0 = -1;
-  gtk_widget_set_colormap (data->window, rgba);
+  if (rgba) {
+    gtk_widget_set_colormap (data->window, rgba);
+  } else {
+    GdkWindow *root = gdk_get_default_root_window ();
+    gint width, height;
+    gdk_drawable_get_size (root, &width, &height);
+    data->root = gdk_drawable_get_image (root, 0, 0, width, height);
+  }
   gtk_widget_set_app_paintable (data->window, TRUE);
   gtk_window_fullscreen (GTK_WINDOW (data->window));
   g_signal_connect (data->window, "expose-event", G_CALLBACK (expose_cb), data);
@@ -210,6 +217,8 @@ byzanz_select_area (GdkRectangle *rect)
     g_usleep (G_USEC_PER_SEC);
   }
   g_main_loop_unref (data->loop);
+  if (data->root)
+    g_object_unref (data->root);
   g_free (data);
   return ret;
 }

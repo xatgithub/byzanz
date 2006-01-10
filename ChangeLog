@@ -1,5 +1,14 @@
 2006-01-10  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
+	* src/byzanzrecorder.c: (recorder_job_new):
+	  push the NEED_FILE_CACHE event to the front, so the encoding thread
+	  starts putting stuff into the file NOW
+	* src/byzanzselect.c: (expose_cb), (realize_cb),
+	(byzanz_select_area):
+	  add experimental code for non-composite X
+
+2006-01-10  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
 	* configure.ac:
 	* po/es.po:
 	  add Spanish translation by Antonio Ognio
