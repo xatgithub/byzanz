@@ -1,3 +1,12 @@
+2006-01-10  Benjamin Otte  <otte@gnome.org>
+
+	* src/byzanzrecorder.c: (byzanz_recorder_queue_image),
+	(byzanz_recorder_filter_damage_event), (byzanz_recorder_new_fd),
+	(byzanz_recorder_destroy):
+	  subtract damaged regions the moment we get the event that they're
+	  damaged. Might increase traffic but otherwise we'd lose areas we'd
+	  need to refetch
+
 2006-01-10  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
 	* gifenc/gifenc.h:
