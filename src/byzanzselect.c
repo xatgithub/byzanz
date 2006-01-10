@@ -49,13 +49,13 @@ expose_cb (GtkWidget *widget, GdkEventExpose *event, gpointer datap)
 #endif
 
   cr = gdk_cairo_create (widget->window);
+  cairo_rectangle (cr, event->area.x, event->area.y, event->area.width, event->area.height);
   cairo_clip (cr);
   if (data->root) {
     gdk_draw_image (widget->window, widget->style->black_gc, data->root,
 	event->area.x, event->area.y, event->area.x, event->area.y,
 	event->area.width, event->area.height);
   } else {
-    cairo_rectangle (cr, event->area.x, event->area.y, event->area.width, event->area.height);
     cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
     cairo_set_source_rgba (cr, 0.0, 0.0, 0.0, 0.0);
     cairo_paint (cr);
@@ -77,7 +77,6 @@ expose_cb (GtkWidget *widget, GdkEventExpose *event, gpointer datap)
     y = MIN (data->y0, data->y1);
     w = MAX (data->x0, data->x1) - x;
     h = MAX (data->y0, data->y1) - y;
-    g_print ("%g %g %g %g\n", x, y, w, h);
     cairo_set_source_rgba (cr, 0.0, 0.0, 0.5, 0.2);
     cairo_set_dash (cr, NULL, 0, 0.0);
     cairo_rectangle (cr, x, y, w, h);
@@ -109,7 +108,6 @@ button_pressed_cb (GtkWidget *widget, GdkEventButton *event, gpointer datap)
     byzanz_select_area_stop (data);
     return TRUE;
   }
-  g_print ("clicked %g %g\n", event->x, event->y);
   data->x0 = event->x;
   data->y0 = event->y;
 
@@ -178,10 +176,6 @@ byzanz_select_area (GdkRectangle *rect)
   GdkWindow *ret = NULL;
   
   rgba = gdk_screen_get_rgba_colormap (gdk_screen_get_default ());
-  if (!rgba) {
-    g_warning ("No RGBA colormap available\n");
-    return NULL;
-  }
   data = g_new0 (WindowData, 1);
   data->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   data->loop = g_main_loop_new (NULL, FALSE);

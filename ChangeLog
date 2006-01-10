@@ -1,3 +1,11 @@
+2006-01-10  Benjamin Otte  <otte@gnome.org>
+
+	* gifenc/quantize.c: (gifenc_octree_write):
+	  fix writeout on little endian.
+	* src/byzanzselect.c: (expose_cb), (button_pressed_cb),
+	(byzanz_select_area):
+	  remove leftover g_print stuff and really work without Composite
+
 2006-01-10  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
 	* macros/Makefile.am:

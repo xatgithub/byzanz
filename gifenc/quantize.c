@@ -350,21 +350,16 @@ static void
 gifenc_octree_write (gpointer data, guint byte_order, Gifenc *enc)
 {
   GifencOctree *tree = data;
-#if G_BYTE_ORDER == G_BIG_ENDIAN
-#define WRITE_DATA(data) _gifenc_write (enc, ((void *) (data)) + 1, 3);
-#elif G_BYTE_ORDER == G_LITTLE_ENDIAN
-#define WRITE_DATA(data) _gifenc_write (enc, (void *) (data), 3);
-#endif
+  guint8 buf[3];
+
   if (OCTREE_IS_LEAF (tree)) {
-    if (byte_order == G_BIG_ENDIAN) {
-      WRITE_DATA (&tree->color);
-    } else {
-      guint data[3];
-      data[0] = tree->color & 0xFF;
-      data[1] = (tree->color & 0xFF00) >> 8;
-      data[2] = (tree->color & 0xFF0000) >> 16;
-      WRITE_DATA (data);
+    GIFENC_WRITE_TRIPLET (buf, tree->color);
+    if (byte_order != G_BIG_ENDIAN) {
+      guint8 tmp = buf[2];
+      buf[2] = buf[0];
+      buf[0] = tmp;
     }
+    _gifenc_write (enc, buf, 3);
   } else {
     guint i;
     for (i = 0; i < 8; i++) {
@@ -372,7 +367,6 @@ gifenc_octree_write (gpointer data, guint byte_order, Gifenc *enc)
 	gifenc_octree_write (tree->children[i], byte_order, enc);
     }
   }
-#undef WRITE_DATA
 }
   
 GifencPalette *
