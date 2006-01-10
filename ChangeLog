@@ -1,5 +1,10 @@
 2006-01-10  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
+	* macros/Makefile.am:
+	  this file survived quite a while without being added to CVS
+
+2006-01-10  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
 	* src/byzanzrecorder.c: (recorder_job_new):
 	  push the NEED_FILE_CACHE event to the front, so the encoding thread
 	  starts putting stuff into the file NOW
