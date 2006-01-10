@@ -1,3 +1,26 @@
+2006-01-10  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
+	* configure.ac:
+	  version 0.0.1.1
+	* src/Makefile.am:
+	  rename the binary from "record" to "byzanz-record"
+	* src/byzanzapplet.c: (byzanz_applet_stop_recording):
+	  set default button
+	* src/byzanzrecorder.c: (recorder_job_new),
+	(byzanz_recorder_dither_region), (byzanz_recorder_add_image),
+	(stored_image_remove_file), (stored_image_store),
+	(stored_image_dither_get_data), (stored_image_process),
+	(byzanz_recorder_quantize), (byzanz_recorder_encode_get_data),
+	(byzanz_recorder_encode), (byzanz_recorder_run_encoder),
+	(byzanz_recorder_new_fd):
+	  implement a file cache that gets triggered when too much data has
+	  built up. This is done completely inside the encoding thread.
+	  Byzanz can almost realtime-encode small movie windows now.
+	* src/byzanzselect.c: (expose_cb), (button_pressed_cb),
+	(button_released_cb), (motion_notify_cb):
+	  random fixes so you can really select the whole screen and
+	  the selected area is drawn correctly
+
 ==================== 0.0.1 ====================
 
 2006-01-08  Benjamin Otte  <in7y118@public.uni-hamburg.de>

@@ -70,6 +70,7 @@ expose_cb (GtkWidget *widget, GdkEventExpose *event, gpointer datap)
     y = MIN (data->y0, data->y1);
     w = MAX (data->x0, data->x1) - x;
     h = MAX (data->y0, data->y1) - y;
+    g_print ("%g %g %g %g\n", x, y, w, h);
     cairo_set_source_rgba (cr, 0.0, 0.0, 0.5, 0.2);
     cairo_set_dash (cr, NULL, 0, 0.0);
     cairo_rectangle (cr, x, y, w, h);
@@ -78,6 +79,8 @@ expose_cb (GtkWidget *widget, GdkEventExpose *event, gpointer datap)
     cairo_rectangle (cr, x + 0.5, y + 0.5, w - 1, h - 1);
     cairo_stroke (cr);
   }
+  if (cairo_status (cr) != CAIRO_STATUS_SUCCESS)
+    g_warning ("cairo error: %s\n", cairo_status_to_string (cairo_status (cr)));
   cairo_destroy (cr);
   return FALSE;
 }
@@ -99,6 +102,7 @@ button_pressed_cb (GtkWidget *widget, GdkEventButton *event, gpointer datap)
     byzanz_select_area_stop (data);
     return TRUE;
   }
+  g_print ("clicked %g %g\n", event->x, event->y);
   data->x0 = event->x;
   data->y0 = event->y;
 
@@ -113,8 +117,8 @@ button_released_cb (GtkWidget *widget, GdkEventButton *event, gpointer datap)
   WindowData *data = datap;
   
   if (event->button == 1 && data->x0 >= 0) {
-    data->x1 = event->x;
-    data->y1 = event->y;
+    data->x1 = event->x + 1;
+    data->y1 = event->y + 1;
     byzanz_select_area_stop (data);
   }
   
@@ -129,17 +133,17 @@ motion_notify_cb (GtkWidget *widget, GdkEventMotion *event, gpointer datap)
 #ifdef TARGET_LINE
   gtk_widget_queue_draw (widget);
 #else
-  if (data->x0 > 0) {
+  if (data->x0 >= 0) {
     GdkRectangle rect;
-    rect.x = MIN (data->x0, MIN (data->x1, event->x)) - 1;
-    rect.width = MAX (data->x0, MAX (data->x1, event->x)) - rect.x + 2;
-    rect.y = MIN (data->y0, MIN (data->y1, event->y)) - 1;
-    rect.height = MAX (data->y0, MAX (data->y1, event->y)) - rect.y + 2;
+    rect.x = MIN (data->x0, MIN (data->x1, event->x + 1));
+    rect.width = MAX (data->x0, MAX (data->x1, event->x + 1)) - rect.x;
+    rect.y = MIN (data->y0, MIN (data->y1, event->y + 1));
+    rect.height = MAX (data->y0, MAX (data->y1, event->y + 1)) - rect.y;
     gtk_widget_queue_draw_area (widget, rect.x, rect.y, rect.width, rect.height);
   }
 #endif
-  data->x1 = event->x;
-  data->y1 = event->y;
+  data->x1 = event->x + 1;
+  data->y1 = event->y + 1;
 
   return TRUE;
 }

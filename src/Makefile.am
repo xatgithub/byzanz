@@ -1,5 +1,5 @@
 noinst_LTLIBRARIES = libbyzanz.la
-bin_PROGRAMS = record
+bin_PROGRAMS = byzanz-record
 libexec_PROGRAMS = byzanz-applet
 
 noinst_HEADERS = \
@@ -14,11 +14,11 @@ libbyzanz_la_SOURCES = \
 libbyzanz_la_CFLAGS = $(BYZANZ_CFLAGS) -I$(top_srcdir)/gifenc
 libbyzanz_la_LIBADD = $(BYZANZ_LIBS) $(top_builddir)/gifenc/libgifenc.la
 		 
-record_SOURCES = \
+byzanz_record_SOURCES = \
 	record.c
 
-record_CFLAGS = $(BYZANZ_CFLAGS) -I$(top_srcdir)/gifenc
-record_LDADD = $(BYZANZ_LIBS) ./libbyzanz.la
+byzanz_record_CFLAGS = $(BYZANZ_CFLAGS) -I$(top_srcdir)/gifenc
+byzanz_record_LDADD = $(BYZANZ_LIBS) ./libbyzanz.la
 
 
 byzanz_applet_SOURCES = \

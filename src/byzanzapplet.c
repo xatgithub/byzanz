@@ -113,6 +113,7 @@ byzanz_applet_stop_recording (AppletPrivate *priv)
       GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
       NULL);
   gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), g_get_home_dir ());
+  gtk_dialog_set_default_response (GTK_DIALOG (dialog), GTK_RESPONSE_ACCEPT);
   if (GTK_RESPONSE_ACCEPT == gtk_dialog_run (GTK_DIALOG (dialog))) {
     gchar *filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
     g_rename (priv->tmp_file, filename);

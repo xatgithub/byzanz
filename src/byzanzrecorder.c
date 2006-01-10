@@ -25,6 +25,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #include <fcntl.h>
 #include <glib/gstdio.h>
 #include <gtk/gtk.h>
@@ -33,8 +34,13 @@
 #include "gifenc.h"
 #include "i18n.h"
 
-/* use a maximum of 50 Mbytes for cache images */
+/* use a maximum of 50 Mbytes to cache images */
 #define BYZANZ_RECORDER_MAX_CACHE (50*1024*1024)
+/* as big as possible for 32bit ints without risking overflow
+ * The current values gets overflows with pictures >= 2048x2048 */
+#define BYZANZ_RECORDER_MAX_FILE_CACHE (0xFF000000)
+/* split that into ~ 16 files please */
+#define BYZANZ_RECORDER_MAX_FILE_SIZE (BYZANZ_RECORDER_MAX_FILE_CACHE / 16)
 
 typedef enum {
   RECORDER_STATE_ERROR,
@@ -46,9 +52,15 @@ typedef enum {
 
 typedef enum {
   RECORDER_JOB_QUIT,
+  RECORDER_JOB_QUIT_NOW,
   RECORDER_JOB_QUANTIZE,
   RECORDER_JOB_ENCODE,
+  RECORDER_JOB_USE_FILE_CACHE,
 } RecorderJobType;
+
+typedef gboolean (* DiterRegionGetDataFunc) (ByzanzRecorder *rec, 
+    gpointer data, GdkRectangle *rect,
+    gpointer *data_out, guint *bpp_out, guint *bpl_out);
 
 typedef struct {
   RecorderJobType	type;		/* type of job */
@@ -57,13 +69,24 @@ typedef struct {
   GdkRegion *		region;		/* relevant region of image */
 } RecorderJob;
 
+typedef struct {
+  int			bpp;		/* bpp for image data */
+  GdkRegion *		region;		/* the region this image represents */
+  GTimeVal		tv;		/* timestamp of image */
+  int			fd;		/* file the image is stored in */
+  char *		filename;	/* only set if last image in file */
+  off_t			offset;		/* offset at which the data starts */
+} StoredImage;
+
 struct _ByzanzRecorder {
   /*< private >*/
   /* set by user - accessed ALSO by thread */
   GdkRectangle		area;		/* area of the screen we record */
   gboolean		loop;		/* wether the resulting gif should loop */
   guint			frame_duration;	/* minimum frame duration in msecs */
-  gint			max_cache_size;	/* maximum allowed size of cache */
+  guint			max_cache_size;	/* maximum allowed size of cache */
+  gint			max_file_size;	/* maximum allowed size of one cache file - ATOMIC */
+  gint			max_file_cache;	/* maximum allowed size of all cache files together - ATOMIC */
   /* state */
   gint			cache_size;	/* current cache size */
   RecorderState		state;		/* state the recorder is in */
@@ -74,13 +97,21 @@ struct _ByzanzRecorder {
   XserverRegion		tmp_region;   	/* temporary variable for event handling */
   GdkRegion *		region;		/* the region we need to record next time */
   GThread *		encoder;	/* encoding thread */
+  gint			use_file_cache :1; /* set whenever we signal using the file cache */
   /* accessed ALSO by thread */
   GAsyncQueue *		jobs;		/* jobs the encoding thread has to do */
   GAsyncQueue *		finished;	/* store for leftover images */
+  gint			cur_file_cache;	/* current amount of data cached in files */
   /* accessed ONLY by thread */
   Gifenc *		gifenc;		/* encoder used to encode the image */
+  GTimeVal		current;	/* timestamp of last encoded picture */
   guint8 *		data;		/* data used to hold palettized data */
   GdkRectangle		relevant_data;	/* relevant area to encode */
+  GQueue *		file_cache;	/* queue of sorted images */
+  int			cur_cache_fd;	/* current cache file */
+  char *		cur_cache_file;	/* name of current cache file */
+  guint8 *		file_cache_data;	/* data read in from file */
+  guint			file_cache_data_size;	/* data read in from file */
 };
 
 /* XDamageQueryExtension returns these */
@@ -129,7 +160,8 @@ recorder_job_new (ByzanzRecorder *rec, RecorderJobType type,
   
   g_assert (job->region == NULL);
   
-  job->tv = *tv;
+  if (tv)
+    job->tv = *tv;
   job->type = type;
   job->region = region;
   if (region != NULL) {
@@ -141,6 +173,15 @@ recorder_job_new (ByzanzRecorder *rec, RecorderJobType type,
 	    gdk_drawable_get_visual (rec->window),
 	    rec->area.width, rec->area.height);
 	rec->cache_size += compute_image_size (job->image);
+	if (!rec->use_file_cache &&
+	    rec->cache_size >= rec->max_cache_size / 2) {
+	  RecorderJob *job;
+	  rec->use_file_cache = TRUE;
+	  /* FIXME: this should probably be pushed to the front,
+	   * but there's no simple API for it and I'm lazy */
+	  job = recorder_job_new (rec, RECORDER_JOB_USE_FILE_CACHE, NULL, NULL);
+	  g_async_queue_push (rec->jobs, job);
+	}
       }
       if (!job->image) {
 	g_free (job);
@@ -161,6 +202,202 @@ recorder_job_new (ByzanzRecorder *rec, RecorderJobType type,
 
 /*** THREAD FUNCTIONS ***/
 
+static gboolean
+byzanz_recorder_dither_region (ByzanzRecorder *rec, GdkRegion *region,
+    DiterRegionGetDataFunc func, gpointer data)
+{
+  GdkRectangle *rects;
+  GdkRegion *rev;
+  int i, line, nrects;
+  guint8 transparent;
+  guint bpp, bpl;
+  gpointer mem;
+  
+  transparent = gifenc_palette_get_alpha_index (rec->gifenc->palette);
+  gdk_region_get_clipbox (region, &rec->relevant_data);
+  /* dither changed pixels */
+  gdk_region_get_rectangles (region, &rects, &nrects);
+  for (i = 0; i < nrects; i++) {
+    if (!(*func) (rec, data, rects + i, &mem, &bpp, &bpl))
+      return FALSE;
+    gifenc_dither_rgb_into (rec->data + rec->area.width * rects[i].y + rects[i].x, 
+	rec->area.width, rec->gifenc->palette,
+	mem, rects[i].width, rects[i].height, bpp, bpl);
+  }
+  g_free (rects);
+  /* make non-relevant pixels transparent */
+  rev = gdk_region_rectangle (&rec->relevant_data);
+  gdk_region_subtract (rev, region);
+  gdk_region_get_rectangles (rev, &rects, &nrects);
+  for (i = 0; i < nrects; i++) {
+    for (line = 0; line < rects[i].height; line++) {
+      memset (rec->data + rects[i].x + rec->area.width * (rects[i].y + line), 
+	  transparent, rects[i].width);
+    }
+  }
+  g_free (rects);
+  gdk_region_destroy (rev);
+  return TRUE;
+}
+
+static void
+byzanz_recorder_add_image (ByzanzRecorder *rec, const GTimeVal *tv)
+{
+  glong msecs;
+  if (rec->data == NULL) {
+    rec->data = g_malloc (rec->area.width * rec->area.height);
+    rec->current = *tv;
+    return;
+  }
+  msecs = (tv->tv_sec - rec->current.tv_sec) * 1000 + 
+	  (tv->tv_usec - rec->current.tv_usec) / 1000 + 5;
+  g_assert (msecs > 0);
+  gifenc_add_image (rec->gifenc, rec->relevant_data.x, rec->relevant_data.y, 
+      rec->relevant_data.width, rec->relevant_data.height, msecs,
+      rec->data + rec->area.width * rec->relevant_data.y + rec->relevant_data.x,
+      rec->area.width);
+  rec->current = *tv;
+}
+
+static void
+stored_image_remove_file (ByzanzRecorder *rec, int fd, char *filename)
+{
+  guint size;
+
+  size = (guint) lseek (fd, 0, SEEK_END);
+  g_atomic_int_add (&rec->cur_file_cache, - (gint) size);
+  close (fd);
+  g_unlink (filename);
+  g_free (filename);
+}
+
+/* returns FALSE if no more images can be cached */
+static gboolean
+stored_image_store (ByzanzRecorder *rec, GdkImage *image, GdkRegion *region, const GTimeVal *tv)
+{
+  off_t offset;
+  StoredImage *store;
+  GdkRectangle *rects;
+  gint i, line, nrects;
+  gboolean ret = FALSE;
+  guint cache, val;
+  
+  val = g_atomic_int_get (&rec->max_file_cache);
+  cache = g_atomic_int_get (&rec->cur_file_cache);
+  if (cache >= val) {
+    g_print ("cache full %u/%u bytes\n", cache, val);
+    return FALSE;
+  }
+
+  if (rec->cur_cache_fd < 0) {
+    rec->cur_cache_fd =	g_file_open_tmp ("byzanzcacheXXXXXX", &rec->cur_cache_file, NULL);
+    if (rec->cur_cache_fd < 0) {
+      g_print ("no temp file: %d\n", rec->cur_cache_fd);
+      return FALSE;
+    }
+    offset = 0;
+  } else {
+    offset = lseek (rec->cur_cache_fd, 0, SEEK_END);
+  }
+  store = g_new (StoredImage, 1);
+  store->bpp = image->bpp;
+  store->region = region;
+  store->tv = *tv;
+  store->fd = rec->cur_cache_fd;
+  store->filename = NULL;
+  store->offset = offset;
+  gdk_region_get_rectangles (store->region, &rects, &nrects);
+  for (i = 0; i < nrects; i++) {
+    gpointer mem;
+    mem = image->mem + rects[i].x * image->bpp + image->bpl * rects[i].y +
+	+ (image->bpp == 4 && image->byte_order == GDK_MSB_FIRST ? 1 : 0);
+    for (line = 0; line < rects[i].height; line++) {
+      int amount = rects[i].width * image->bpp;
+      /* This can be made smarter, like retrying and catching EINTR and stuff */
+      if (write (store->fd, mem, amount) != amount) {
+	g_print ("couldn't write %d bytes\n", amount);	
+	goto out_err;
+      }
+      mem += image->bpl;
+    }
+  }
+
+  g_queue_push_tail (rec->file_cache, store);
+  ret = TRUE;
+out_err:
+  offset = lseek (store->fd, 0, SEEK_CUR);
+  val = g_atomic_int_get (&rec->max_file_size);
+  if (offset >= val) {
+    rec->cur_cache_fd = -1;
+    if (!ret)
+      store = g_queue_peek_tail (rec->file_cache);
+    if (store->filename)
+      stored_image_remove_file (rec, rec->cur_cache_fd, rec->cur_cache_file);
+    else
+      store->filename = rec->cur_cache_file;
+    rec->cur_cache_file = NULL;
+  }
+  //g_print ("current file is stored from %u to %u\n", (guint) store->offset, (guint) offset);
+  offset -= store->offset;
+  g_atomic_int_add (&rec->cur_file_cache, offset);
+  //g_print ("cache size is now %u\n", g_atomic_int_get (&rec->cur_file_cache));
+
+  return ret;
+}
+
+static gboolean
+stored_image_dither_get_data (ByzanzRecorder *rec, gpointer data, GdkRectangle *rect,
+    gpointer *data_out, guint *bpp_out, guint *bpl_out)
+{
+  StoredImage *store = data;
+  guint required_size = rect->width * rect->height * store->bpp;
+  guint8 *ptr;
+
+  if (required_size > rec->file_cache_data_size) {
+    rec->file_cache_data = g_realloc (rec->file_cache_data, required_size);
+    rec->file_cache_data_size = required_size;
+  }
+
+  ptr = rec->file_cache_data;
+  while (required_size > 0) {
+    int ret = read (store->fd, ptr, required_size);
+    if (ret < 0)
+      return FALSE;
+    ptr += ret;
+    required_size -= ret;
+  }
+  *bpp_out = store->bpp;
+  *bpl_out = store->bpp * rect->width;
+  *data_out = rec->file_cache_data;
+  return TRUE;
+}
+
+static gboolean
+stored_image_process (ByzanzRecorder *rec)
+{
+  StoredImage *store;
+  gboolean ret;
+
+  store = g_queue_pop_head (rec->file_cache);
+  if (!store)
+    return FALSE;
+
+  /* FIXME: can that assertion trigger? */
+  if (store->offset != lseek (store->fd, store->offset, SEEK_SET)) {
+    g_print ("Couldn't seek to %d\n", (int) store->offset);
+    g_assert_not_reached ();
+  }
+  byzanz_recorder_add_image (rec, &store->tv);
+  lseek (store->fd, store->offset, SEEK_SET);
+  ret = byzanz_recorder_dither_region (rec, store->region, stored_image_dither_get_data, store);
+
+  if (store->filename)
+    stored_image_remove_file (rec, store->fd, store->filename);
+  gdk_region_destroy (store->region);
+  g_free (store);
+  return ret;
+}
+
 static void
 byzanz_recorder_quantize (ByzanzRecorder *rec, GdkImage *image)
 {
@@ -177,56 +414,27 @@ byzanz_recorder_quantize (ByzanzRecorder *rec, GdkImage *image)
     gifenc_set_looping (rec->gifenc);
 }
 
-static void
-byzanz_recorder_encode (ByzanzRecorder *rec, GdkImage *image, GdkRegion *region)
+static gboolean 
+byzanz_recorder_encode_get_data (ByzanzRecorder *rec, gpointer data, GdkRectangle *rect,
+    gpointer *data_out, guint *bpp_out, guint *bpl_out)
 {
-  GdkRectangle *rects;
-  GdkRegion *rev;
-  int i, line, nrects;
-  guint8 transparent;
+  GdkImage *image = data;
 
-  g_assert (!gdk_region_empty (region));
-  g_return_if_fail (image->bpp == 3 || image->bpp == 4);
-
-  transparent = gifenc_palette_get_alpha_index (rec->gifenc->palette);
-  gdk_region_get_clipbox (region, &rec->relevant_data);
-  /* dither changed pixels */
-  gdk_region_get_rectangles (region, &rects, &nrects);
-  for (i = 0; i < nrects; i++) {
-    gifenc_dither_rgb_into (rec->data + rec->area.width * rects[i].y + rects[i].x, 
-	rec->area.width, rec->gifenc->palette,
-	image->mem + rects[i].y * image->bpl + rects[i].x * image->bpp + 
-	    (image->bpp == 4 && image->byte_order == GDK_MSB_FIRST ? 1 : 0),
-	rects[i].width, rects[i].height, image->bpp, image->bpl);
-  }
-  g_free (rects);
-  /* make non-relevant pixels transparent */
-  rev = gdk_region_rectangle (&rec->relevant_data);
-  gdk_region_subtract (rev, region);
-  gdk_region_get_rectangles (rev, &rects, &nrects);
-  for (i = 0; i < nrects; i++) {
-    for (line = 0; line < rects[i].height; line++) {
-      memset (rec->data + rects[i].x + rec->area.width * (rects[i].y + line), 
-	  transparent, rects[i].width);
-    }
-  }
-  g_free (rects);
-  gdk_region_destroy (rev);
+  *data_out = image->mem + rect->y * image->bpl + rect->x * image->bpp + 
+	    (image->bpp == 4 && image->byte_order == GDK_MSB_FIRST ? 1 : 0);
+  *bpp_out = image->bpp;
+  *bpl_out = image->bpl;
+  return TRUE;
 }
 
 static void
-byzanz_recorder_add_image (ByzanzRecorder *rec, const GTimeVal *now, 
-    const GTimeVal *last)
+byzanz_recorder_encode (ByzanzRecorder *rec, GdkImage *image, GdkRegion *region)
 {
-  if (rec->data == NULL) {
-    rec->data = g_malloc (rec->area.width * rec->area.height);
-    return;
-  }
-  gifenc_add_image (rec->gifenc, rec->relevant_data.x, rec->relevant_data.y, 
-      rec->relevant_data.width, rec->relevant_data.height, 
-      (now->tv_sec - last->tv_sec) * 1000 + (now->tv_usec - last->tv_usec) / 1000 + 5, 
-      rec->data + rec->area.width * rec->relevant_data.y + rec->relevant_data.x,
-      rec->area.width);
+  g_assert (!gdk_region_empty (region));
+  g_return_if_fail (image->bpp == 3 || image->bpp == 4);
+  
+  byzanz_recorder_dither_region (rec, region, byzanz_recorder_encode_get_data,
+      image);
 }
 
 static gpointer
@@ -234,27 +442,63 @@ byzanz_recorder_run_encoder (gpointer data)
 {
   ByzanzRecorder *rec = data;
   RecorderJob *job;
-  GTimeVal current;
+  GTimeVal quit_tv;
+  gboolean quit = FALSE;
+#define USING_FILE_CACHE(rec) ((rec)->file_cache_data_size > 0)
+
+  rec->cur_cache_fd = -1;
+  rec->file_cache = g_queue_new ();
 
   while (TRUE) {
-    job = g_async_queue_pop (rec->jobs);
+    if (USING_FILE_CACHE (rec)) {
+loop:
+      job = g_async_queue_try_pop (rec->jobs);
+      if (!job) {
+	if (!stored_image_process (rec)) {
+	  if (quit)
+	    break;
+	  goto loop;
+	}
+	if (quit)
+	  goto loop;
+	job = g_async_queue_pop (rec->jobs);
+      }
+    } else {
+      if (quit)
+	break;
+      job = g_async_queue_pop (rec->jobs);
+    }
     switch (job->type) {
       case RECORDER_JOB_QUANTIZE:
 	byzanz_recorder_quantize (rec, job->image);
 	break;
       case RECORDER_JOB_ENCODE:
-	byzanz_recorder_add_image (rec, &job->tv, &current);
-	byzanz_recorder_encode (rec, job->image, job->region);
-	current = job->tv;
+	if (USING_FILE_CACHE (rec)) {
+	  while (!stored_image_store (rec, job->image, job->region, &job->tv)) {
+	    if (!stored_image_process (rec))
+	      /* fix this (bad error handling here) */
+	      g_assert_not_reached ();
+	  }
+	  job->region = NULL;
+	} else {
+	  byzanz_recorder_add_image (rec, &job->tv);
+	  byzanz_recorder_encode (rec, job->image, job->region);
+	}
+	break;
+      case RECORDER_JOB_USE_FILE_CACHE:
+	if (!USING_FILE_CACHE (rec)) {
+	  rec->file_cache_data_size = 4 * 64 * 64;
+	  rec->file_cache_data = g_malloc (rec->file_cache_data_size);
+	}
+	break;
+      case RECORDER_JOB_QUIT_NOW:
+	/* clean up cache files and exit */
+	g_assert_not_reached ();
 	break;
       case RECORDER_JOB_QUIT:
-	byzanz_recorder_add_image (rec, &job->tv, &current);
-	recorder_job_free (rec, job);
-	while ((job = g_async_queue_try_pop (rec->finished)) != NULL)
-	  recorder_job_free (rec, job);
-	g_free (rec->data);
-	rec->data = NULL;
-	return rec;
+	quit_tv = job->tv;
+	quit = TRUE;
+	break;
       default:
 	g_assert_not_reached ();
 	return rec;
@@ -266,8 +510,24 @@ byzanz_recorder_run_encoder (gpointer data)
     g_async_queue_push (rec->finished, job);
   }
   
-  g_assert_not_reached ();
+  byzanz_recorder_add_image (rec, &quit_tv);
+
+  g_free (rec->data);
+  rec->data = NULL;
+  if (USING_FILE_CACHE (rec)) {
+    if (rec->cur_cache_fd) {
+      stored_image_remove_file (rec, rec->cur_cache_fd, rec->cur_cache_file);
+      rec->cur_cache_file = NULL;
+      rec->cur_cache_fd = -1;
+    }
+    g_free (rec->file_cache_data);
+    rec->file_cache_data = NULL;
+    rec->file_cache_data_size = 0;
+  }
+  g_queue_free (rec->file_cache);
+
   return rec;
+#undef USING_FILE_CACHE
 }
 
 /*** MAIN FUNCTIONS ***/
@@ -431,14 +691,15 @@ byzanz_recorder_new_fd (gint fd, GdkWindow *window, GdkRectangle *area,
       return NULL;
   }
   
-  recorder = g_new (ByzanzRecorder, 1);
+  recorder = g_new0 (ByzanzRecorder, 1);
 
   /* set user properties */
   recorder->area = *area;
   recorder->loop = loop;
   recorder->frame_duration = 1000 / 25;
   recorder->max_cache_size = BYZANZ_RECORDER_MAX_CACHE;
-  recorder->cache_size = 0;
+  recorder->max_file_size = BYZANZ_RECORDER_MAX_FILE_SIZE;
+  recorder->max_file_cache = BYZANZ_RECORDER_MAX_FILE_CACHE;
   
   /* prepare thread first, so we can easily error out on failure */
   recorder->window = window;
@@ -463,13 +724,8 @@ byzanz_recorder_new_fd (gint fd, GdkWindow *window, GdkRectangle *area,
   }
 
   /* do setup work */
-  recorder->region = gdk_region_new ();
   recorder->damaged = XFixesCreateRegion (dpy, 0, 0);
   recorder->tmp_region = XFixesCreateRegion (dpy, 0, 0);
-  recorder->timeout = 0;
-  recorder->region = NULL;
-  
-  recorder->data = NULL;
 
   recorder->state = RECORDER_STATE_CREATED;
   return recorder;
