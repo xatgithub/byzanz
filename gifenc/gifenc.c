@@ -116,7 +116,7 @@ gifenc_write_header (Gifenc *enc)
 static void
 gifenc_write_lsd (Gifenc *enc)
 {
-  g_assert (enc->palette->num_colors >= 2);
+  g_assert (gifenc_palette_get_num_colors (enc->palette) >= 2);
 
   gifenc_write_uint16 (enc, enc->width);
   gifenc_write_uint16 (enc, enc->height);
@@ -124,7 +124,7 @@ gifenc_write_lsd (Gifenc *enc)
   gifenc_write_bits (enc, 0x7, 3); /* color resolution */
   gifenc_write_bits (enc, 0, 1); /* sort flag */
   gifenc_write_bits (enc, enc->palette ? 
-      log2n (enc->palette->num_colors - 1) - 1 : 0, 3); /* number of palette */
+      log2n (gifenc_palette_get_num_colors (enc->palette) - 1) - 1 : 0, 3); /* number of colors */
   gifenc_write_byte (enc, 0); /* background color */
   gifenc_write_byte (enc, 0); /* pixel aspect ratio */
 }
@@ -135,7 +135,7 @@ gifenc_write_color_table (Gifenc *enc, GifencPalette *palette)
   guint i, table_size;
   if (!palette)
     return;
-  i = palette->num_colors + (palette->alpha ? 1 : 0);
+  i = gifenc_palette_get_num_colors (palette);
   table_size = 1 << log2n (i - 1);
   palette->write (palette->data, palette->byte_order, enc);
   if (palette->alpha)
@@ -168,7 +168,7 @@ gifenc_write_image_description (Gifenc *enc, const GifencImage *image)
   gifenc_write_bits (enc, 0, 1); /* sort flag */
   gifenc_write_bits (enc, 0, 2); /* reserved */
   gifenc_write_bits (enc, image->palette ? 
-      log2n (image->palette->num_colors - 1) - 1 : 0, 3); /* number of palette */
+      log2n (gifenc_palette_get_num_colors (image->palette) - 1) - 1 : 0, 3); /* number of palette */
   gifenc_write_color_table (enc, image->palette);
 }
 
@@ -243,7 +243,8 @@ gifenc_write_image_data (Gifenc *enc, const GifencImage *image)
   } hash[HASH_SIZE];
   EncodeBuffer buffer = { { 0, }, 0, 0, 0 };
   
-  codesize = log2n ((image->palette ? image->palette->num_colors : enc->palette->num_colors) - 1);
+  codesize = log2n (gifenc_palette_get_num_colors (image->palette ? 
+	image->palette : enc->palette) - 1);
   codesize = MAX (codesize, 2);
   gifenc_write_byte (enc, codesize);
   //g_print ("codesize with %u palette is %u\n", enc->n_palette, codesize);

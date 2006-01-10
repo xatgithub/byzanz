@@ -1,3 +1,13 @@
+2006-01-10  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
+	* gifenc/gifenc.h:
+	* gifenc/quantize.c: (gifenc_palette_get_num_colors):
+	  add function to get number of colors
+	* gifenc/gifenc.c: (gifenc_write_lsd), (gifenc_write_color_table),
+	(gifenc_write_image_description), (gifenc_write_image_data):
+	  use gifenc_palette_get_num_colors instead of (often wrongly)
+	  calculating the number of colors itself
+
 2006-01-10  Benjamin Otte  <otte@gnome.org>
 
 	* src/byzanzrecorder.c: (recorder_job_new):

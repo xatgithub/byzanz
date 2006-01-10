@@ -49,6 +49,14 @@ gifenc_palette_get_alpha_index (const GifencPalette *palette)
   return palette->num_colors;
 }
 
+guint
+gifenc_palette_get_num_colors (const GifencPalette *palette)
+{
+  g_return_val_if_fail (palette != NULL, 0);
+
+  return palette->num_colors + (palette->alpha ? 1 : 0);
+}
+
 /*** SIMPLE ***/
 
 static guint

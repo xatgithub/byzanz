@@ -105,6 +105,9 @@ GifencPalette *	gifenc_quantize_image	(const guint8 *	data,
 					 guint		max_colors);
 guint		gifenc_palette_get_alpha_index
 					(const GifencPalette *palette);
+guint		gifenc_palette_get_num_colors
+					(const GifencPalette *palette);
+
 					
 
 #endif /* __HAVE_GIFENC_H__ */
