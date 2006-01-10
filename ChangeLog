@@ -1,6 +1,12 @@
 2006-01-10  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
 	* configure.ac:
+	* po/es.po:
+	  add Spanish translation by Antonio Ognio
+
+2006-01-10  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
+	* configure.ac:
 	  version 0.0.1.1
 	* src/Makefile.am:
 	  rename the binary from "record" to "byzanz-record"
