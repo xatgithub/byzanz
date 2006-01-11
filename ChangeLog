@@ -1,5 +1,13 @@
 2006-01-11  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
+	* src/byzanzrecorder.c: (recorder_job_new),
+	(byzanz_recorder_filter_damage_event), (byzanz_recorder_new_fd),
+	(byzanz_recorder_destroy):
+	  reordering of XDamage interfacing to only subtract damage when
+	  reading out the window contents
+
+2006-01-11  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
 	* gifenc/quantize.c: (gifenc_octree_add_one),
 	(gifenc_octree_add_color), (gifenc_quantize_image):
 	  change quantization to have evenly spaced base colors

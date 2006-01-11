@@ -94,6 +94,7 @@ struct _ByzanzRecorder {
   GdkWindow *		window;		/* root window we record */
   Damage		damage;		/* the Damage object */
   XserverRegion		damaged;	/* the damaged region */
+  XserverRegion		tmp_region;	/* temporary region to construct the damaged region */
   GdkRegion *		region;		/* the region we need to record next time */
   GThread *		encoder;	/* encoding thread */
   gint			use_file_cache :1; /* set whenever we signal using the file cache */
@@ -197,12 +198,19 @@ recorder_job_new (ByzanzRecorder *rec, RecorderJobType type,
       }
     } 
     gdk_region_get_rectangles (region, &rects, &nrects);
+    if (type == RECORDER_JOB_ENCODE) {
+      Display *dpy = gdk_x11_drawable_get_xdisplay (rec->window);
+      XDamageSubtract (dpy, rec->damage, rec->damaged, None);
+      XFixesSubtractRegion (dpy, rec->damaged, rec->damaged, rec->damaged);
+    }
     for (i = 0; i < nrects; i++) {
+      g_print ("%d %d %d %d\n", rects[i].x, rects[i].y, rects[i].width, rects[i].height);
       gdk_drawable_copy_to_image (rec->window, job->image, 
 	  rects[i].x, rects[i].y, 
 	  rects[i].x - rec->area.x, rects[i].y - rec->area.y, 
 	  rects[i].width, rects[i].height);
     }
+    g_print ("done\n");
     gdk_region_offset (region, -rec->area.x, -rec->area.y);
   }
   return job;
@@ -611,8 +619,10 @@ byzanz_recorder_filter_damage_event (GdkXEvent *xevent, GdkEvent *event, gpointe
   rect.y = dev->area.y;
   rect.width = dev->area.width;
   rect.height = dev->area.height;
-  XFixesSetRegion (dpy, rec->damaged, &dev->area, 1);
-  XDamageSubtract (dpy, rec->damage, rec->damaged, None);
+  XFixesSetRegion (dpy, rec->tmp_region, &dev->area, 1);
+  XFixesUnionRegion (dpy, rec->damaged, rec->damaged, rec->tmp_region);
+  //XDamageSubtract (dpy, rec->damage, rec->damaged, None);
+  g_print ("-> %d %d %d %d\n", rect.x, rect.y, rect.width, rect.height);
   if (gdk_rectangle_intersect (&rect, &rec->area, &rect)) {
     gdk_region_union_with_rect (rec->region, &rect);
     if (rec->timeout == 0) 
@@ -728,6 +738,7 @@ byzanz_recorder_new_fd (gint fd, GdkWindow *window, GdkRectangle *area,
 
   /* do setup work */
   recorder->damaged = XFixesCreateRegion (dpy, 0, 0);
+  recorder->tmp_region = XFixesCreateRegion (dpy, 0, 0);
 
   recorder->state = RECORDER_STATE_CREATED;
   return recorder;
@@ -814,6 +825,7 @@ byzanz_recorder_destroy (ByzanzRecorder *rec)
     recorder_job_free (rec, job);
   dpy = gdk_x11_display_get_xdisplay (gdk_display_get_default ());
   XFixesDestroyRegion (dpy, rec->damaged);
+  XFixesDestroyRegion (dpy, rec->tmp_region);
   XDamageDestroy (dpy, rec->damage);
   gdk_region_destroy (rec->region);
 
