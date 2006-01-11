@@ -1,5 +1,20 @@
 2006-01-11  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
+	* gifenc/gifenc.c: (gifenc_dither_pixbuf), (gifenc_dither_rgb),
+	(gifenc_dither_rgb_with_full_image):
+	* gifenc/gifenc.h:
+	  - add gifenc_dither_rgb_with_full_image
+	  - remove gifenc_dither_rgb
+	  - rename gifenc_dither_rgb_into to gifenc_dither_rgb
+	* src/byzanzrecorder.c: (recorder_job_new),
+	(byzanz_recorder_dither_region), (byzanz_recorder_add_image),
+	(stored_image_process), (byzanz_recorder_run_encoder),
+	(byzanz_recorder_filter_damage_event):
+	  use gifenc_dither_rgb_with_full_image in the hope that this
+	  produces smaller files
+
+2006-01-11  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
 	* src/byzanzrecorder.c: (recorder_job_new),
 	(byzanz_recorder_filter_damage_event), (byzanz_recorder_new_fd),
 	(byzanz_recorder_destroy):

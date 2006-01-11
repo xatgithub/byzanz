@@ -107,6 +107,7 @@ struct _ByzanzRecorder {
   Gifenc *		gifenc;		/* encoder used to encode the image */
   GTimeVal		current;	/* timestamp of last encoded picture */
   guint8 *		data;		/* data used to hold palettized data */
+  guint8 *		data_full;    	/* palettized data of full image to compare additions to */
   GdkRectangle		relevant_data;	/* relevant area to encode */
   GQueue *		file_cache;	/* queue of sorted images */
   int			cur_cache_fd;	/* current cache file */
@@ -204,13 +205,13 @@ recorder_job_new (ByzanzRecorder *rec, RecorderJobType type,
       XFixesSubtractRegion (dpy, rec->damaged, rec->damaged, rec->damaged);
     }
     for (i = 0; i < nrects; i++) {
-      g_print ("%d %d %d %d\n", rects[i].x, rects[i].y, rects[i].width, rects[i].height);
+      //g_print ("%d %d %d %d\n", rects[i].x, rects[i].y, rects[i].width, rects[i].height);
       gdk_drawable_copy_to_image (rec->window, job->image, 
 	  rects[i].x, rects[i].y, 
 	  rects[i].x - rec->area.x, rects[i].y - rec->area.y, 
 	  rects[i].width, rects[i].height);
     }
-    g_print ("done\n");
+    //g_print ("done\n");
     gdk_region_offset (region, -rec->area.x, -rec->area.y);
   }
   return job;
@@ -228,19 +229,31 @@ byzanz_recorder_dither_region (ByzanzRecorder *rec, GdkRegion *region,
   guint8 transparent;
   guint bpp, bpl;
   gpointer mem;
+  GdkRectangle area;
   
   transparent = gifenc_palette_get_alpha_index (rec->gifenc->palette);
   gdk_region_get_clipbox (region, &rec->relevant_data);
   /* dither changed pixels */
   gdk_region_get_rectangles (region, &rects, &nrects);
+  rev = gdk_region_new ();
   for (i = 0; i < nrects; i++) {
     if (!(*func) (rec, data, rects + i, &mem, &bpp, &bpl))
       return FALSE;
-    gifenc_dither_rgb_into (rec->data + rec->area.width * rects[i].y + rects[i].x, 
-	rec->area.width, rec->gifenc->palette,
-	mem, rects[i].width, rects[i].height, bpp, bpl);
+    if (gifenc_dither_rgb_with_full_image (
+	rec->data + rec->area.width * rects[i].y + rects[i].x, rec->area.width, 
+	rec->data_full + rec->area.width * rects[i].y + rects[i].x, rec->area.width, 
+	rec->gifenc->palette, mem, rects[i].width, rects[i].height, bpp, bpl, &area)) {
+      area.x += rects[i].x;
+      area.y += rects[i].y;
+      gdk_region_union_with_rect (rev, &area);
+    }
   }
   g_free (rects);
+  gdk_region_get_clipbox (rev, &rec->relevant_data);
+  gdk_region_destroy (rev);
+  if (rec->relevant_data.width <= 0 && rec->relevant_data.height <= 0)
+    return TRUE;
+  
   /* make non-relevant pixels transparent */
   rev = gdk_region_rectangle (&rec->relevant_data);
   gdk_region_subtract (rev, region);
@@ -261,18 +274,25 @@ byzanz_recorder_add_image (ByzanzRecorder *rec, const GTimeVal *tv)
 {
   glong msecs;
   if (rec->data == NULL) {
-    rec->data = g_malloc (rec->area.width * rec->area.height);
+    guint count = rec->area.width * rec->area.height;
+    rec->data = g_malloc (count);
+    rec->data_full = g_malloc (count);
+    memset (rec->data_full, 
+	gifenc_palette_get_alpha_index (rec->gifenc->palette), 
+	count);
     rec->current = *tv;
     return;
   }
   msecs = (tv->tv_sec - rec->current.tv_sec) * 1000 + 
 	  (tv->tv_usec - rec->current.tv_usec) / 1000 + 5;
   g_assert (msecs > 0);
-  gifenc_add_image (rec->gifenc, rec->relevant_data.x, rec->relevant_data.y, 
-      rec->relevant_data.width, rec->relevant_data.height, msecs,
-      rec->data + rec->area.width * rec->relevant_data.y + rec->relevant_data.x,
-      rec->area.width);
-  rec->current = *tv;
+  if (rec->relevant_data.width > 0 && rec->relevant_data.height > 0) {
+    gifenc_add_image (rec->gifenc, rec->relevant_data.x, rec->relevant_data.y, 
+	rec->relevant_data.width, rec->relevant_data.height, msecs,
+	rec->data + rec->area.width * rec->relevant_data.y + rec->relevant_data.x,
+	rec->area.width);
+    rec->current = *tv;
+  }
 }
 
 static void
@@ -400,7 +420,7 @@ stored_image_process (ByzanzRecorder *rec)
 
   /* FIXME: can that assertion trigger? */
   if (store->offset != lseek (store->fd, store->offset, SEEK_SET)) {
-    g_print ("Couldn't seek to %d\n", (int) store->offset);
+    g_printerr ("Couldn't seek to %d\n", (int) store->offset);
     g_assert_not_reached ();
   }
   byzanz_recorder_add_image (rec, &store->tv);
@@ -530,6 +550,8 @@ loop:
 
   g_free (rec->data);
   rec->data = NULL;
+  g_free (rec->data_full);
+  rec->data_full = NULL;
   if (USING_FILE_CACHE (rec)) {
     if (rec->cur_cache_fd) {
       stored_image_remove_file (rec, rec->cur_cache_fd, rec->cur_cache_file);
@@ -622,7 +644,7 @@ byzanz_recorder_filter_damage_event (GdkXEvent *xevent, GdkEvent *event, gpointe
   XFixesSetRegion (dpy, rec->tmp_region, &dev->area, 1);
   XFixesUnionRegion (dpy, rec->damaged, rec->damaged, rec->tmp_region);
   //XDamageSubtract (dpy, rec->damage, rec->damaged, None);
-  g_print ("-> %d %d %d %d\n", rect.x, rect.y, rect.width, rect.height);
+  //g_print ("-> %d %d %d %d\n", rect.x, rect.y, rect.width, rect.height);
   if (gdk_rectangle_intersect (&rect, &rec->area, &rect)) {
     gdk_region_union_with_rect (rec->region, &rect);
     if (rec->timeout == 0) 

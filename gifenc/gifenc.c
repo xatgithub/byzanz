@@ -441,29 +441,31 @@ gifenc_set_looping (Gifenc *enc)
 guint8 *
 gifenc_dither_pixbuf (GdkPixbuf *pixbuf, const GifencPalette *palette)
 {
+  guint8 *ret;
+  guint width, height;
+  
   g_return_val_if_fail (!gdk_pixbuf_get_has_alpha (pixbuf), NULL);
   g_return_val_if_fail (palette->byte_order == G_BIG_ENDIAN, NULL);
 
-  return gifenc_dither_rgb (palette, gdk_pixbuf_get_pixels (pixbuf),
-      gdk_pixbuf_get_width (pixbuf), gdk_pixbuf_get_height (pixbuf), 
+  width = gdk_pixbuf_get_width (pixbuf);
+  height = gdk_pixbuf_get_height (pixbuf);
+  ret = g_new (guint8, width * height);
+
+  gifenc_dither_rgb (ret, width, palette, gdk_pixbuf_get_pixels (pixbuf),
+      width, height,
       gdk_pixbuf_get_has_alpha (pixbuf) ? 4 : 3,
       gdk_pixbuf_get_rowstride (pixbuf));
-}
-
-guint8 *
-gifenc_dither_rgb (const GifencPalette *palette, const guint8 *data, guint width, 
-    guint height, guint bpp, guint rowstride)
-{
-  guint8 *ret;
-  
-  ret = g_new (guint8, width * height);
-  gifenc_dither_rgb_into (ret, width, palette, data, width, height, bpp, 
-      rowstride);
   return ret;
 }
 
+/* Floyd-Steinman factors */
+#define FACTOR0 (23)
+#define FACTOR1 (79)
+#define FACTOR2 (41)
+#define FACTOR_FRONT (113)
+
 void
-gifenc_dither_rgb_into (guint8* target, guint target_rowstride, 
+gifenc_dither_rgb (guint8* target, guint target_rowstride, 
     const GifencPalette *palette, const guint8 *data, guint width, guint height, 
     guint bpp, guint rowstride)
 {
@@ -472,10 +474,6 @@ gifenc_dither_rgb_into (guint8* target, guint target_rowstride,
   guint8 this[3];
   gint err[3] = { 0, 0, 0 };
   guint pixel;
-#define FACTOR0 (23)
-#define FACTOR1 (79)
-#define FACTOR2 (41)
-#define FACTOR_FRONT (113)
   
   g_return_if_fail (palette != NULL);
 
@@ -520,6 +518,89 @@ gifenc_dither_rgb_into (guint8* target, guint target_rowstride,
   }
   g_free (this_error);
   g_free (next_error);
+}
+
+gboolean
+gifenc_dither_rgb_with_full_image (guint8 *target, guint target_rowstride, 
+    guint8 *full, guint full_rowstride,
+    const GifencPalette *palette, const guint8 *data, guint width, guint height, 
+    guint bpp, guint rowstride, GdkRectangle *rect_out)
+{
+  int x, y, i, c;
+  gint *this_error, *next_error;
+  guint8 this[3], alpha;
+  gint err[3] = { 0, 0, 0 };
+  guint pixel;
+  GdkRectangle area = { width, height, 0, 0 };
+  
+  g_return_val_if_fail (palette != NULL, FALSE);
+  g_return_val_if_fail (palette->alpha, FALSE);
+  alpha = gifenc_palette_get_alpha_index (palette);
+
+  this_error = g_new0 (gint, (width + 2) * 3);
+  next_error = g_new (gint, (width + 2) * 3);
+  i = 0;
+  for (y = 0; y < height; y++) {
+    const guchar *row = data;
+    gint *cur_error = this_error + 3;
+    gint *cur_next_error = next_error;
+    err[0] = err[1] = err[2] = 0;
+    memset (cur_next_error, 0, sizeof (gint) * 6);
+    for (x = 0; x < width; x++) {
+      //g_print ("%dx%d  %2X%2X%2X  %2d %2d %2d", x, y, row[0], row[1], row[2],
+      //    (err[0] + cur_error[0]) >> 8, (err[1] + cur_error[1]) >> 8,
+      //    (err[2] + cur_error[2]) >> 8);
+      for (c = 0; c < 3; c++) {
+	err[c] = ((err[c] + cur_error[c]) >> 8) + (gint) row[c];
+	this[c] = err[c] = CLAMP (err[c], 0, 0xFF);
+      }
+      //g_print ("  %2X%2X%2X =>", this[0], this[1], this[2]);
+      GIFENC_READ_TRIPLET (pixel, this);
+      target[x] = palette->lookup (palette->data, pixel, &pixel);
+      if (target[x] == full[x]) {
+	target[x] = alpha;
+      } else {
+	area.x = MIN (x, area.x);
+	area.y = MIN (y, area.y);
+	area.width = MAX (x, area.width);
+	area.height = MAX (y, area.height);
+	full[x] = target[x];
+      }
+      GIFENC_WRITE_TRIPLET (this, pixel);
+      //g_print (" %2X%2X%2X (%u) %p\n", this[0], this[1], this[2], (guint) target[x], target + x);
+      for (c = 0; c < 3; c++) {
+	err[c] -= this[c];
+	cur_next_error[c] += FACTOR0 * err[c];
+	cur_next_error[c + 3] += FACTOR1 * err[c];
+	cur_next_error[c + 6] = FACTOR2 * err[c];
+	err[c] *= FACTOR_FRONT;
+      }
+      row += bpp;
+      cur_error += 3;
+      cur_next_error += 3;
+    }
+    data += rowstride;
+    cur_error = this_error;
+    this_error = next_error;
+    next_error = cur_error;
+    target += target_rowstride;
+    full += full_rowstride;
+  }
+  g_free (this_error);
+  g_free (next_error);
+
+  if (area.width < area.x || area.height < area.y) {
+    return FALSE;
+  } else {
+    if (rect_out) {
+      area.width = area.width - area.x + 1;
+      area.height = area.height - area.y + 1;
+      g_print ("image was %d %d, relevant is %d %d %d %d\n", width, height,
+	  area.x, area.y, area.width, area.height);
+      *rect_out = area;
+    }
+    return TRUE;
+  }
 }
 
 #ifdef TEST_GIFENC
