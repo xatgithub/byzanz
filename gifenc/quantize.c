@@ -204,26 +204,26 @@ color_to_index (guint color, guint index)
 }
 
 static void
-gifenc_octree_add_one (GifencOctree *tree, guint color)
+gifenc_octree_add_one (GifencOctree *tree, guint color, guint count)
 {
-  tree->red += (color >> 16) & 0xFF;
-  tree->green += (color >> 8) & 0xFF;
-  tree->blue += color & 0xFF;
+  tree->red += ((color >> 16) & 0xFF) * count;
+  tree->green += ((color >> 8) & 0xFF) * count;
+  tree->blue += (color & 0xFF) * count;
 }
 
 static void
-gifenc_octree_add_color (OctreeInfo *info, guint color)
+gifenc_octree_add_color (OctreeInfo *info, guint color, guint count)
 {
   guint index;
   GifencOctree *tree = info->tree;
 
   for (;;) {
-    tree->count++;
+    tree->count += count;
     if (tree->level == 8 || OCTREE_IS_LEAF (tree)) {
       if (tree->color < 0x1000000 && tree->color != color) {
 	GifencOctree *new = gifenc_octree_new ();
 	new->level = tree->level + 1;
-	new->count = tree->count - 1;
+	new->count = tree->count - count;
 	new->red = tree->red; tree->red = 0;
 	new->green = tree->green; tree->green = 0;
 	new->blue = tree->blue; tree->blue = 0;
@@ -232,7 +232,7 @@ gifenc_octree_add_color (OctreeInfo *info, guint color)
 	tree->children[index] = new;
 	info->non_leaves = g_slist_prepend (info->non_leaves, tree);
       } else {
-	gifenc_octree_add_one (tree, color);
+	gifenc_octree_add_one (tree, color, count);
 	return;
       }
     } 
@@ -242,8 +242,8 @@ gifenc_octree_add_color (OctreeInfo *info, guint color)
     } else {
       GifencOctree *new = gifenc_octree_new ();
       new->level = tree->level + 1;
-      gifenc_octree_add_one (new, color);
-      new->count = 1;
+      gifenc_octree_add_one (new, color, count);
+      new->count = count;
       new->color = color;
       tree->children[index] = new;
       info->num_leaves++;
@@ -385,18 +385,32 @@ gifenc_quantize_image (const guint8 *data, guint width, guint height, guint bpp,
   const guint8 *row;
   OctreeInfo info = { NULL, NULL, 0 };
   GifencPalette *palette;
+  guint color;
   
   g_return_val_if_fail (width * height <= (G_MAXUINT >> 8), NULL);
 
   info.tree = gifenc_octree_new ();
   info.tree->color = (guint) -2; /* special node */
+
+  if (TRUE) {
+    guint r, g, b, count;
+    static const guint8 colors[] = { 0, 85, 170, 255 };
+    count = (width * height) / (4 * 4 * 4);
+    for (r = 0; r < 4; r++) {
+      for (g = 0; g < 4; g++) {
+	for (b = 0; b < 4; b++) {
+	  gifenc_octree_add_color (&info, 
+	      (colors[r] << 16) + (colors[g] << 8) + colors[b], 1);
+	}
+      }
+    }
+  }
   
   for (y = 0; y < height; y++) {
     row = data;
     for (x = 0; x < width; x++) {
-      guint color;
       GIFENC_READ_TRIPLET (color, row);
-      gifenc_octree_add_color (&info, color);
+      gifenc_octree_add_color (&info, color, 1);
       row += bpp;
     }
     //if (info.num_leaves > MAX_LEAVES)

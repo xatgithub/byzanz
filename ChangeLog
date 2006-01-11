@@ -1,3 +1,21 @@
+2006-01-11  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
+	* gifenc/quantize.c: (gifenc_octree_add_one),
+	(gifenc_octree_add_color), (gifenc_quantize_image):
+	  change quantization to have evenly spaced base colors
+	* src/byzanzrecorder.c: (byzanz_recorder_run_encoder),
+	(byzanz_recorder_new_fd), (byzanz_recorder_is_active):
+	* src/byzanzrecorder.h:
+	  add function to query if the recorder is still encoding after having
+	  stopped.
+	* src/byzanzapplet.c: (byzanz_applet_destroy_recorder),
+	(byzanz_applet_is_recording), (byzanz_applet_ensure_text),
+	(byzanz_applet_update), (byzanz_applet_start_recording),
+	(byzanz_applet_stop_recording), (destroy_applet):
+	  change so that encoding can happen in the background even after the
+	  recording has been saved already.
+	  Also update the code structurre to better deal with UI updates.
+
 2006-01-10  Benjamin Otte  <otte@gnome.org>
 
 	* src/byzanzrecorder.c: (byzanz_recorder_queue_image),

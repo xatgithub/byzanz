@@ -39,74 +39,123 @@ typedef struct {
   ByzanzRecorder *	rec;		/* the recorder (if recording) */
   char *		tmp_file;	/* filename that's recorded to */
   GTimeVal		start;		/* time the recording started */
-  guint			idle_func;	/* id of idle function that updates state */
+  guint			update_func;	/* id of idle function that updates state */
 } AppletPrivate;
+#define APPLET_IS_RECORDING(applet) ((applet)->tmp_file != NULL)
 
-static gboolean
-byzanz_applet_update (gpointer data)
+static void
+byzanz_applet_destroy_recorder (AppletPrivate *priv)
 {
-  GTimeVal tv;
-  guint elapsed;
-  gchar *str;
-  
-  AppletPrivate *priv = data;
+  g_assert (priv->rec);
 
-  g_get_current_time (&tv);
-  elapsed = tv.tv_sec - priv->start.tv_sec;
-  if (tv.tv_usec < priv->start.tv_usec)
-    elapsed--;
-  str = g_strdup_printf ("%u", elapsed);
-  gtk_label_set_text (GTK_LABEL (priv->label), str);
-  g_free (str);
-
-  return TRUE;
+  byzanz_recorder_destroy (priv->rec);
+  priv->rec = NULL;
+  gtk_label_set_text (GTK_LABEL (priv->label), _("OFF"));
+  g_source_remove (priv->update_func);
+  priv->update_func = 0;
 }
 
 static gboolean
 byzanz_applet_is_recording (AppletPrivate *priv)
 {
-  return priv->rec != NULL;
+  return priv->tmp_file != NULL;
+}
+
+static void
+byzanz_applet_ensure_text (AppletPrivate *priv, const char *text)
+{
+  const char *current;
+
+  current = gtk_label_get_text (GTK_LABEL (priv->label));
+  if (g_str_equal (current, text))
+    return;
+  gtk_label_set_text (GTK_LABEL (priv->label), text);
+}
+
+static gboolean
+byzanz_applet_update (gpointer data)
+{
+  AppletPrivate *priv = data;
+
+  if (byzanz_applet_is_recording (priv)) {
+    /* applet is still actively recording the screen */
+    GTimeVal tv;
+    guint elapsed;
+    gchar *str;
+    
+    g_get_current_time (&tv);
+    elapsed = tv.tv_sec - priv->start.tv_sec;
+    if (tv.tv_usec < priv->start.tv_usec)
+      elapsed--;
+    str = g_strdup_printf ("%u", elapsed);
+    byzanz_applet_ensure_text (priv, str);
+    g_free (str);
+    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (priv->button), TRUE);
+    gtk_widget_set_sensitive (priv->button, TRUE);
+  } else {
+    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (priv->button), FALSE);
+    if (priv->rec && !byzanz_recorder_is_active (priv->rec))
+      byzanz_applet_destroy_recorder (priv);
+    if (priv->rec) {
+      /* applet is not recording, but still saving content */
+      byzanz_applet_ensure_text (priv, _("SAVE"));
+      gtk_widget_set_sensitive (priv->button, FALSE);
+    } else {
+      /* applet is idle */
+      byzanz_applet_ensure_text (priv, _("OFF"));
+      gtk_widget_set_sensitive (priv->button, TRUE);
+    }
+  }
+  
+  return TRUE;
 }
 
 static void
 byzanz_applet_start_recording (AppletPrivate *priv)
 {
-  gboolean active;
   GdkWindow *window;
   GdkRectangle area;
   
   g_assert (!byzanz_applet_is_recording (priv));
   
+  if (byzanz_applet_is_recording (priv))
+    goto out;
+  if (priv->rec) {
+    if (byzanz_recorder_is_active (priv->rec))
+      goto out;
+    byzanz_recorder_destroy (priv->rec);
+    priv->rec = NULL;
+  }
+  
   window = byzanz_select_method_select (0, &area); 
   if (window) {
     int fd = g_file_open_tmp ("byzanzXXXXXX", &priv->tmp_file, NULL);
-    if (fd > 0)
+    if (fd > 0) 
       priv->rec = byzanz_recorder_new_fd (fd, window, &area, TRUE);
   }
   if (priv->rec) {
     byzanz_recorder_prepare (priv->rec);
     byzanz_recorder_start (priv->rec);
     g_get_current_time (&priv->start);
-    priv->idle_func = g_timeout_add (1000, byzanz_applet_update, priv);
+    priv->update_func = g_timeout_add (1000, byzanz_applet_update, priv);
   }
 
-  active = (priv->rec != NULL);
-  if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (priv->button)) != active)
-    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (priv->button), active);
+out:
+  byzanz_applet_update (priv);
 }
 
 static void
 byzanz_applet_stop_recording (AppletPrivate *priv)
 {
-  gboolean active;
   GtkWidget *dialog;
+  char *tmp_file;
   
   g_assert (byzanz_applet_is_recording (priv));
   
   byzanz_recorder_stop (priv->rec);
-  g_source_remove (priv->idle_func);
-  priv->idle_func = 0;
-  gtk_label_set_text (GTK_LABEL (priv->label), _("SAVE"));
+  tmp_file = priv->tmp_file;
+  priv->tmp_file = NULL;
+  byzanz_applet_update (priv);
   dialog = gtk_file_chooser_dialog_new (_("Save Recorded File"),
       NULL, GTK_FILE_CHOOSER_ACTION_SAVE,
       GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
@@ -116,20 +165,12 @@ byzanz_applet_stop_recording (AppletPrivate *priv)
   gtk_dialog_set_default_response (GTK_DIALOG (dialog), GTK_RESPONSE_ACCEPT);
   if (GTK_RESPONSE_ACCEPT == gtk_dialog_run (GTK_DIALOG (dialog))) {
     gchar *filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
-    g_rename (priv->tmp_file, filename);
+    g_rename (tmp_file, filename);
     g_free (filename);
   } else {
-    g_unlink (priv->tmp_file);
+    g_unlink (tmp_file);
   }
   gtk_widget_destroy (dialog);
-  g_free (priv->tmp_file);
-  gtk_label_set_text (GTK_LABEL (priv->label), _("OFF"));
-  byzanz_recorder_destroy (priv->rec);
-  priv->rec = NULL;
-
-  active = (priv->rec != NULL);
-  if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (priv->button)) != active)
-    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (priv->button), active);
 }
 
 static void
@@ -149,6 +190,8 @@ destroy_applet (GtkWidget *widget, AppletPrivate *priv)
 {
   if (byzanz_applet_is_recording (priv))
     byzanz_applet_stop_recording (priv);
+  if (priv->rec) 
+    byzanz_applet_destroy_recorder (priv);
   g_free (priv);
 }
 

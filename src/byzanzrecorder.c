@@ -98,6 +98,7 @@ struct _ByzanzRecorder {
   GThread *		encoder;	/* encoding thread */
   gint			use_file_cache :1; /* set whenever we signal using the file cache */
   /* accessed ALSO by thread */
+  gint			encoder_running;/* TRUE while the encoder is running */
   GAsyncQueue *		jobs;		/* jobs the encoding thread has to do */
   GAsyncQueue *		finished;	/* store for leftover images */
   gint			cur_file_cache;	/* current amount of data cached in files */
@@ -532,6 +533,7 @@ loop:
     rec->file_cache_data_size = 0;
   }
   g_queue_free (rec->file_cache);
+  g_atomic_int_dec_and_test (&rec->encoder_running);
 
   return rec;
 #undef USING_FILE_CACHE
@@ -714,6 +716,7 @@ byzanz_recorder_new_fd (gint fd, GdkWindow *window, GdkRectangle *area,
   }
   recorder->jobs = g_async_queue_new ();
   recorder->finished = g_async_queue_new ();
+  recorder->encoder_running = 1;
   recorder->encoder = g_thread_create (byzanz_recorder_run_encoder, recorder, 
       TRUE, NULL);
   if (!recorder->encoder) {
@@ -882,3 +885,21 @@ byzanz_recorder_get_cache (ByzanzRecorder *rec)
   return rec->cache_size;
 }
 
+/**
+ * byzanz_recorder_is_active:
+ * @recorder: ia recording session
+ *
+ * Checks if the recorder is currently running or - after being stopped - if 
+ * the encoder is still actively processing cached data.
+ * Note that byzanz_recorder_destroy() will block until all cached data has been 
+ * processed, so it might take a long time.
+ *
+ * Returns: TRUE if the recording session is still active.
+ **/
+gboolean
+byzanz_recorder_is_active (ByzanzRecorder *recorder)
+{
+  g_return_val_if_fail (BYZANZ_IS_RECORDER (recorder), 0);
+  
+  return g_atomic_int_get (&recorder->encoder_running) > 0;
+}
