@@ -1,0 +1,17 @@
+0.0.2
+=====
+ Features:
+ - Add file caching if too much happens on screen. This allows recording almost
+   everything without losing frames.
+ - More work to make the applet UI not block.
+ - Set unchanged pixels to transparent. This should imrpvoe the compression 
+   algorithm and reduce file sizes somewhat.
+ Bugfixes:
+ - Make it actually work on little endian systems (no more red)
+ - Composite extension no longer required. So it should work on all desktops
+   from this millenium
+ - And as always: Lots of small bugs
+
+0.0.1
+=====
+ - initial release

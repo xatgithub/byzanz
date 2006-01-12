@@ -1,3 +1,10 @@
+2006-01-12  Benjamin Otte  <otte@gnome.org>
+
+	* NEWS:
+	  update (create?)
+	* configure.ac:
+	  0.0.2
+
 2006-01-12  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
 	* gifenc/gifenc.c: (gifenc_dither_rgb_with_full_image):
