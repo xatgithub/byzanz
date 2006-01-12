@@ -1,3 +1,20 @@
+2006-01-12  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
+	* gifenc/gifenc.c: (gifenc_write), (gifenc_write_string),
+	(gifenc_write_uint16), (gifenc_write_byte),
+	(gifenc_write_color_table), (gifenc_buffer_write),
+	(gifenc_write_loop):
+	* gifenc/gifenc.h:
+	* gifenc/quantize.c: (gifenc_palette_get_color),
+	(gifenc_palette_get_simple), (gifenc_octree_finalize),
+	(gifenc_quantize_image):
+	  add a colors array to the palette struct which contains
+	  all the colors. This allows easy color lookup by index.
+	  It also makes writing the palette to the GIF the same for
+	  all palettes.
+	* src/byzanzselect.c: (realize_cb):
+	  set transparent background
+
 2006-01-11  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
 	* gifenc/gifenc.c: (gifenc_dither_pixbuf), (gifenc_dither_rgb),

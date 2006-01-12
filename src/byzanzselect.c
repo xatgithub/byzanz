@@ -166,6 +166,7 @@ realize_cb (GtkWidget *widget, gpointer datap)
   cursor = gdk_cursor_new (GDK_CROSSHAIR);
   gdk_window_set_cursor (window, cursor);
   gdk_cursor_unref (cursor);
+  gdk_window_set_back_pixmap (window, NULL, FALSE);
 }
 
 static GdkWindow *

@@ -57,6 +57,15 @@ gifenc_palette_get_num_colors (const GifencPalette *palette)
   return palette->num_colors + (palette->alpha ? 1 : 0);
 }
 
+guint
+gifenc_palette_get_color (const GifencPalette *palette, guint id)
+{
+  g_return_val_if_fail (palette != NULL, 0);
+  g_return_val_if_fail (id < palette->num_colors, 0);
+
+  return palette->colors[id];
+}
+
 /*** SIMPLE ***/
 
 static guint
@@ -69,34 +78,11 @@ gifenc_palette_simple_lookup (gpointer data, guint color, guint *resulting_color
 	 ((color >> 6) & 0x3);
 }
 
-static void
-gifenc_palette_simple_write (gpointer unused, guint byte_order, Gifenc *enc)
-{
-  guint8 data[3];
-  guint r, g, b;
-
-  for (r = 0; r < 4; r++) {
-    for (g = 0; g < 4; g++) {
-      for (b = 0; b < 4; b++) {
-	if (byte_order == G_LITTLE_ENDIAN) {
-	  data[0] = (b << 6) + (1 << 5);
-	  data[1] = (g << 6) + (1 << 5);
-	  data[2] = (r << 6) + (1 << 5);
-	} else {
-	  data[0] = (r << 6) + (1 << 5);
-	  data[1] = (g << 6) + (1 << 5);
-	  data[2] = (b << 6) + (1 << 5);
-	}
-	_gifenc_write (enc, data, 3);
-      }
-    }
-  }
-}
-
 GifencPalette *
 gifenc_palette_get_simple (guint byte_order, gboolean alpha)
 {
   GifencPalette *palette;
+  guint r, g, b, i = 0;
 
   g_return_val_if_fail (byte_order == G_LITTLE_ENDIAN || byte_order == G_BIG_ENDIAN, NULL);
   
@@ -104,10 +90,17 @@ gifenc_palette_get_simple (guint byte_order, gboolean alpha)
 
   palette->alpha = alpha;
   palette->num_colors = 64;
+  palette->colors = g_new (guint, palette->num_colors);
+  for (r = 0; r < 4; r++) {
+    for (g = 0; g < 4; g++) {
+      for (b = 0; b < 4; b++) {
+	palette->colors[i++] = (r << 22) + (g << 14) + (b << 6) + 0x202020;
+      }
+    }
+  }
   palette->byte_order = byte_order;
   palette->data = (gpointer) (alpha ? 0x1 : 0x0);
   palette->lookup = gifenc_palette_simple_lookup;
-  palette->write = gifenc_palette_simple_write;
   palette->free = NULL;
 
   return palette;
@@ -293,7 +286,7 @@ gifenc_octree_reduce_colors (OctreeInfo *info, guint stop)
 }
 
 static guint
-gifenc_octree_finalize (GifencOctree *tree, guint start_id)
+gifenc_octree_finalize (GifencOctree *tree, guint start_id, guint *colors)
 {
   if (OCTREE_IS_LEAF (tree)) {
     if (tree->color > 0xFFFFFF)
@@ -302,12 +295,13 @@ gifenc_octree_finalize (GifencOctree *tree, guint start_id)
 	((tree->green / tree->count) << 8) |
 	(tree->blue / tree->count);
     tree->id = start_id;
+    colors[start_id] = tree->color;
     return tree->id + 1;
   } else {
     guint i;
     for (i = 0; i < 8; i++) {
       if (tree->children[i])
-	start_id = gifenc_octree_finalize (tree->children[i], start_id);
+	start_id = gifenc_octree_finalize (tree->children[i], start_id, colors);
     }
     return start_id;
   }
@@ -354,29 +348,6 @@ gifenc_octree_lookup (gpointer data, guint color, guint *looked_up_color)
       color, looked_up_color);
 }
 
-static void
-gifenc_octree_write (gpointer data, guint byte_order, Gifenc *enc)
-{
-  GifencOctree *tree = data;
-  guint8 buf[3];
-
-  if (OCTREE_IS_LEAF (tree)) {
-    GIFENC_WRITE_TRIPLET (buf, tree->color);
-    if (byte_order != G_BIG_ENDIAN) {
-      guint8 tmp = buf[2];
-      buf[2] = buf[0];
-      buf[0] = tmp;
-    }
-    _gifenc_write (enc, buf, 3);
-  } else {
-    guint i;
-    for (i = 0; i < 8; i++) {
-      if (tree->children[i])
-	gifenc_octree_write (tree->children[i], byte_order, enc);
-    }
-  }
-}
-  
 GifencPalette *
 gifenc_quantize_image (const guint8 *data, guint width, guint height, guint bpp, 
     guint rowstride, gboolean alpha, gint byte_order, guint max_colors)
@@ -419,20 +390,21 @@ gifenc_quantize_image (const guint8 *data, guint width, guint height, guint bpp,
   }
   //gifenc_octree_print (info.tree, 1);
   gifenc_octree_reduce_colors (&info, max_colors - (alpha ? 1 : 0));
-  gifenc_octree_finalize (info.tree, 0);
-
+  
   //gifenc_octree_print (info.tree, 1);
   //g_print ("total: %u colors (%u non-leaves)\n", info.num_leaves, 
   //    g_slist_length (info.non_leaves));
 
   palette = g_new (GifencPalette, 1);
   palette->alpha = alpha;
+  palette->colors = g_new (guint, info.num_leaves);
   palette->num_colors = info.num_leaves;
   palette->byte_order = byte_order;
   palette->data = info.tree;
   palette->lookup = gifenc_octree_lookup;
-  palette->write = gifenc_octree_write;
   palette->free = gifenc_octree_free;
+
+  gifenc_octree_finalize (info.tree, 0, palette->colors);
   g_slist_free (info.non_leaves);
 
   return (GifencPalette *) palette;

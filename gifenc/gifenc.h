@@ -29,15 +29,13 @@ typedef struct _Gifenc Gifenc;
 
 struct _GifencPalette {
   gboolean	alpha;
+  guint *	colors;
   guint		num_colors;
   guint		byte_order;
   gpointer	data;
   guint		(* lookup)	(gpointer		data,
 				 guint			color,
 				 guint *		resulting_color);
-  void		(* write)	(gpointer		data,
-				 guint			byte_order,
-				 Gifenc *		enc);
   void		(* free)	(gpointer		data);
 };
 
@@ -113,7 +111,8 @@ guint		gifenc_palette_get_alpha_index
 					(const GifencPalette *palette);
 guint		gifenc_palette_get_num_colors
 					(const GifencPalette *palette);
-
+guint		gifenc_palette_get_color(const GifencPalette *palette,
+					 guint		id);
 					
 
 #endif /* __HAVE_GIFENC_H__ */

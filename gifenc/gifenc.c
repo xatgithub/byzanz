@@ -46,8 +46,8 @@ log2n (guint number)
 
 /*** WRITE ROUTINES ***/
 
-void
-_gifenc_write (Gifenc *enc, guint8 *data, guint len)
+static void
+gifenc_write (Gifenc *enc, guint8 *data, guint len)
 {
   ssize_t ret;
 
@@ -67,7 +67,7 @@ gifenc_write_string (Gifenc *enc, char *string)
 {
   g_return_if_fail (enc->n_bits == 0);
   
-  _gifenc_write (enc, (guint8 *) string, strlen (string));
+  gifenc_write (enc, (guint8 *) string, strlen (string));
 }
 
 static void
@@ -76,7 +76,7 @@ gifenc_write_uint16 (Gifenc *enc, guint16 value)
   g_return_if_fail (enc->n_bits == 0);
   
   value = GUINT16_TO_LE (value);
-  _gifenc_write (enc, (guint8 *) &value, 2);
+  gifenc_write (enc, (guint8 *) &value, 2);
 }
 
 static void
@@ -84,7 +84,7 @@ gifenc_write_byte (Gifenc *enc, guint8 value)
 {
   g_return_if_fail (enc->n_bits == 0);
   
-  _gifenc_write (enc, &value, 1);
+  gifenc_write (enc, &value, 1);
 }
 
 static void
@@ -133,15 +133,27 @@ static void
 gifenc_write_color_table (Gifenc *enc, GifencPalette *palette)
 {
   guint i, table_size;
+  guint8 buf[3];
+
   if (!palette)
     return;
   i = gifenc_palette_get_num_colors (palette);
   table_size = 1 << log2n (i - 1);
-  palette->write (palette->data, palette->byte_order, enc);
-  if (palette->alpha)
-    _gifenc_write (enc, (guint8 *) "\272\219\001", 3);
+  for (i = 0; i < palette->num_colors; i++) {
+    GIFENC_WRITE_TRIPLET (buf, palette->colors[i]);
+    if (palette->byte_order == G_LITTLE_ENDIAN) {
+      guint8 tmp = buf[2];
+      buf[2] = buf[0];
+      buf[0] = tmp;
+    }
+    gifenc_write (enc, buf, 3);
+  }
+  if (palette->alpha) {
+    gifenc_write (enc, (guint8 *) "\272\219\001", 3);
+    i++;
+  }
   for (; i < table_size; i++) {
-    _gifenc_write (enc, (guint8 *) "\0\0\0", 3);
+    gifenc_write (enc, (guint8 *) "\0\0\0", 3);
   }
 }
 
@@ -185,7 +197,7 @@ gifenc_buffer_write (Gifenc *enc, EncodeBuffer *buffer)
   if (buffer->bytes == 0)
     return;
   gifenc_write_byte (enc, buffer->bytes);
-  _gifenc_write (enc, buffer->data, buffer->bytes);
+  gifenc_write (enc, buffer->data, buffer->bytes);
   buffer->bytes = 0;
 }
 
@@ -341,7 +353,7 @@ gifenc_write_loop (Gifenc *enc)
   gifenc_write_byte (enc, 0x21); /* extension */
   gifenc_write_byte (enc, 0xFF); /* application extension */
   gifenc_write_byte (enc, 11); /* block size */
-  _gifenc_write (enc, (guint8 *) "NETSCAPE2.0", 11);
+  gifenc_write (enc, (guint8 *) "NETSCAPE2.0", 11);
   gifenc_write_byte (enc, 3); /* block size */
   gifenc_write_byte (enc, 1); /* ??? */
   gifenc_write_byte (enc, 0); /* ??? */
