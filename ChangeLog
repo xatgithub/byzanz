@@ -1,5 +1,12 @@
 2006-01-12  Benjamin Otte  <otte@gnome.org>
 
+	* src/byzanzapplet.c: (byzanz_applet_show_error),
+	(byzanz_applet_stop_recording):
+	  show an error if the file can not be properly renamed.
+	  First attempt at error displays. (And yes, it's stil 0.0.2 in here)
+
+2006-01-12  Benjamin Otte  <otte@gnome.org>
+
 	* NEWS:
 	  update (create?)
 	* configure.ac:

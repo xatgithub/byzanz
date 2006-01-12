@@ -44,6 +44,19 @@ typedef struct {
 #define APPLET_IS_RECORDING(applet) ((applet)->tmp_file != NULL)
 
 static void
+byzanz_applet_show_error (AppletPrivate *priv, GtkWindow *parent, const char *error)
+{
+  GtkWidget *dialog;
+
+  if (parent == NULL)
+    parent = GTK_WINDOW (gtk_widget_get_toplevel (GTK_WIDGET (priv->applet)));
+  dialog = gtk_message_dialog_new (parent, GTK_DIALOG_MODAL, GTK_MESSAGE_ERROR,
+      GTK_BUTTONS_CLOSE, error);
+  gtk_dialog_run (GTK_DIALOG (dialog));
+  gtk_widget_destroy (dialog);
+}
+
+static void
 byzanz_applet_destroy_recorder (AppletPrivate *priv)
 {
   g_assert (priv->rec);
@@ -157,15 +170,27 @@ byzanz_applet_stop_recording (AppletPrivate *priv)
   priv->tmp_file = NULL;
   byzanz_applet_update (priv);
   dialog = gtk_file_chooser_dialog_new (_("Save Recorded File"),
-      NULL, GTK_FILE_CHOOSER_ACTION_SAVE,
+      GTK_WINDOW (gtk_widget_get_toplevel (GTK_WIDGET (priv->applet))), 
+      GTK_FILE_CHOOSER_ACTION_SAVE,
       GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
       GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
       NULL);
   gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), g_get_home_dir ());
   gtk_dialog_set_default_response (GTK_DIALOG (dialog), GTK_RESPONSE_ACCEPT);
+repeat:
   if (GTK_RESPONSE_ACCEPT == gtk_dialog_run (GTK_DIALOG (dialog))) {
     gchar *filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
-    g_rename (tmp_file, filename);
+    errno = 0;
+    if (g_rename (tmp_file, filename) != 0) {
+      int save_errno = errno;
+      char *display_name = g_filename_display_name (filename);
+      char *error = g_strdup_printf (_("The file could not be saved to %s.\n"
+	    "The error given was: %s.\n"
+	    "Please try a different file."), display_name, g_strerror (save_errno));
+
+      byzanz_applet_show_error (priv, GTK_WINDOW (dialog), error);
+      goto repeat;
+    }
     g_free (filename);
   } else {
     g_unlink (tmp_file);
