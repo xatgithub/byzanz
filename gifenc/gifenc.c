@@ -485,7 +485,7 @@ gifenc_dither_rgb (guint8* target, guint target_rowstride,
   gint *this_error, *next_error;
   guint8 this[3];
   gint err[3] = { 0, 0, 0 };
-  guint pixel;
+  guint32 pixel;
   
   g_return_if_fail (palette != NULL);
 
@@ -542,7 +542,7 @@ gifenc_dither_rgb_with_full_image (guint8 *target, guint target_rowstride,
   gint *this_error, *next_error;
   guint8 this[3], alpha;
   gint err[3] = { 0, 0, 0 };
-  guint pixel;
+  guint32 pixel;
   GdkRectangle area = { width, height, 0, 0 };
   
   g_return_val_if_fail (palette != NULL, FALSE);
@@ -607,37 +607,11 @@ gifenc_dither_rgb_with_full_image (guint8 *target, guint target_rowstride,
     if (rect_out) {
       area.width = area.width - area.x + 1;
       area.height = area.height - area.y + 1;
-      g_print ("image was %d %d, relevant is %d %d %d %d\n", width, height,
-	  area.x, area.y, area.width, area.height);
+      //g_print ("image was %d %d, relevant is %d %d %d %d\n", width, height,
+      //    area.x, area.y, area.width, area.height);
       *rect_out = area;
     }
     return TRUE;
   }
 }
 
-#ifdef TEST_GIFENC
-
-int
-main (int argc, char **argv)
-{
-  Gifenc *enc;
-  guint8 *image;
-  GdkPixbuf *pixbuf;
-
-  gtk_init (&argc, &argv);
-  prepare_noob_palette ();
-
-  pixbuf = gdk_pixbuf_new_from_file (argc > 1 ? argv[1] : "/root/rachael.jpg", NULL);
-  image = gifenc_dither_image (pixbuf, gifenc_noob_palette, gifenc_n_noob_palette);
-  enc = gifenc_open (gdk_pixbuf_get_width (pixbuf), gdk_pixbuf_get_height (pixbuf), "test.gif");
-  gifenc_set_palette (enc, gifenc_noob_palette, gifenc_n_noob_palette);
-  gifenc_add_image (enc, 0, 0, gdk_pixbuf_get_width (pixbuf), 
-      gdk_pixbuf_get_height (pixbuf), 0, image, gdk_pixbuf_get_width (pixbuf));
-  g_free (image);
-  g_object_unref (pixbuf);
-  gifenc_close (enc);
-
-  return 0;
-}
-
-#endif

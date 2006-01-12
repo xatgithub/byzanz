@@ -69,7 +69,7 @@ gifenc_palette_get_color (const GifencPalette *palette, guint id)
 /*** SIMPLE ***/
 
 static guint
-gifenc_palette_simple_lookup (gpointer data, guint color, guint *resulting_color)
+gifenc_palette_simple_lookup (gpointer data, guint32 color, guint32 *resulting_color)
 {
   color &= 0xC0C0C0;
   *resulting_color = color + 0x202020;
@@ -121,7 +121,7 @@ struct _GifencOctree {
   guint			green;		/* sum of green pixels */
   guint			blue;		/* sum of blue pixels */
   guint			count;		/* amount of pixels at this node */
-  guint			color;		/* representations (depending on value):
+  guint32     		color;		/* representations (depending on value):
 					   -1: random non-leaf node 
 					   -2: root node
 					   0x1000000: leaf node with undefined color
@@ -197,7 +197,7 @@ color_to_index (guint color, guint index)
 }
 
 static void
-gifenc_octree_add_one (GifencOctree *tree, guint color, guint count)
+gifenc_octree_add_one (GifencOctree *tree, guint32 color, guint count)
 {
   tree->red += ((color >> 16) & 0xFF) * count;
   tree->green += ((color >> 8) & 0xFF) * count;
@@ -205,7 +205,7 @@ gifenc_octree_add_one (GifencOctree *tree, guint color, guint count)
 }
 
 static void
-gifenc_octree_add_color (OctreeInfo *info, guint color, guint count)
+gifenc_octree_add_color (OctreeInfo *info, guint32 color, guint count)
 {
   guint index;
   GifencOctree *tree = info->tree;
@@ -310,7 +310,7 @@ gifenc_octree_finalize (GifencOctree *tree, guint start_id, guint *colors)
 }
 
 static guint
-gifenc_octree_lookup (gpointer data, guint color, guint *looked_up_color)
+gifenc_octree_lookup (gpointer data, guint32 color, guint32 *looked_up_color)
 {
   GifencOctree *tree = data;
   guint idx;
@@ -356,7 +356,7 @@ gifenc_quantize_image (const guint8 *data, guint width, guint height, guint bpp,
   const guint8 *row;
   OctreeInfo info = { NULL, NULL, 0 };
   GifencPalette *palette;
-  guint color;
+  guint32 color;
   
   g_return_val_if_fail (width * height <= (G_MAXUINT >> 8), NULL);
 

@@ -1,5 +1,20 @@
 2006-01-12  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
+	* gifenc/gifenc.c: (gifenc_dither_rgb_with_full_image):
+	* gifenc/gifenc.h:
+	  remove old test code that wouldn't compile anymore. Comment out a
+	  print debugging statement.  
+	* gifenc/gifenc.c: (gifenc_dither_rgb),
+	(gifenc_dither_rgb_with_full_image):
+	* gifenc/gifenc.h:
+	* gifenc/quantize.c: (gifenc_palette_simple_lookup),
+	(gifenc_octree_add_one), (gifenc_octree_add_color),
+	(gifenc_octree_lookup), (gifenc_quantize_image):
+	  make pixel values guint32 instead of guint. Should help with 64bit
+	  CPUs in theor, but I don't have one.
+
+2006-01-12  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
 	* gifenc/gifenc.c: (gifenc_write), (gifenc_write_string),
 	(gifenc_write_uint16), (gifenc_write_byte),
 	(gifenc_write_color_table), (gifenc_buffer_write),
