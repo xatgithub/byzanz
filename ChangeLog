@@ -1,3 +1,12 @@
+2006-01-13  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
+	* .cvsignore:
+	* gifenc/.cvsignore:
+	* macros/.cvsignore:
+	* po/.cvsignore:
+	* src/.cvsignore:
+	  update
+
 2006-01-13  Benjamin Otte  <otte@gnome.org>
 
 	* README:

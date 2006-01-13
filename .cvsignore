@@ -1,10 +1,14 @@
 ABOUT-NLS
 COPYING
 INSTALL
+Makefile
+Makefile.in
 aclocal.m4
 autogen.sh
 autom4te.cache
 autoregen.sh
+common
+compile
 config.guess
 config.h
 config.h.in
@@ -15,10 +19,19 @@ config.sub
 configure
 depcomp
 install-sh
+intltool-extract
+intltool-extract.in
+intltool-merge
+intltool-merge.in
+intltool-update
+intltool-update.in
+libtool
 ltmain.sh
 m4
 missing
 mkinstalldirs
+omf.make
 stamp-h.in
 stamp-h1
+xmldocs.make
 
