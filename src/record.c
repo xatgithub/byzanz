@@ -32,8 +32,8 @@ static GdkRectangle area = { 0, 0, G_MAXINT / 2, G_MAXINT / 2 };
 
 static GOptionEntry entries[] = 
 {
-  { "duration", 'd', 0, G_OPTION_ARG_INT, &duration, N_("Duration of animation"), N_("SECS") },
-  { "delay", 0, 0, G_OPTION_ARG_INT, &delay, N_("Delay before start"), N_("SECS") },
+  { "duration", 'd', 0, G_OPTION_ARG_INT, &duration, N_("Duration of animation (default: 10 seconds)"), N_("SECS") },
+  { "delay", 0, 0, G_OPTION_ARG_INT, &delay, N_("Delay before start (default: 1 second)"), N_("SECS") },
   { "loop", 'l', 0, G_OPTION_ARG_NONE, &loop, N_("Let the animation loop"), NULL },
   { "x", 'x', 0, G_OPTION_ARG_INT, &area.x, N_("X coordinate of rectangle to record"), N_("PIXEL") },
   { "y", 'y', 0, G_OPTION_ARG_INT, &area.y, N_("Y coordinate of rectangle to record"), N_("PIXEL") },

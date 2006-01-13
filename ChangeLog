@@ -1,5 +1,11 @@
 2006-01-13  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
+	* src/record.c:
+	  Update --help text to show default values for delay and duration so
+	  people know that it can't be run indefinitely
+
+2006-01-13  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
 	* .cvsignore:
 	* gifenc/.cvsignore:
 	* macros/.cvsignore:
