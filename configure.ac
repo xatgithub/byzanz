@@ -5,7 +5,7 @@ dnl need to do this here so intltool-update doesn't die a slow but awful death
 PACKAGE=byzanz
 dnl when going to/from release please set the nano (fourth number) right !
 dnl releases only do Wall, cvs and prerelease does Werror too
-AS_VERSION($PACKAGE, TOOLS_VERSION, 0, 0, 2, 0, BYZANZ_CVS="no", BYZANZ_CVS="yes")
+AS_VERSION($PACKAGE, TOOLS_VERSION, 0, 0, 2, 1, BYZANZ_CVS="no", BYZANZ_CVS="yes")
 
 dnl AM_MAINTAINER_MODE only provides the option to configure to enable it
 AM_MAINTAINER_MODE
@@ -101,6 +101,8 @@ GTK_REQ="2.6.0"
 GTHREAD_REQ="2.6.0"
 APPLET_REQ="2.10.0"
 XDAMAGE_REQ="1.0"
+GNOME_VFS_REQ="2.12.0"
+GNOMEUI_REQ="2.12.0"
 
 PKG_CHECK_MODULES(GTK, gtk+-2.0 >= $GTK_REQ,HAVE_GTK=yes,HAVE_GTK=no)
 if test "x$HAVE_GTK" = "xno"; then
@@ -112,9 +114,9 @@ if test "x$HAVE_GTHREAD" = "xno"; then
   AC_MSG_ERROR([Byzanz requires GThread-2.0 >= $GLIB_REQ and XDamage >= $XDAMAGE_REQ to compile.])
 fi
 
-PKG_CHECK_MODULES(APPLET, libpanelapplet-2.0 >= $APPLET_REQ,HAVE_APPLET=yes,HAVE_APPLET=no)
+PKG_CHECK_MODULES(APPLET, libpanelapplet-2.0 >= $APPLET_REQ gnome-vfs-2.0 >= $GNOME_VFS_REQ libgnomeui-2.0 >= $GNOMEUI_REQ, HAVE_APPLET=yes,HAVE_APPLET=no)
 if test "x$HAVE_APPLET" = "xno"; then
-  AC_MSG_ERROR([Byzanz requires libpanelapplet-2.0 >= $APPLET_REQ to compile.])
+  AC_MSG_ERROR([The Byzanz applet requires libpanelapplet-2.0 >= $APPLET_REQ, gnome-vfs-2.0 >= $GNOME_VFS_REQ and libgnomeui-2.0 >= $GNOMEUI_REQ to compile.])
 fi
 
 GIFENC_CFLAGS="$GTK_CFLAGS $ERROR_CFLAGS"

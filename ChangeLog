@@ -1,3 +1,16 @@
+2006-01-13  Benjamin Otte  <otte@gnome.org>
+
+	* configure.ac:
+	  0.0.2.1
+
+2006-01-12  Benjamin Otte  <otte@gnome.org>
+
+	* src/byzanzapplet.c:
+	  Use gnome-vfs to save the file. Fixes /tmp being on a different
+	  partition issue everyone seems to have. Also allows you to save
+	  directly to all gnome-vfs accounts.
+	  Progress information is missing though.
+
 2006-01-12  Benjamin Otte  <otte@gnome.org>
 
 	* po/de.po:
