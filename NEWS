@@ -1,3 +1,9 @@
+0.0.3
+=====
+ Features:
+ - save with gnome-vfs. Solves an icky bug if the place you save to and /tmp 
+   aren't on the same partition, too.
+ 
 0.0.2
 =====
  Features:

@@ -1,5 +1,13 @@
 2006-01-13  Benjamin Otte  <otte@gnome.org>
 
+	* po/de.po:
+	  update
+	* NEWS:
+	* configure.ac:
+	  0.0.3
+
+2006-01-13  Benjamin Otte  <otte@gnome.org>
+
 	* configure.ac:
 	  0.0.2.1
 

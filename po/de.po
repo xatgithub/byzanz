@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Byzanz\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2006-01-08 22:40+0100\n"
+"POT-Creation-Date: 2006-01-13 01:11+0100\n"
 "PO-Revision-Date: 2006-01-04 20:01+0100\n"
 "Last-Translator: Benjamin Otte <otte@gnome.org>\n"
 "Language-Team: German <de@li.org>\n"
@@ -14,44 +14,40 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../src/byzanzapplet.c:109
-msgid "SAVE"
-msgstr "ENDE"
+#: ../src/byzanzapplet.c:87
+msgid "A file could not be saved."
+msgstr "Eine Datei konnte nicht gespeichert werden."
 
-#: ../src/byzanzapplet.c:110
+#: ../src/byzanzapplet.c:88
+#, c-format
+msgid ""
+"\"%s\" could not be saved.\n"
+"The error that occured was: %s"
+msgstr "\"%s\" konnte nicht gespeichert werden.\n"
+"Der Fehler ist: %s"
+
+#: ../src/byzanzapplet.c:151
 msgid "Save Recorded File"
 msgstr "Speichere Aufgenommene Datei"
 
 #. translators: the label advertises a width of 5 characters
-#: ../src/byzanzapplet.c:125 ../src/byzanzapplet.c:177
+#: ../src/byzanzapplet.c:225 ../src/byzanzapplet.c:331
 msgid "OFF"
 msgstr "AUS"
 
-#: ../src/byzanzapplet.c:187
-#, c-format
-msgid ""
-"The file could not be saved to \"%s\".\n"
-"The error given was: %s.\n"
-"Please try a different location."
-msgstr ""
-"Die Datei konnte nicht als \"%s\" gespeichert werden.\n"
-"Der Fehler war: %s.\n"
-"Bitte versuchen Sie einen anderen Ort."
-
 #: ../src/byzanzselect.c:227
-#: ../src/byzanzselect.c:219
 msgid "Select area"
 msgstr "Bereich auswählen"
 
-#: ../src/ByzanzApplet.server.in.h:1
+#: ../src/ByzanzApplet.server.in.in.h:1
 msgid "Byzanz Factory"
 msgstr "Byzanz Fabrik"
 
-#: ../src/ByzanzApplet.server.in.h:2
+#: ../src/ByzanzApplet.server.in.in.h:2
 msgid "Desktop Recorder"
 msgstr "Desktop Rekorder"
 
-#: ../src/ByzanzApplet.server.in.h:3
+#: ../src/ByzanzApplet.server.in.in.h:3
 msgid "Record what's happening on your desktop"
 msgstr "Nehmen Sie auf, was auf Ihrem Desktop passiert"
 
@@ -137,3 +133,4 @@ msgstr ""
 "Konnte die Aufnahme nicht vorbereiten.\n"
 "Höchstwahrscheinlich ist die Damage Erweiterung auf dem X Server nicht "
 "installiert.Oder die Datei \"%s\" kann nicht geschrieben werden.\n"
+
