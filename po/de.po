@@ -27,6 +27,18 @@ msgstr "Speichere Aufgenommene Datei"
 msgid "OFF"
 msgstr "AUS"
 
+#: ../src/byzanzapplet.c:187
+#, c-format
+msgid ""
+"The file could not be saved to \"%s\".\n"
+"The error given was: %s.\n"
+"Please try a different location."
+msgstr ""
+"Die Datei konnte nicht als \"%s\" gespeichert werden.\n"
+"Der Fehler war: %s.\n"
+"Bitte versuchen Sie einen anderen Ort."
+
+#: ../src/byzanzselect.c:227
 #: ../src/byzanzselect.c:219
 msgid "Select area"
 msgstr "Bereich auswählen"

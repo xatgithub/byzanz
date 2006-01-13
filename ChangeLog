@@ -1,5 +1,13 @@
 2006-01-12  Benjamin Otte  <otte@gnome.org>
 
+	* po/de.po:
+	* src/byzanzapplet.c: (byzanz_applet_stop_recording):
+	  tweak string displayed and translate it.
+
+==================== 0.0.2 ====================
+
+2006-01-12  Benjamin Otte  <otte@gnome.org>
+
 	* src/byzanzapplet.c: (byzanz_applet_show_error),
 	(byzanz_applet_stop_recording):
 	  show an error if the file can not be properly renamed.
