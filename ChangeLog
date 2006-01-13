@@ -1,5 +1,10 @@
 2006-01-13  Benjamin Otte  <otte@gnome.org>
 
+	* README:
+	  put important quote in there
+
+2006-01-13  Benjamin Otte  <otte@gnome.org>
+
 	* configure.ac:
 	  0.0.3.1
 
