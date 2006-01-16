@@ -366,7 +366,7 @@ gifenc_write_loop (Gifenc *enc)
 Gifenc *
 gifenc_open (const char *filename, guint width, guint height)
 {
-  guint fd;
+  int fd;
 
   g_return_val_if_fail (width <= G_MAXUINT16, NULL);
   g_return_val_if_fail (height <= G_MAXUINT16, NULL);
@@ -481,7 +481,7 @@ gifenc_dither_rgb (guint8* target, guint target_rowstride,
     const GifencPalette *palette, const guint8 *data, guint width, guint height, 
     guint bpp, guint rowstride)
 {
-  int x, y, i, c;
+  guint x, y, i, c;
   gint *this_error, *next_error;
   guint8 this[3];
   gint err[3] = { 0, 0, 0 };
@@ -552,13 +552,13 @@ gifenc_dither_rgb_with_full_image (guint8 *target, guint target_rowstride,
   this_error = g_new0 (gint, (width + 2) * 3);
   next_error = g_new (gint, (width + 2) * 3);
   i = 0;
-  for (y = 0; y < height; y++) {
+  for (y = 0; y < (int) height; y++) {
     const guchar *row = data;
     gint *cur_error = this_error + 3;
     gint *cur_next_error = next_error;
     err[0] = err[1] = err[2] = 0;
     memset (cur_next_error, 0, sizeof (gint) * 6);
-    for (x = 0; x < width; x++) {
+    for (x = 0; x < (int) width; x++) {
       //g_print ("%dx%d  %2X%2X%2X  %2d %2d %2d", x, y, row[0], row[1], row[2],
       //    (err[0] + cur_error[0]) >> 8, (err[1] + cur_error[1]) >> 8,
       //    (err[2] + cur_error[2]) >> 8);

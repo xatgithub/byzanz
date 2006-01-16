@@ -40,10 +40,12 @@ dnl For interactive UNIX (a Sun thing)
 AC_ISC_POSIX
 
 dnl decide on error flags
-dnl if we support -Wall, set it unconditionally
-AS_COMPILER_FLAG(-Wall,
-                 ERROR_CFLAGS="-Wall",
-                 ERROR_CFLAGS="")
+dnl if we support them, we set them unconditionally
+AS_COMPILER_FLAG(-Wall, ERROR_CFLAGS="-Wall", ERROR_CFLAGS="")
+dnl I want this but stupid headers don't let me
+dnl AS_COMPILER_FLAG(-Wshadow, ERROR_CFLAGS="$ERROR_CFLAGS -Wshadow")
+AS_COMPILER_FLAG(-Wfloat-equal, ERROR_CFLAGS="$ERROR_CFLAGS -Wfloat-equal")
+AS_COMPILER_FLAG(-Wextra -Wno-missing-field-initializers -Wno-unused-parameter, ERROR_CFLAGS="$ERROR_CFLAGS -Wextra -Wno-missing-field-initializers -Wno-unused-parameter")
 dnl if we're in nano >= 1, add -Werror if supported
 if test "x$BYZANZ_CVS" = "xyes"
 then

@@ -1,5 +1,18 @@
 2006-01-16  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
+	* configure.ac:
+	  add lots of warnings
+	* gifenc/gifenc.c: (gifenc_open), (gifenc_dither_rgb),
+	(gifenc_dither_rgb_with_full_image):
+	* gifenc/quantize.c: (color_to_index), (gifenc_octree_add_color):
+	* src/byzanzrecorder.c: (compute_image_size), (recorder_job_new),
+	(stored_image_store):
+	* src/panelstuffer.c: (panel_stuffer_find), (panel_stuffer_forall),
+	(panel_stuffer_size_request):
+	  fix all their errors
+
+2006-01-16  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
 	* src/byzanzapplet.c: (byzanz_applet_fill):
 	  set panel that watches this applet
 	* src/paneldropdown.c: (panel_dropdown_position_menu),

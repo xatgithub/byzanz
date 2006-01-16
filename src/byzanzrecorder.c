@@ -88,7 +88,7 @@ struct _ByzanzRecorder {
   gint			max_file_size;	/* maximum allowed size of one cache file - ATOMIC */
   gint			max_file_cache;	/* maximum allowed size of all cache files together - ATOMIC */
   /* state */
-  gint			cache_size;	/* current cache size */
+  guint			cache_size;	/* current cache size */
   RecorderState		state;		/* state the recorder is in */
   guint			timeout;	/* signal id for timeout */
   GdkWindow *		window;		/* root window we record */
@@ -123,10 +123,10 @@ static int dmg_error_base = 0;
 
 /*** JOB FUNCTIONS ***/
 
-static gint
+static guint
 compute_image_size (GdkImage *image)
 {
-  return (gint) image->bpl * image->height;
+  return image->bpl * image->height;
 }
 
 static void
@@ -177,17 +177,17 @@ recorder_job_new (ByzanzRecorder *rec, RecorderJobType type,
 	rec->cache_size += compute_image_size (job->image);
 	if (!rec->use_file_cache &&
 	    rec->cache_size >= rec->max_cache_size / 2) {
-	  RecorderJob *job;
+	  RecorderJob *tmp;
 	  guint count;
 	  rec->use_file_cache = TRUE;
-	  job = recorder_job_new (rec, RECORDER_JOB_USE_FILE_CACHE, NULL, NULL);
+	  tmp = recorder_job_new (rec, RECORDER_JOB_USE_FILE_CACHE, NULL, NULL);
 	  /* push job to the front */
 	  g_async_queue_lock (rec->jobs);
 	  count = g_async_queue_length_unlocked (rec->jobs);
-	  g_async_queue_push_unlocked (rec->jobs, job);
+	  g_async_queue_push_unlocked (rec->jobs, tmp);
 	  while (count > 0) {
-	    job = g_async_queue_pop_unlocked (rec->jobs);
-	    g_async_queue_push_unlocked (rec->jobs, job);
+	    tmp = g_async_queue_pop_unlocked (rec->jobs);
+	    g_async_queue_push_unlocked (rec->jobs, tmp);
 	    count--;
 	  }
 	  g_async_queue_unlock (rec->jobs);
@@ -362,8 +362,9 @@ stored_image_store (ByzanzRecorder *rec, GdkImage *image, GdkRegion *region, con
   ret = TRUE;
 out_err:
   offset = lseek (store->fd, 0, SEEK_CUR);
+  g_assert (offset > 0); /* FIXME */
   val = g_atomic_int_get (&rec->max_file_size);
-  if (offset >= val) {
+  if ((guint) offset >= val) {
     rec->cur_cache_fd = -1;
     if (!ret)
       store = g_queue_peek_tail (rec->file_cache);

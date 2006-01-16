@@ -181,13 +181,13 @@ gifenc_octree_print (GifencOctree *tree, guint flags)
 }
 
 static guint
-color_to_index (guint color, guint index)
+color_to_index (guint color, guint level)
 {
   guint ret;
 
-  g_assert (index < 8);
+  g_assert (level < 8);
 
-  color >>= (7 - index);
+  color >>= (7 - level);
   ret = (color & 0x10000) ? 4 : 0;
   if (color & 0x100)
     ret += 2;
@@ -207,7 +207,7 @@ gifenc_octree_add_one (GifencOctree *tree, guint32 color, guint count)
 static void
 gifenc_octree_add_color (OctreeInfo *info, guint32 color, guint count)
 {
-  guint index;
+  guint i;
   GifencOctree *tree = info->tree;
 
   for (;;) {
@@ -221,24 +221,24 @@ gifenc_octree_add_color (OctreeInfo *info, guint32 color, guint count)
 	new->green = tree->green; tree->green = 0;
 	new->blue = tree->blue; tree->blue = 0;
 	new->color = tree->color; tree->color = (guint) -1;
-	index = color_to_index (new->color, tree->level);
-	tree->children[index] = new;
+	i = color_to_index (new->color, tree->level);
+	tree->children[i] = new;
 	info->non_leaves = g_slist_prepend (info->non_leaves, tree);
       } else {
 	gifenc_octree_add_one (tree, color, count);
 	return;
       }
     } 
-    index = color_to_index (color, tree->level);
-    if (tree->children[index]) {
-      tree = tree->children[index];
+    i = color_to_index (color, tree->level);
+    if (tree->children[i]) {
+      tree = tree->children[i];
     } else {
       GifencOctree *new = gifenc_octree_new ();
       new->level = tree->level + 1;
       gifenc_octree_add_one (new, color, count);
       new->count = count;
       new->color = color;
-      tree->children[index] = new;
+      tree->children[i] = new;
       info->num_leaves++;
       return;
     }

@@ -254,7 +254,7 @@ perform_placement (PanelStuffer *stuffer)
 static gint
 panel_stuffer_find (PanelStuffer *stuffer, GtkWidget *widget)
 {
-  gint i;
+  guint i;
 
   for (i = 0; i < stuffer->children->len; i++) {
     WidgetDefinition *d = &g_array_index(stuffer->children,
@@ -323,7 +323,7 @@ panel_stuffer_forall (GtkContainer *container, gboolean include_internals,
     GtkCallback callback, gpointer callback_data)
 {
   PanelStuffer *stuffer;
-  int i;
+  guint i;
 
   g_return_if_fail (callback != NULL);
 
@@ -339,7 +339,7 @@ panel_stuffer_forall (GtkContainer *container, gboolean include_internals,
 static void 
 panel_stuffer_size_request (GtkWidget *widget, GtkRequisition *requisition)
 {
-  int i, border;
+  guint i, border;
   PanelStuffer *stuffer = PANEL_STUFFER (widget);
 
   border = GTK_CONTAINER (stuffer)->border_width;
