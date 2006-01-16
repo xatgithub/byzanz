@@ -96,7 +96,7 @@ panel_toggle_button_expose (GtkWidget *widget, GdkEventExpose *event)
 static gboolean
 panel_toggle_button_button_press (GtkWidget *widget, GdkEventButton *event)
 {
-  if (event->button == 3)
+  if (event->button == 3 || event->button == 2)
     return FALSE;
 
   return GTK_WIDGET_CLASS (parent_class)->button_press_event (widget, event);
@@ -105,7 +105,7 @@ panel_toggle_button_button_press (GtkWidget *widget, GdkEventButton *event)
 static gboolean
 panel_toggle_button_button_release (GtkWidget *widget, GdkEventButton *event)
 {
-  if (event->button == 3)
+  if (event->button == 3 || event->button == 2)
     return FALSE;
 
   return GTK_WIDGET_CLASS (parent_class)->button_release_event (widget, event);

@@ -44,11 +44,14 @@ struct _PanelDropdown
 
   GtkWidget *		box;
   GtkWidget *		popup;
+  GtkWidget *		arrow_button;
   GtkWidget *		arrow;
   GtkWidget *		child;
   /* monitoring how to display */
   PanelApplet *		applet;
-  PanelAppletOrient	orient;
+  PanelAppletOrient	orient;		/* orientation advertised by panel */
+  PanelAppletOrient	layout_orient;	/* orientation we layouted with */
+  gboolean		small_layout;	/* if the layout is rotated */
 };
 
 struct _PanelDropdownClass
@@ -62,6 +65,8 @@ GtkWidget *	panel_dropdown_new		(void);
 
 void		panel_dropdown_set_popup_widget	(PanelDropdown *	dropdown,
 						 GtkWidget *		widget);
+void		panel_dropdown_set_applet	(PanelDropdown *        dropdown,
+						 PanelApplet *		applet);
 
 
 G_END_DECLS

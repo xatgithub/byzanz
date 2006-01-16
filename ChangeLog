@@ -1,5 +1,23 @@
 2006-01-16  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
+	* src/byzanzapplet.c: (byzanz_applet_fill):
+	  set panel that watches this applet
+	* src/paneldropdown.c: (panel_dropdown_position_menu),
+	(panel_dropdown_add), (panel_dropdown_remove),
+	(panel_dropdown_size_allocate), (panel_dropdown_set_orientation),
+	(panel_dropdown_parent_set), (panel_dropdown_class_init),
+	(panel_dropdown_init), (panel_dropdown_deactivate_menu_cb),
+	(panel_dropdown_set_popup_widget),
+	(panel_dropdown_change_orient_cb), (panel_dropdown_set_applet):
+	* src/paneldropdown.h:
+	  add code to monitor size changes and adjust layout based on them.
+	  Goal is (as always) to occupied space on the panel
+	* src/paneltogglebutton.c: (panel_toggle_button_button_press),
+	(panel_toggle_button_button_release):
+	  don't react to mouse button 2 either (allow dragging the applet)
+
+2006-01-16  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
 	* src/paneltogglebutton.c: 
 	* src/paneltogglebutton.h:
 	  add toggle button subclass that fits better onto a panel

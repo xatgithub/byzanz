@@ -380,6 +380,7 @@ byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
   priv->dropdown = panel_dropdown_new ();
   panel_stuffer_add_full (PANEL_STUFFER (stuffer), priv->dropdown, FALSE, TRUE);
   panel_dropdown_set_popup_widget (PANEL_DROPDOWN (priv->dropdown), priv->menu);
+  panel_dropdown_set_applet (PANEL_DROPDOWN (priv->dropdown), priv->applet);
 
   priv->method = -1;
   priv->button = panel_toggle_button_new ();
