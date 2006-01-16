@@ -1,5 +1,11 @@
 2006-01-16  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
+	* src/paneltogglebutton.c: 
+	* src/paneltogglebutton.h:
+	  add toggle button subclass that fits better onto a panel
+
+2006-01-16  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
 	* src/byzanzselect.c: (byzanz_select_screen),
 	(byzanz_select_method_get_icon_name):
 	* src/byzanzselect.h:
