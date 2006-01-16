@@ -218,13 +218,29 @@ byzanz_select_area (GdkRectangle *rect)
   return ret;
 }
 
+/*** WHOLE SCREEN ***/
+
+static GdkWindow *
+byzanz_select_screen (GdkRectangle *rect)
+{
+  GdkWindow *root;
+  
+  root = gdk_get_default_root_window ();
+  rect->x = rect->y = 0;
+  gdk_drawable_get_size (root, &rect->width, &rect->height);
+  
+  return root;
+}
+
 /*** API ***/
 
 static const struct {
   char * description;
+  char * icon_name;
   GdkWindow * (* select) (GdkRectangle *rect);
 } methods [] = {
-  { N_("Select area"), byzanz_select_area }
+  { N_("Record whole _screen"), GTK_STOCK_ZOOM_FIT /*"byzanz-record-screen" */, byzanz_select_screen },
+  { N_("Select _area to record"), GTK_STOCK_MEDIA_RECORD /* "byzanz-record-area" */, byzanz_select_area }
 };
 #define BYZANZ_METHOD_COUNT G_N_ELEMENTS(methods)
 
@@ -233,7 +249,16 @@ byzanz_select_get_method_count (void)
 {
   return BYZANZ_METHOD_COUNT;
 }
-const gchar *
+
+const char *
+byzanz_select_method_get_icon_name (guint method)
+{
+  g_return_val_if_fail (method < BYZANZ_METHOD_COUNT, NULL);
+
+  return methods[method].icon_name;
+}
+
+const char *
 byzanz_select_method_describe (guint method)
 {
   g_return_val_if_fail (method < BYZANZ_METHOD_COUNT, NULL);

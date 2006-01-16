@@ -1,3 +1,21 @@
+2006-01-16  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
+	* src/byzanzselect.c: (byzanz_select_screen),
+	(byzanz_select_method_get_icon_name):
+	* src/byzanzselect.h:
+	  add method for recodring the whole screen
+	  supply a default icon name
+	* src/Makefile.am:
+	* src/paneldropdown.c: 
+	* src/paneldropdown.h:
+	  add a dropdown widget that drops down a menu when you click on it.
+	  Supposed to be similar in spirit to GtkToolMenuItem.
+	* src/byzanzapplet.c: (pending_recording_destroy),
+	(byzanz_applet_update), (byzanz_applet_start_recording),
+	(button_clicked_cb), (byzanz_applet_set_default_method),
+	(byzanz_applet_method_selected_cb), (byzanz_applet_fill):
+	  use the new widget and allow selecting a preferred recording method.
+
 2006-01-13  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
 	* src/record.c:

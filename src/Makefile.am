@@ -5,7 +5,9 @@ libexec_PROGRAMS = byzanz-applet
 noinst_HEADERS = \
 	byzanzrecorder.h \
 	byzanzselect.h \
-	panelstuffer.h
+	paneldropdown.h \
+	panelstuffer.h \
+	paneltogglebutton.h
 
 libbyzanz_la_SOURCES = \
 	byzanzrecorder.c \
@@ -23,7 +25,9 @@ byzanz_record_LDADD = $(BYZANZ_LIBS) ./libbyzanz.la
 
 byzanz_applet_SOURCES = \
 	byzanzapplet.c \
-	panelstuffer.c
+	paneldropdown.c \
+	panelstuffer.c \
+	paneltogglebutton.c
 
 byzanz_applet_CFLAGS = $(APPLET_CFLAGS) -I$(top_srcdir)/gifenc
 byzanz_applet_LDADD = $(APPLET_LIBS) ./libbyzanz.la

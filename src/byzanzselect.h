@@ -24,7 +24,8 @@
 #define __HAVE_BYZANZ_SELECT_H__
 
 guint			byzanz_select_get_method_count	(void);
-const gchar *		byzanz_select_method_describe	(guint		method);
+const char *		byzanz_select_method_describe	(guint		method);
+const char *		byzanz_select_method_get_icon_name (guint	method);
 GdkWindow *		byzanz_select_method_select	(guint		method,
 							 GdkRectangle *	rect);
 					
