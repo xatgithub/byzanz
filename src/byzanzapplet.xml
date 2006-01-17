@@ -1,0 +1,8 @@
+<Root>
+   <popups>
+      <popup name="button3">
+         <menuitem name="Byzanz About Item" verb="ByzanzAbout" _label="_About"
+                   pixtype="stock" pixname="gnome-stock-about"/>
+      </popup>
+   </popups>
+</Root>

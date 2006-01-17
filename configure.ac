@@ -96,6 +96,8 @@ case "$host" in
     ;;
 esac
 
+AC_DEFINE_DIR(DATADIR, "${datadir}", [datadir])
+
 dnl Check for essential libraries first:
 dnl ====================================
 

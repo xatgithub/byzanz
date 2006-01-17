@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Byzanz\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2006-01-13 01:11+0100\n"
+"POT-Creation-Date: 2006-01-17 12:48+0100\n"
 "PO-Revision-Date: 2006-01-04 20:01+0100\n"
 "Last-Translator: Benjamin Otte <otte@gnome.org>\n"
 "Language-Team: German <de@li.org>\n"
@@ -14,54 +14,67 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../src/byzanzapplet.c:87
+#: ../src/byzanzapplet.c:92
 msgid "A file could not be saved."
 msgstr "Eine Datei konnte nicht gespeichert werden."
 
-#: ../src/byzanzapplet.c:88
+#: ../src/byzanzapplet.c:93
 #, c-format
 msgid ""
 "\"%s\" could not be saved.\n"
 "The error that occured was: %s"
-msgstr "\"%s\" konnte nicht gespeichert werden.\n"
+msgstr ""
+"\"%s\" konnte nicht gespeichert werden.\n"
 "Der Fehler ist: %s"
 
-#: ../src/byzanzapplet.c:151
+#: ../src/byzanzapplet.c:156
 msgid "Save Recorded File"
 msgstr "Speichere Aufgenommene Datei"
 
 #. translators: the label advertises a width of 5 characters
-#: ../src/byzanzapplet.c:225 ../src/byzanzapplet.c:331
+#: ../src/byzanzapplet.c:235 ../src/byzanzapplet.c:417
 msgid "OFF"
 msgstr "AUS"
 
-#: ../src/byzanzselect.c:227
-msgid "Select area"
-msgstr "Bereich auswählen"
+#: ../src/byzanzapplet.c:351 ../src/ByzanzApplet.server.in.in.h:2
+msgid "Desktop Recorder"
+msgstr "Desktop Rekorder"
+
+#: ../src/byzanzapplet.c:354 ../src/ByzanzApplet.server.in.in.h:3
+msgid "Record what's happening on your desktop"
+msgstr "Nehmen Sie auf, was auf Ihrem Desktop passiert"
+
+#: ../src/byzanzapplet.c:356
+msgid "translator-credits"
+msgstr "Benjamin Otte <otte@gnome.org>"
+
+#: ../src/byzanzapplet.xml.h:1
+msgid "_About"
+msgstr "_Info"
+
+#: ../src/byzanzselect.c:253
+msgid "Record whole _screen"
+msgstr "Ganzen _Bildschirm aufnehmen"
+
+#: ../src/byzanzselect.c:254
+msgid "Select _area to record"
+msgstr "_aufzunehmenden Bereich auswählen"
 
 #: ../src/ByzanzApplet.server.in.in.h:1
 msgid "Byzanz Factory"
 msgstr "Byzanz Fabrik"
 
-#: ../src/ByzanzApplet.server.in.in.h:2
-msgid "Desktop Recorder"
-msgstr "Desktop Rekorder"
-
-#: ../src/ByzanzApplet.server.in.in.h:3
-msgid "Record what's happening on your desktop"
-msgstr "Nehmen Sie auf, was auf Ihrem Desktop passiert"
-
 #: ../src/record.c:35
-msgid "Duration of animation"
-msgstr "Dauer der Animation"
+msgid "Duration of animation (default: 10 seconds)"
+msgstr "Dauer der Animation (Standard: 10 Sekunden)"
 
 #: ../src/record.c:35 ../src/record.c:36
 msgid "SECS"
 msgstr "SEK"
 
 #: ../src/record.c:36
-msgid "Delay before start"
-msgstr "Pause vor Start"
+msgid "Delay before start (default: 1 second)"
+msgstr "Pause vor Start (Standard: 1 Sekunde)"
 
 #: ../src/record.c:37
 msgid "Let the animation loop"
@@ -133,4 +146,3 @@ msgstr ""
 "Konnte die Aufnahme nicht vorbereiten.\n"
 "Höchstwahrscheinlich ist die Damage Erweiterung auf dem X Server nicht "
 "installiert.Oder die Datei \"%s\" kann nicht geschrieben werden.\n"
-

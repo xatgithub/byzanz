@@ -39,10 +39,14 @@ server_DATA     = $(server_in_files:.server.in=.server)
 $(server_in_files): $(server_in_files:.server.in=.server.in.in)
 	sed -e "s|\@LIBEXECDIR\@|$(libexecdir)|" $< > $@
 
+uidir = $(datadir)/gnome-2.0/ui
+ui_DATA = byzanzapplet.xml
+
 CLEANFILES = $(server_in_files) $(server_DATA) 
 
 EXTRA_DIST = \
 	ByzanzApplet.server.in.in \
+	$(ui_DATA) \
 	$(schemas_in_files)
 
 

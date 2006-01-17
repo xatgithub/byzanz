@@ -339,6 +339,29 @@ byzanz_applet_method_selected_cb (GtkMenuItem *item, AppletPrivate *priv)
     byzanz_applet_start_recording (priv);
 }
 
+static void 
+byzanz_about_cb (BonoboUIComponent *uic, AppletPrivate *priv, const char *verb)
+{
+  const gchar *authors[] = {
+    "Benjamin Otte <otte@gnome.org>", 
+    NULL
+   };
+
+  gtk_show_about_dialog( NULL,
+    "name",                _("Desktop Recorder"), 
+    "version",             VERSION,
+    "copyright",           "\xC2\xA9 2005-2006 Benjamin Otte",
+    "comments",            _("Record what's happening on your desktop"),
+    "authors",             authors,
+    "translator-credits",  _("translator-credits"),
+    NULL );
+}
+
+static const BonoboUIVerb byzanz_menu_verbs [] = {
+	BONOBO_UI_UNSAFE_VERB ("ByzanzAbout",      byzanz_about_cb),
+        BONOBO_UI_VERB_END
+};
+
 static gboolean
 byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
 {
@@ -397,6 +420,11 @@ byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
   panel_stuffer_add_full (PANEL_STUFFER (stuffer), priv->label, FALSE, FALSE);
 
   gtk_widget_show_all (GTK_WIDGET (applet));
+  
+  /* setup context menu */
+  panel_applet_setup_menu_from_file (PANEL_APPLET (applet), 
+      DATADIR, "byzanzapplet.xml", NULL, byzanz_menu_verbs, priv);
+
   return TRUE;
 }
 

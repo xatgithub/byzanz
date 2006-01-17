@@ -1,5 +1,16 @@
 2006-01-17  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
+	* configure.ac:
+	* src/Makefile.am:
+	* src/byzanzapplet.c: (byzanz_about_cb), (byzanz_applet_fill):
+	* src/byzanzapplet.xml:
+	  add a sexy about box
+	* po/POTFILES.in:
+	* po/de.po:
+	  update translations for sexy about box
+
+2006-01-17  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
 	* src/byzanzselect.c: (quit_cb), (byzanz_select_area):
 	  don't just sleep 1 sec, but run a main loop during that time
 
