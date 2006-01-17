@@ -169,6 +169,16 @@ realize_cb (GtkWidget *widget, gpointer datap)
   gdk_window_set_back_pixmap (window, NULL, FALSE);
 }
 
+static gboolean
+quit_cb (gpointer datap)
+{
+  WindowData *data = datap;
+
+  g_main_loop_quit (data->loop);
+
+  return FALSE;
+}
+
 static GdkWindow *
 byzanz_select_area (GdkRectangle *rect)
 {
@@ -209,7 +219,8 @@ byzanz_select_area (GdkRectangle *rect)
     ret = gdk_get_default_root_window ();
     /* stupid hack to get around a recorder recording the selection screen */
     gdk_display_sync (gdk_display_get_default ());
-    g_usleep (G_USEC_PER_SEC);
+    g_timeout_add (1000, quit_cb, data);
+    g_main_loop_run (data->loop);
   }
   g_main_loop_unref (data->loop);
   if (data->root)
