@@ -1,4 +1,4 @@
-SUBDIRS=macros gifenc src po
+SUBDIRS = macros data gifenc src po
 
 EXTRA_DIST = \
 	depcomp \

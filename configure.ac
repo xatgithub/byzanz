@@ -143,6 +143,7 @@ dnl #########################
 
 AC_OUTPUT(
 Makefile
+data/Makefile
 gifenc/Makefile
 macros/Makefile
 po/Makefile.in

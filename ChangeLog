@@ -1,3 +1,15 @@
+2006-01-17  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
+	* Makefile.am:
+	* configure.ac:
+	* data/.cvsignore:
+	* data/Makefile.am:
+	* data/byzanz-record-area.png:
+	* data/byzanz-record-screen.png:
+	  add (rather stupid) icons for the different recording options
+	* src/byzanzselect.c:
+	  use them
+
 2006-01-16  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
 	* configure.ac:

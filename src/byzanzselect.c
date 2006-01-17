@@ -239,8 +239,8 @@ static const struct {
   char * icon_name;
   GdkWindow * (* select) (GdkRectangle *rect);
 } methods [] = {
-  { N_("Record whole _screen"), GTK_STOCK_ZOOM_FIT /*"byzanz-record-screen" */, byzanz_select_screen },
-  { N_("Select _area to record"), GTK_STOCK_MEDIA_RECORD /* "byzanz-record-area" */, byzanz_select_area }
+  { N_("Record whole _screen"), "byzanz-record-screen", byzanz_select_screen },
+  { N_("Select _area to record"), "byzanz-record-area", byzanz_select_area }
 };
 #define BYZANZ_METHOD_COUNT G_N_ELEMENTS(methods)
 
