@@ -738,6 +738,7 @@ byzanz_recorder_new_fd (gint fd, GdkWindow *window, GdkRectangle *area,
   
   /* prepare thread first, so we can easily error out on failure */
   recorder->window = window;
+  g_object_ref (window);
   root_rect.x = root_rect.y = 0;
   gdk_drawable_get_size (recorder->window,
       &root_rect.width, &root_rect.height);
@@ -853,6 +854,7 @@ byzanz_recorder_destroy (ByzanzRecorder *rec)
   gdk_region_destroy (rec->region);
 
   gifenc_close (rec->gifenc);
+  g_object_unref (rec->window);
 
   g_assert (rec->cache_size == 0);
   

@@ -227,6 +227,7 @@ byzanz_select_area (GdkRectangle *rect)
   if (data->root)
     g_object_unref (data->root);
   g_free (data);
+  g_object_ref (ret);
   return ret;
 }
 
@@ -240,6 +241,7 @@ byzanz_select_screen (GdkRectangle *rect)
   root = gdk_get_default_root_window ();
   rect->x = rect->y = 0;
   gdk_drawable_get_size (root, &rect->width, &rect->height);
+  g_object_ref (root);
   
   return root;
 }
@@ -256,16 +258,17 @@ select_window_button_pressed_cb (GtkWidget *widget, GdkEventButton *event, gpoin
 {
   PickWindowData *data = datap;
   
+  gdk_pointer_ungrab (event->time);
+  g_main_loop_quit (data->loop);
   if (event->button == 1) {
     Window w;
-    gdk_pointer_ungrab (event->time);
-    g_main_loop_quit (data->loop);
     w = screenshot_find_current_window (TRUE);
     if (w != None)
       data->window = gdk_window_foreign_new (w);
-    return TRUE;
+    else
+      data->window = gdk_get_default_root_window ();
   }
-  return FALSE;
+  return TRUE;
 }
 
 GdkWindow *
@@ -288,9 +291,9 @@ byzanz_select_window (GdkRectangle *area)
   g_main_loop_unref (data.loop);
   gtk_widget_destroy (widget);
   gdk_cursor_unref (cursor);
-  area->x = area->y = 0;
   if (!data.window)
-    data.window = gdk_get_default_root_window ();
+    return NULL;
+  area->x = area->y = 0;
   gdk_drawable_get_size (data.window, &area->width, &area->height);
 
   return data.window;
@@ -331,6 +334,18 @@ byzanz_select_method_describe (guint method)
   return _(methods[method].description);
 }
 
+/**
+ * byzanz_select_method_select:
+ * @method: id of the method to use
+ * @rect: rectangle that will be set to the coordinates to record relative to 
+ *        the window
+ *
+ * Gets the area of the window to record. Note that this might require running
+ * the main loop while waiting for user interaction, so be prepared for this.
+ *
+ * Returns: The #GdkWindow to record from or %NULL if the user aborted.
+ *          You must g_object_unref() the window after use.
+ **/
 GdkWindow *
 byzanz_select_method_select (guint method, GdkRectangle *rect)
 {

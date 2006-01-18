@@ -259,11 +259,14 @@ byzanz_applet_start_recording (AppletPrivate *priv)
     priv->rec = NULL;
   }
   
+  priv->tmp_file = "SELECTING"; /* so the rest of the world thinks we're recording */
   window = byzanz_select_method_select (priv->method, &area); 
+  priv->tmp_file = NULL;
   if (window) {
     int fd = g_file_open_tmp ("byzanzXXXXXX", &priv->tmp_file, NULL);
     if (fd > 0) 
       priv->rec = byzanz_recorder_new_fd (fd, window, &area, TRUE);
+    g_object_unref (window);
   }
   if (priv->rec) {
     byzanz_recorder_prepare (priv->rec);

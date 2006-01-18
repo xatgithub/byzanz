@@ -1,5 +1,17 @@
 2006-01-18  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
+	* src/byzanzapplet.c: (byzanz_applet_start_recording):
+	  set tmp_file so the applet thinks we're recording already
+	* src/byzanzrecorder.c: (byzanz_recorder_new_fd),
+	(byzanz_recorder_destroy):
+	  ref/unref the GdkWindow
+	* src/byzanzselect.c: (byzanz_select_area), (byzanz_select_screen),
+	(select_window_button_pressed_cb), (byzanz_select_window):
+	  document byzanz_select_method_select and make sure all methods ref
+	  the window before returning
+
+2006-01-18  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
 	* src/Makefile.am:
 	* src/byzanzselect.c: (select_window_button_pressed_cb),
 	(byzanz_select_window):
