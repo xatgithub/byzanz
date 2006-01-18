@@ -1,3 +1,17 @@
+2006-01-18  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
+	* src/Makefile.am:
+	* src/byzanzselect.c: (select_window_button_pressed_cb),
+	(byzanz_select_window):
+	  add possibility to record a selected window.
+	* data/Makefile.am:
+	* data/byzanz-record-window.png:
+	  and add icon for it
+	* src/screenshot-utils.c: 
+	* src/screenshot-utils.h:
+	  partial copy from gnome-screenshot to find the correct window to
+	  record
+
 2006-01-17  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
 	* configure.ac:

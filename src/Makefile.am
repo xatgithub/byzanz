@@ -7,7 +7,8 @@ noinst_HEADERS = \
 	byzanzselect.h \
 	paneldropdown.h \
 	panelstuffer.h \
-	paneltogglebutton.h
+	paneltogglebutton.h \
+	screenshot-utils.h
 
 libbyzanz_la_SOURCES = \
 	byzanzrecorder.c \
@@ -27,7 +28,8 @@ byzanz_applet_SOURCES = \
 	byzanzapplet.c \
 	paneldropdown.c \
 	panelstuffer.c \
-	paneltogglebutton.c
+	paneltogglebutton.c \
+	screenshot-utils.c
 
 byzanz_applet_CFLAGS = $(APPLET_CFLAGS) -I$(top_srcdir)/gifenc
 byzanz_applet_LDADD = $(APPLET_LIBS) ./libbyzanz.la

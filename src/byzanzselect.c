@@ -23,6 +23,7 @@
 
 #include "byzanzselect.h"
 #include "i18n.h"
+#include "screenshot-utils.h"
 
 /*** SELECT AREA ***/
 
@@ -243,6 +244,58 @@ byzanz_select_screen (GdkRectangle *rect)
   return root;
 }
 
+/*** APPLICATION WINDOW ***/
+
+typedef struct {
+  GMainLoop *loop;
+  GdkWindow *window;
+} PickWindowData;
+
+static gboolean
+select_window_button_pressed_cb (GtkWidget *widget, GdkEventButton *event, gpointer datap)
+{
+  PickWindowData *data = datap;
+  
+  if (event->button == 1) {
+    Window w;
+    gdk_pointer_ungrab (event->time);
+    g_main_loop_quit (data->loop);
+    w = screenshot_find_current_window (TRUE);
+    if (w != None)
+      data->window = gdk_window_foreign_new (w);
+    return TRUE;
+  }
+  return FALSE;
+}
+
+GdkWindow *
+byzanz_select_window (GdkRectangle *area)
+{
+  GdkCursor *cursor;
+  GtkWidget *widget;
+  PickWindowData data = { NULL, NULL };
+  
+  cursor = gdk_cursor_new (GDK_CROSSHAIR);
+  widget = gtk_invisible_new ();
+  g_signal_connect (widget, "button-press-event", 
+      G_CALLBACK (select_window_button_pressed_cb), &data);
+  gtk_widget_show (widget);
+  gdk_pointer_grab (widget->window, FALSE, GDK_BUTTON_PRESS_MASK, NULL, cursor, GDK_CURRENT_TIME);
+  data.loop = g_main_loop_new (NULL, FALSE);
+  
+  g_main_loop_run (data.loop);
+  
+  g_main_loop_unref (data.loop);
+  gtk_widget_destroy (widget);
+  gdk_cursor_unref (cursor);
+  area->x = area->y = 0;
+  if (!data.window)
+    data.window = gdk_get_default_root_window ();
+  gdk_drawable_get_size (data.window, &area->width, &area->height);
+
+  return data.window;
+}
+  
 /*** API ***/
 
 static const struct {
@@ -251,7 +304,8 @@ static const struct {
   GdkWindow * (* select) (GdkRectangle *rect);
 } methods [] = {
   { N_("Record whole _screen"), "byzanz-record-screen", byzanz_select_screen },
-  { N_("Select _area to record"), "byzanz-record-area", byzanz_select_area }
+  { N_("Select _area to record"), "byzanz-record-area", byzanz_select_area },
+  { N_("Select _window to record"), "byzanz-record-window", byzanz_select_window }
 };
 #define BYZANZ_METHOD_COUNT G_N_ELEMENTS(methods)
 
