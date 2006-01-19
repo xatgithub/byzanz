@@ -1,3 +1,16 @@
+2006-01-19  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
+	* src/byzanzapplet.c: (byzanz_applet_update),
+	(byzanz_applet_start_recording),
+	(byzanz_applet_set_default_method),
+	(byzanz_applet_method_selected_cb), (byzanz_applet_fill):
+	  get rid of the label, it wastes space most of the time.
+	  add tooltips
+	* src/Makefile.am:
+	* src/panelstuffer.h:
+	* src/panelstuffer.c:
+	  remove, they're not needed anymore
+
 2006-01-19  Benjamin Otte  <otte@gnome.org>
 
 	* src/screenshot-utils.c: (get_atom_property):

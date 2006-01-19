@@ -22,14 +22,12 @@
 #endif
 
 #include <panel-applet.h>
-#include <gtk/gtklabel.h>
 #include <glib/gstdio.h>
 #include <libgnomevfs/gnome-vfs.h>
 #include <libgnomeui/libgnomeui.h>
 #include <panel-applet-gconf.h>
 #include "byzanzrecorder.h"
 #include "byzanzselect.h"
-#include "panelstuffer.h"
 #include "paneltogglebutton.h"
 #include "paneldropdown.h"
 #include "i18n.h"
@@ -43,15 +41,14 @@ typedef struct {
   GtkWidget *		image;		/* image displayed in button */
   GtkWidget *		dropdown;	/* dropdown button */
   GtkWidget *		menu;		/* the menu that's dropped down */
-  GtkWidget *		label;		/* infotext label */
+  GtkTooltips *		tooltips;	/* our tooltips */
   
   ByzanzRecorder *	rec;		/* the recorder (if recording) */
   char *		tmp_file;	/* filename that's recorded to */
   GTimeVal		start;		/* time the recording started */
-  guint			update_func;	/* id of idle function that updates state */
 
   /* config */
-  guint			method;		/* recording method that was set */
+  int			method;		/* recording method that was set */
 } AppletPrivate;
 #define APPLET_IS_RECORDING(applet) ((applet)->tmp_file != NULL)
 
@@ -212,17 +209,6 @@ byzanz_applet_is_recording (AppletPrivate *priv)
   return priv->tmp_file != NULL;
 }
 
-static void
-byzanz_applet_ensure_text (AppletPrivate *priv, const char *text)
-{
-  const char *current;
-
-  current = gtk_label_get_text (GTK_LABEL (priv->label));
-  if (g_str_equal (current, text))
-    return;
-  gtk_label_set_text (GTK_LABEL (priv->label), text);
-}
-
 static gboolean
 byzanz_applet_update (gpointer data)
 {
@@ -230,26 +216,19 @@ byzanz_applet_update (gpointer data)
 
   if (byzanz_applet_is_recording (priv)) {
     /* applet is still actively recording the screen */
-    GTimeVal tv;
-    guint elapsed;
-    gchar *str;
-    
-    g_get_current_time (&tv);
-    elapsed = tv.tv_sec - priv->start.tv_sec;
-    if (tv.tv_usec < priv->start.tv_usec)
-      elapsed--;
-    str = g_strdup_printf ("%u", elapsed);
-    byzanz_applet_ensure_text (priv, str);
-    g_free (str);
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (priv->button), TRUE);
-    gtk_widget_set_sensitive (priv->button, TRUE);
+    gtk_image_set_from_icon_name (GTK_IMAGE (priv->image), 
+	GTK_STOCK_MEDIA_RECORD, GTK_ICON_SIZE_LARGE_TOOLBAR);
+    gtk_tooltips_set_tip (priv->tooltips, priv->button,
+	_("Stop current recording"),
+	NULL);
   } else {
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (priv->button), FALSE);
-    gtk_label_set_text (GTK_LABEL (priv->label), _("OFF"));
-    if (priv->update_func) {
-      g_source_remove (priv->update_func);
-      priv->update_func = 0;
-    }
+    gtk_image_set_from_icon_name (GTK_IMAGE (priv->image), 
+	byzanz_select_method_get_icon_name (priv->method), GTK_ICON_SIZE_LARGE_TOOLBAR);
+    gtk_tooltips_set_tip (priv->tooltips, priv->button,
+	byzanz_select_method_describe (priv->method),
+	NULL);
   }
   
   return TRUE;
@@ -273,6 +252,7 @@ byzanz_applet_start_recording (AppletPrivate *priv)
   }
   
   priv->tmp_file = "SELECTING"; /* so the rest of the world thinks we're recording */
+  byzanz_applet_update (priv);
   window = byzanz_select_method_select (priv->method, &area); 
   priv->tmp_file = NULL;
   if (window) {
@@ -285,7 +265,6 @@ byzanz_applet_start_recording (AppletPrivate *priv)
     byzanz_recorder_prepare (priv->rec);
     byzanz_recorder_start (priv->rec);
     g_get_current_time (&priv->start);
-    priv->update_func = g_timeout_add (1000, byzanz_applet_update, priv);
   }
 
 out:
@@ -331,16 +310,15 @@ destroy_applet (GtkWidget *widget, AppletPrivate *priv)
 }
 
 static void
-byzanz_applet_set_default_method (AppletPrivate *priv, guint id, gboolean update_gconf)
+byzanz_applet_set_default_method (AppletPrivate *priv, int id, gboolean update_gconf)
 {
   if (priv->method == id)
     return;
-  if (id >= byzanz_select_get_method_count ())
+  if (id >= (gint) byzanz_select_get_method_count ())
     return;
 
   priv->method = id;
-  gtk_image_set_from_icon_name (GTK_IMAGE (priv->image), 
-      byzanz_select_method_get_icon_name (id), GTK_ICON_SIZE_LARGE_TOOLBAR);
+  byzanz_applet_update (priv);
 
   if (update_gconf)
     panel_applet_gconf_set_string (priv->applet, "method", 
@@ -350,7 +328,7 @@ byzanz_applet_set_default_method (AppletPrivate *priv, guint id, gboolean update
 static void
 byzanz_applet_method_selected_cb (GtkMenuItem *item, AppletPrivate *priv)
 {
-  guint id;
+  int id;
 
   id = GPOINTER_TO_INT (g_object_get_qdata (G_OBJECT (item), index_quark));
   byzanz_applet_set_default_method (priv, id, TRUE);
@@ -386,10 +364,8 @@ static gboolean
 byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
 {
   AppletPrivate *priv;
-  GtkWidget *stuffer;
   guint i;
   char *method;
-  int method_id;
   
   gnome_vfs_init ();
   gnome_authentication_manager_init ();
@@ -402,7 +378,10 @@ byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
   panel_applet_add_preferences (applet, "/schemas/apps/byzanz-applet/prefs",
       NULL);
   panel_applet_set_flags (applet, PANEL_APPLET_EXPAND_MINOR);
-  
+  panel_applet_setup_menu_from_file (PANEL_APPLET (applet), 
+      DATADIR, "byzanzapplet.xml", NULL, byzanz_menu_verbs, priv);
+
+  priv->tooltips = gtk_tooltips_new ();
   /* build menu */
   priv->menu = gtk_menu_new ();
   for (i = 0; i < byzanz_select_get_method_count (); i++) {
@@ -421,40 +400,26 @@ byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
   }
   
   /* create UI */
-  stuffer = panel_stuffer_new (GTK_ORIENTATION_VERTICAL);
-  gtk_container_add (GTK_CONTAINER (applet), stuffer);
-
   priv->dropdown = panel_dropdown_new ();
-  panel_stuffer_add_full (PANEL_STUFFER (stuffer), priv->dropdown, FALSE, TRUE);
+  gtk_container_add (GTK_CONTAINER (applet), priv->dropdown);
   panel_dropdown_set_popup_widget (PANEL_DROPDOWN (priv->dropdown), priv->menu);
   panel_dropdown_set_applet (PANEL_DROPDOWN (priv->dropdown), priv->applet);
 
-  priv->method = -1;
   method = panel_applet_gconf_get_string (priv->applet, "method", NULL);
-  method_id = byzanz_select_method_lookup (method);
+  priv->method = byzanz_select_method_lookup (method);
   g_free (method);
-  if (method_id < 0)
-    method_id = 0;
+  if (priv->method < 0)
+    priv->method = 0;
 
   priv->button = panel_toggle_button_new ();
   priv->image = gtk_image_new ();
   gtk_container_add (GTK_CONTAINER (priv->button), priv->image);
   g_signal_connect (priv->button, "toggled", G_CALLBACK (button_clicked_cb), priv);
   gtk_container_add (GTK_CONTAINER (priv->dropdown), priv->button);
-  byzanz_applet_set_default_method (priv, method_id, FALSE);
 
-  /* translators: the label advertises a width of 5 characters */
-  priv->label = gtk_label_new (_("OFF"));
-  gtk_label_set_width_chars (GTK_LABEL (priv->label), 5);
-  gtk_label_set_justify (GTK_LABEL (priv->label), GTK_JUSTIFY_CENTER);
-  panel_stuffer_add_full (PANEL_STUFFER (stuffer), priv->label, FALSE, FALSE);
-
+  byzanz_applet_update (priv);
   gtk_widget_show_all (GTK_WIDGET (applet));
   
-  /* setup context menu */
-  panel_applet_setup_menu_from_file (PANEL_APPLET (applet), 
-      DATADIR, "byzanzapplet.xml", NULL, byzanz_menu_verbs, priv);
-
   return TRUE;
 }
 
