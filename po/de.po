@@ -93,11 +93,11 @@ msgstr "aufzunehmenden Bereich auswählen"
 
 #: ../src/byzanzselect.c:315
 msgid "Select _window to record"
-msgstr "_Fenster yum Aufnehmen auswählen"
+msgstr "_Fenster zum Aufnehmen auswählen"
 
 #: ../src/byzanzselect.c:315
 msgid "Select window to record"
-msgstr "Fenster yum Aufnehmen auswählen"
+msgstr "Fenster zum Aufnehmen auswählen"
 
 #: ../src/ByzanzApplet.server.in.in.h:1
 msgid "Byzanz Factory"

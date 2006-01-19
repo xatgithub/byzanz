@@ -371,6 +371,11 @@ byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
   gnome_authentication_manager_init ();
   if (!index_quark)
     index_quark = g_quark_from_static_string ("Byzanz-Index");
+#ifdef GETTEXT_PACKAGE
+  bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
+  bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
+  textdomain (GETTEXT_PACKAGE);
+#endif
 
   priv = g_new0 (AppletPrivate, 1);
   priv->applet = applet;

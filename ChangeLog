@@ -1,5 +1,12 @@
 2006-01-19  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
+	* po/de.po:
+	  typo
+	* src/byzanzapplet.c: (byzanz_applet_fill):
+	  actually call bindtextdomain (d'oh)
+
+2006-01-19  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
 	* src/.cvsignore:
 	  don't list .schemas file
 	* src/Makefile.am:
