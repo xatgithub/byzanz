@@ -1,3 +1,8 @@
+2006-01-19  Benjamin Otte  <otte@gnome.org>
+
+	* src/screenshot-utils.c: (get_atom_property):
+	  no more type-punned pointers breaking strict aliasing rules rules!
+
 2006-01-19  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
 	* configure.ac:

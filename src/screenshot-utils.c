@@ -15,19 +15,21 @@ get_atom_property (Window  xwindow,
   int format;
   gulong nitems;
   gulong bytes_after;
-  Atom *a;
+  Atom *a = NULL;
   int err, result;
+  guchar *atom_cast;
 
   *val = 0;
   
   gdk_error_trap_push ();
   type = None;
+  atom_cast = (guchar *) a;
   result = XGetWindowProperty (gdk_display,
 			       xwindow,
 			       atom,
 			       0, G_MAXLONG,
 			       False, XA_ATOM, &type, &format, &nitems,
-			       &bytes_after, (guchar **)&a);  
+			       &bytes_after, &atom_cast);  
   err = gdk_error_trap_pop ();
   if (err != Success ||
       result != Success)
