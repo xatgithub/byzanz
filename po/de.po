@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Byzanz\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2006-01-19 04:15+0100\n"
+"POT-Creation-Date: 2006-01-19 14:04+0100\n"
 "PO-Revision-Date: 2006-01-04 20:01+0100\n"
 "Last-Translator: Benjamin Otte <otte@gnome.org>\n"
 "Language-Team: German <de@li.org>\n"
@@ -34,15 +34,15 @@ msgid ""
 "\" for recording the whole screen, \"area\" for selecting an area or \"window"
 "\" to select a window."
 msgstr ""
-"Benutze diese Methode als Standard-Aufnahmemethode. Muss einer der Werte \"screen\" "
-"zur Aufnahme des ganzen Bildschirms, \"area\" zur Auswahl eines Bereichs oder "
-"\"window\" zur Auswahl eines Fensters sein."
+"Benutze diese Methode als Standard-Aufnahmemethode. Muss einer der Werte "
+"\"screen\" zur Aufnahme des ganzen Bildschirms, \"area\" zur Auswahl eines "
+"Bereichs oder \"window\" zur Auswahl eines Fensters sein."
 
-#: ../src/byzanzapplet.c:112
+#: ../src/byzanzapplet.c:109
 msgid "A file could not be saved."
 msgstr "Eine Datei konnte nicht gespeichert werden."
 
-#: ../src/byzanzapplet.c:113
+#: ../src/byzanzapplet.c:110
 #, c-format
 msgid ""
 "\"%s\" could not be saved.\n"
@@ -51,24 +51,23 @@ msgstr ""
 "\"%s\" konnte nicht gespeichert werden.\n"
 "Der Fehler ist: %s"
 
-#: ../src/byzanzapplet.c:177
+#: ../src/byzanzapplet.c:174
 msgid "Save Recorded File"
 msgstr "Speichere Aufgenommene Datei"
 
-#. translators: the label advertises a width of 5 characters
-#: ../src/byzanzapplet.c:248 ../src/byzanzapplet.c:447
-msgid "OFF"
-msgstr "AUS"
+#: ../src/byzanzapplet.c:223
+msgid "Stop current recording"
+msgstr "Beende aktuelle Aufnahme"
 
-#: ../src/byzanzapplet.c:371 ../src/ByzanzApplet.server.in.in.h:2
+#: ../src/byzanzapplet.c:349 ../src/ByzanzApplet.server.in.in.h:2
 msgid "Desktop Recorder"
 msgstr "Desktop Rekorder"
 
-#: ../src/byzanzapplet.c:374 ../src/ByzanzApplet.server.in.in.h:3
+#: ../src/byzanzapplet.c:352 ../src/ByzanzApplet.server.in.in.h:3
 msgid "Record what's happening on your desktop"
 msgstr "Nehmen Sie auf, was auf Ihrem Desktop passiert"
 
-#: ../src/byzanzapplet.c:376
+#: ../src/byzanzapplet.c:354
 msgid "translator-credits"
 msgstr "Benjamin Otte <otte@gnome.org>"
 
@@ -76,17 +75,29 @@ msgstr "Benjamin Otte <otte@gnome.org>"
 msgid "_About"
 msgstr "_Info"
 
-#: ../src/byzanzselect.c:310
+#: ../src/byzanzselect.c:311
 msgid "Record whole _screen"
 msgstr "Ganzen _Bildschirm aufnehmen"
 
 #: ../src/byzanzselect.c:311
+msgid "Record whole screen"
+msgstr "Ganzen Bildschirm aufnehmen"
+
+#: ../src/byzanzselect.c:313
 msgid "Select _area to record"
 msgstr "_aufzunehmenden Bereich auswählen"
 
-#: ../src/byzanzselect.c:312
+#: ../src/byzanzselect.c:313
+msgid "Select area to record"
+msgstr "aufzunehmenden Bereich auswählen"
+
+#: ../src/byzanzselect.c:315
 msgid "Select _window to record"
-msgstr "_aufzunehmenden Bereich auswählen"
+msgstr "_Fenster yum Aufnehmen auswählen"
+
+#: ../src/byzanzselect.c:315
+msgid "Select window to record"
+msgstr "Fenster yum Aufnehmen auswählen"
 
 #: ../src/ByzanzApplet.server.in.in.h:1
 msgid "Byzanz Factory"

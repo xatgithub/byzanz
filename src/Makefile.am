@@ -45,7 +45,6 @@ install-data-local:
 endif
 
 serverdir       = $(libdir)/bonobo/servers
-serverdir       = $(libdir)/bonobo/servers
 server_in_files = ByzanzApplet.server.in
 server_DATA     = $(server_in_files:.server.in=.server)
 

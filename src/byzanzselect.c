@@ -302,14 +302,18 @@ byzanz_select_window (GdkRectangle *area)
 /*** API ***/
 
 static const struct {
-  char * description;
-  char * icon_name;
-  char * method_name;
+  const char * mnemonic;
+  const char * description;
+  const char * icon_name;
+  const char * method_name;
   GdkWindow * (* select) (GdkRectangle *rect);
 } methods [] = {
-  { N_("Record whole _screen"), "byzanz-record-screen", "screen", byzanz_select_screen },
-  { N_("Select _area to record"), "byzanz-record-area", "area", byzanz_select_area },
-  { N_("Select _window to record"), "byzanz-record-window", "window", byzanz_select_window }
+  { N_("Record whole _screen"), N_("Record whole screen"), 
+    "byzanz-record-screen", "screen", byzanz_select_screen },
+  { N_("Select _area to record"), N_("Select area to record"), 
+    "byzanz-record-area", "area", byzanz_select_area },
+  { N_("Select _window to record"), N_("Select window to record"), 
+    "byzanz-record-window", "window", byzanz_select_window }
 };
 #define BYZANZ_METHOD_COUNT G_N_ELEMENTS(methods)
 
@@ -355,6 +359,14 @@ byzanz_select_method_describe (guint method)
   g_return_val_if_fail (method < BYZANZ_METHOD_COUNT, NULL);
 
   return _(methods[method].description);
+}
+
+const char *
+byzanz_select_method_get_mnemonic (guint method)
+{
+  g_return_val_if_fail (method < BYZANZ_METHOD_COUNT, NULL);
+
+  return _(methods[method].mnemonic);
 }
 
 /**

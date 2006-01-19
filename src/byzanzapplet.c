@@ -388,7 +388,7 @@ byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
     GtkWidget *menuitem, *image;
 
     menuitem = gtk_image_menu_item_new_with_mnemonic (
-	byzanz_select_method_describe (i));
+	byzanz_select_method_get_mnemonic (i));
     image = gtk_image_new_from_icon_name (
 	byzanz_select_method_get_icon_name (i), GTK_ICON_SIZE_MENU);
     gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (menuitem), image);

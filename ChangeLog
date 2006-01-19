@@ -1,5 +1,18 @@
 2006-01-19  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
+	* src/.cvsignore:
+	  don't list .schemas file
+	* src/Makefile.am:
+	  remove accidently duplicated line
+	* src/byzanzapplet.c: (byzanz_applet_fill):
+	* src/byzanzselect.c: (byzanz_select_method_get_mnemonic):
+	* src/byzanzselect.h:
+	  do not display mnemonics in tooltips
+	* po/de.po:
+	  update
+
+2006-01-19  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
 	* src/byzanzapplet.c: (byzanz_applet_update),
 	(byzanz_applet_start_recording),
 	(byzanz_applet_set_default_method),

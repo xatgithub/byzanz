@@ -4,6 +4,7 @@ ByzanzApplet.server
 ByzanzApplet.server.in
 Makefile
 Makefile.in
+byzanz.schemas
 byzanz-applet
 byzanz-record
 *.la
