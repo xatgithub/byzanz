@@ -304,11 +304,12 @@ byzanz_select_window (GdkRectangle *area)
 static const struct {
   char * description;
   char * icon_name;
+  char * method_name;
   GdkWindow * (* select) (GdkRectangle *rect);
 } methods [] = {
-  { N_("Record whole _screen"), "byzanz-record-screen", byzanz_select_screen },
-  { N_("Select _area to record"), "byzanz-record-area", byzanz_select_area },
-  { N_("Select _window to record"), "byzanz-record-window", byzanz_select_window }
+  { N_("Record whole _screen"), "byzanz-record-screen", "screen", byzanz_select_screen },
+  { N_("Select _area to record"), "byzanz-record-area", "area", byzanz_select_area },
+  { N_("Select _window to record"), "byzanz-record-window", "window", byzanz_select_window }
 };
 #define BYZANZ_METHOD_COUNT G_N_ELEMENTS(methods)
 
@@ -324,6 +325,28 @@ byzanz_select_method_get_icon_name (guint method)
   g_return_val_if_fail (method < BYZANZ_METHOD_COUNT, NULL);
 
   return methods[method].icon_name;
+}
+
+const char *
+byzanz_select_method_get_name (guint method)
+{
+  g_return_val_if_fail (method < BYZANZ_METHOD_COUNT, NULL);
+
+  return methods[method].method_name;
+}
+
+int
+byzanz_select_method_lookup (const char *name)
+{
+  guint i;
+
+  g_return_val_if_fail (name != NULL, -1);
+
+  for (i = 0; i < BYZANZ_METHOD_COUNT; i++) {
+    if (g_str_equal (name, methods[i].method_name))
+      return i;
+  }
+  return -1;
 }
 
 const char *

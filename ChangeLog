@@ -1,3 +1,19 @@
+2006-01-19  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
+	* configure.ac:
+	* po/POTFILES.in:
+	* po/de.po:
+	* src/Makefile.am:
+	* src/byzanz.schemas.in:
+	* src/byzanzapplet.c: (pending_recording_launch),
+	(byzanz_applet_stop_recording), (byzanz_applet_set_default_method),
+	(byzanz_applet_method_selected_cb), (byzanz_applet_fill):
+	* src/byzanzselect.c: (byzanz_select_method_get_name),
+	(byzanz_select_method_lookup):
+	* src/byzanzselect.h:
+	  add support for GConf and store the save directory and selected
+	  recording method in there. Does not do notifications (yet?).
+
 2006-01-18  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
 	* src/byzanzapplet.c: (byzanz_applet_start_recording):

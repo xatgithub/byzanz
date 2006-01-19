@@ -34,6 +34,19 @@ byzanz_applet_SOURCES = \
 byzanz_applet_CFLAGS = $(APPLET_CFLAGS) -I$(top_srcdir)/gifenc
 byzanz_applet_LDADD = $(APPLET_LIBS) ./libbyzanz.la
 
+
+schemasdir   = @GCONF_SCHEMA_FILE_DIR@
+schemas_in_files = byzanz.schemas.in
+schemas_DATA = $(schemas_in_files:.schemas.in=.schemas)
+
+@INTLTOOL_SCHEMAS_RULE@
+
+if GCONF_SCHEMAS_INSTALL
+install-data-local:
+	GCONF_CONFIG_SOURCE=$(GCONF_SCHEMA_CONFIG_SOURCE) $(GCONFTOOL) --makefile-install-rule $(schemas_DATA) ;
+endif
+
+serverdir       = $(libdir)/bonobo/servers
 serverdir       = $(libdir)/bonobo/servers
 server_in_files = ByzanzApplet.server.in
 server_DATA     = $(server_in_files:.server.in=.server)
@@ -44,7 +57,7 @@ $(server_in_files): $(server_in_files:.server.in=.server.in.in)
 uidir = $(datadir)/gnome-2.0/ui
 ui_DATA = byzanzapplet.xml
 
-CLEANFILES = $(server_in_files) $(server_DATA) 
+CLEANFILES = $(server_in_files) $(server_DATA) $(schemas_DATA)
 
 EXTRA_DIST = \
 	ByzanzApplet.server.in.in \

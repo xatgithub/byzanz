@@ -26,6 +26,7 @@
 #include <glib/gstdio.h>
 #include <libgnomevfs/gnome-vfs.h>
 #include <libgnomeui/libgnomeui.h>
+#include <panel-applet-gconf.h>
 #include "byzanzrecorder.h"
 #include "byzanzselect.h"
 #include "panelstuffer.h"
@@ -34,6 +35,25 @@
 #include "i18n.h"
 
 static GQuark index_quark = 0;
+
+typedef struct {
+  PanelApplet *		applet;		/* the applet we manage */
+
+  GtkWidget *		button;		/* recording button */
+  GtkWidget *		image;		/* image displayed in button */
+  GtkWidget *		dropdown;	/* dropdown button */
+  GtkWidget *		menu;		/* the menu that's dropped down */
+  GtkWidget *		label;		/* infotext label */
+  
+  ByzanzRecorder *	rec;		/* the recorder (if recording) */
+  char *		tmp_file;	/* filename that's recorded to */
+  GTimeVal		start;		/* time the recording started */
+  guint			update_func;	/* id of idle function that updates state */
+
+  /* config */
+  guint			method;		/* recording method that was set */
+} AppletPrivate;
+#define APPLET_IS_RECORDING(applet) ((applet)->tmp_file != NULL)
 
 /*** PENDING RECORDING ***/
 
@@ -144,10 +164,11 @@ check_done_saving_cb (gpointer data)
 }
 
 static void
-pending_recording_launch (ByzanzRecorder *rec, char *tmp_file)
+pending_recording_launch (AppletPrivate *priv, ByzanzRecorder *rec, char *tmp_file)
 {
   PendingRecording *pending;
   GtkWidget *dialog;
+  char *start_dir, *end_dir;
   
   pending = g_new0 (PendingRecording, 1);
   pending->rec = rec;
@@ -159,13 +180,24 @@ pending_recording_launch (ByzanzRecorder *rec, char *tmp_file)
       GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
       NULL);
   gtk_file_chooser_set_local_only (GTK_FILE_CHOOSER (dialog), FALSE);
-  gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), g_get_home_dir ());
+  start_dir = panel_applet_gconf_get_string (priv->applet, "save_directory", NULL);
+  if (!start_dir || start_dir[0] == '\0' ||
+      !gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (dialog), start_dir)) {
+    gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), g_get_home_dir ());
+  }
   gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (dialog), TRUE);
   gtk_dialog_set_default_response (GTK_DIALOG (dialog), GTK_RESPONSE_ACCEPT);
   if (GTK_RESPONSE_ACCEPT == gtk_dialog_run (GTK_DIALOG (dialog))) {
     char *target_uri = gtk_file_chooser_get_uri (GTK_FILE_CHOOSER (dialog));
     pending->target = gnome_vfs_uri_new (target_uri);
+    end_dir = gtk_file_chooser_get_current_folder_uri (GTK_FILE_CHOOSER (dialog));
+    if (end_dir && 
+	(!start_dir || !g_str_equal (end_dir, start_dir))) {
+      panel_applet_gconf_set_string (priv->applet, "save_directory", end_dir, NULL);
+    }
+    g_free (end_dir);
   }
+  g_free (start_dir);
   gtk_widget_destroy (dialog);
   g_timeout_add (1000, check_done_saving_cb, pending);
   gtk_main ();
@@ -173,25 +205,6 @@ pending_recording_launch (ByzanzRecorder *rec, char *tmp_file)
 }
 
 /*** APPLET ***/
-
-typedef struct {
-  PanelApplet *		applet;		/* the applet we manage */
-
-  GtkWidget *		button;		/* recording button */
-  GtkWidget *		image;		/* image displayed in button */
-  GtkWidget *		dropdown;	/* dropdown button */
-  GtkWidget *		menu;		/* the menu that's dropped down */
-  GtkWidget *		label;		/* infotext label */
-  
-  ByzanzRecorder *	rec;		/* the recorder (if recording) */
-  char *		tmp_file;	/* filename that's recorded to */
-  GTimeVal		start;		/* time the recording started */
-  guint			update_func;	/* id of idle function that updates state */
-
-  /* config */
-  guint			method;		/* recording method that was set */
-} AppletPrivate;
-#define APPLET_IS_RECORDING(applet) ((applet)->tmp_file != NULL)
 
 static gboolean
 byzanz_applet_is_recording (AppletPrivate *priv)
@@ -293,7 +306,7 @@ byzanz_applet_stop_recording (AppletPrivate *priv)
   rec = priv->rec;
   priv->rec = NULL;
   byzanz_applet_update (priv);
-  pending_recording_launch (rec, tmp_file);
+  pending_recording_launch (priv, rec, tmp_file);
 }
 
 static void
@@ -318,7 +331,7 @@ destroy_applet (GtkWidget *widget, AppletPrivate *priv)
 }
 
 static void
-byzanz_applet_set_default_method (AppletPrivate *priv, guint id)
+byzanz_applet_set_default_method (AppletPrivate *priv, guint id, gboolean update_gconf)
 {
   if (priv->method == id)
     return;
@@ -328,6 +341,10 @@ byzanz_applet_set_default_method (AppletPrivate *priv, guint id)
   priv->method = id;
   gtk_image_set_from_icon_name (GTK_IMAGE (priv->image), 
       byzanz_select_method_get_icon_name (id), GTK_ICON_SIZE_LARGE_TOOLBAR);
+
+  if (update_gconf)
+    panel_applet_gconf_set_string (priv->applet, "method", 
+	byzanz_select_method_get_name (id), NULL);
 }
 
 static void
@@ -336,7 +353,7 @@ byzanz_applet_method_selected_cb (GtkMenuItem *item, AppletPrivate *priv)
   guint id;
 
   id = GPOINTER_TO_INT (g_object_get_qdata (G_OBJECT (item), index_quark));
-  byzanz_applet_set_default_method (priv, id);
+  byzanz_applet_set_default_method (priv, id, TRUE);
 
   if (!byzanz_applet_is_recording (priv))
     byzanz_applet_start_recording (priv);
@@ -371,6 +388,8 @@ byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
   AppletPrivate *priv;
   GtkWidget *stuffer;
   guint i;
+  char *method;
+  int method_id;
   
   gnome_vfs_init ();
   gnome_authentication_manager_init ();
@@ -380,6 +399,8 @@ byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
   priv = g_new0 (AppletPrivate, 1);
   priv->applet = applet;
   g_signal_connect (applet, "destroy", G_CALLBACK (destroy_applet), priv);
+  panel_applet_add_preferences (applet, "/schemas/apps/byzanz-applet/prefs",
+      NULL);
   panel_applet_set_flags (applet, PANEL_APPLET_EXPAND_MINOR);
   
   /* build menu */
@@ -409,12 +430,18 @@ byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
   panel_dropdown_set_applet (PANEL_DROPDOWN (priv->dropdown), priv->applet);
 
   priv->method = -1;
+  method = panel_applet_gconf_get_string (priv->applet, "method", NULL);
+  method_id = byzanz_select_method_lookup (method);
+  g_free (method);
+  if (method_id < 0)
+    method_id = 0;
+
   priv->button = panel_toggle_button_new ();
   priv->image = gtk_image_new ();
   gtk_container_add (GTK_CONTAINER (priv->button), priv->image);
   g_signal_connect (priv->button, "toggled", G_CALLBACK (button_clicked_cb), priv);
   gtk_container_add (GTK_CONTAINER (priv->dropdown), priv->button);
-  byzanz_applet_set_default_method (priv, 0);
+  byzanz_applet_set_default_method (priv, method_id, FALSE);
 
   /* translators: the label advertises a width of 5 characters */
   priv->label = gtk_label_new (_("OFF"));

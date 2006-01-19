@@ -1,4 +1,5 @@
 # Files which have already been marked to allow runtime translations of messages
+src/byzanz.schemas.in
 src/byzanzapplet.c
 src/byzanzapplet.xml
 src/byzanzrecorder.c

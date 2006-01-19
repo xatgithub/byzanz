@@ -1,0 +1,26 @@
+<gconfschemafile>
+    <schemalist>    
+
+      <schema>
+        <key>/schemas/apps/byzanz-applet/prefs/save_directory</key>
+        <owner>byzanz-applet</owner>
+        <type>string</type>
+        <default></default>
+        <locale name="C">
+          <short>Directory to save in</short>
+          <long>This is the directory that Byzanz will default to when saving a file.</long>
+        </locale>
+      </schema>
+      
+      <schema>
+        <key>/schemas/apps/byzanz-applet/prefs/method</key>
+	<owner>byzanz-applet</owner>
+	<type>string</type>
+	<locale name="C">
+	  <short>Recording method</short>
+	  <long>Use this method as the default method for recording. Must be one of "screen" for recording the whole screen, "area" for selecting an area or "window" to select a window.</long>
+	</locale>
+      </schema>
+
+  </schemalist>
+</gconfschemafile>

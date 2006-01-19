@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Byzanz\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2006-01-17 12:48+0100\n"
+"POT-Creation-Date: 2006-01-19 04:15+0100\n"
 "PO-Revision-Date: 2006-01-04 20:01+0100\n"
 "Last-Translator: Benjamin Otte <otte@gnome.org>\n"
 "Language-Team: German <de@li.org>\n"
@@ -14,11 +14,35 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../src/byzanzapplet.c:92
+#: ../src/byzanz.schemas.in.h:1
+msgid "Directory to save in"
+msgstr "Verzeichnis in dem gespeichert wird"
+
+#: ../src/byzanz.schemas.in.h:2
+msgid "Recording method"
+msgstr "Aufnahmemethode"
+
+#: ../src/byzanz.schemas.in.h:3
+msgid "This is the directory that Byzanz will default to when saving a file."
+msgstr ""
+"In dieses Verzeichnis wechselt Byzanz wenn eine Datei gespeichert werden "
+"soll."
+
+#: ../src/byzanz.schemas.in.h:4
+msgid ""
+"Use this method as the default method for recording. Must be one of \"screen"
+"\" for recording the whole screen, \"area\" for selecting an area or \"window"
+"\" to select a window."
+msgstr ""
+"Benutze diese Methode als Standard-Aufnahmemethode. Muss einer der Werte \"screen\" "
+"zur Aufnahme des ganzen Bildschirms, \"area\" zur Auswahl eines Bereichs oder "
+"\"window\" zur Auswahl eines Fensters sein."
+
+#: ../src/byzanzapplet.c:112
 msgid "A file could not be saved."
 msgstr "Eine Datei konnte nicht gespeichert werden."
 
-#: ../src/byzanzapplet.c:93
+#: ../src/byzanzapplet.c:113
 #, c-format
 msgid ""
 "\"%s\" could not be saved.\n"
@@ -27,24 +51,24 @@ msgstr ""
 "\"%s\" konnte nicht gespeichert werden.\n"
 "Der Fehler ist: %s"
 
-#: ../src/byzanzapplet.c:156
+#: ../src/byzanzapplet.c:177
 msgid "Save Recorded File"
 msgstr "Speichere Aufgenommene Datei"
 
 #. translators: the label advertises a width of 5 characters
-#: ../src/byzanzapplet.c:235 ../src/byzanzapplet.c:417
+#: ../src/byzanzapplet.c:248 ../src/byzanzapplet.c:447
 msgid "OFF"
 msgstr "AUS"
 
-#: ../src/byzanzapplet.c:351 ../src/ByzanzApplet.server.in.in.h:2
+#: ../src/byzanzapplet.c:371 ../src/ByzanzApplet.server.in.in.h:2
 msgid "Desktop Recorder"
 msgstr "Desktop Rekorder"
 
-#: ../src/byzanzapplet.c:354 ../src/ByzanzApplet.server.in.in.h:3
+#: ../src/byzanzapplet.c:374 ../src/ByzanzApplet.server.in.in.h:3
 msgid "Record what's happening on your desktop"
 msgstr "Nehmen Sie auf, was auf Ihrem Desktop passiert"
 
-#: ../src/byzanzapplet.c:356
+#: ../src/byzanzapplet.c:376
 msgid "translator-credits"
 msgstr "Benjamin Otte <otte@gnome.org>"
 
@@ -52,12 +76,16 @@ msgstr "Benjamin Otte <otte@gnome.org>"
 msgid "_About"
 msgstr "_Info"
 
-#: ../src/byzanzselect.c:253
+#: ../src/byzanzselect.c:310
 msgid "Record whole _screen"
 msgstr "Ganzen _Bildschirm aufnehmen"
 
-#: ../src/byzanzselect.c:254
+#: ../src/byzanzselect.c:311
 msgid "Select _area to record"
+msgstr "_aufzunehmenden Bereich auswählen"
+
+#: ../src/byzanzselect.c:312
+msgid "Select _window to record"
 msgstr "_aufzunehmenden Bereich auswählen"
 
 #: ../src/ByzanzApplet.server.in.in.h:1
@@ -146,3 +174,4 @@ msgstr ""
 "Konnte die Aufnahme nicht vorbereiten.\n"
 "Höchstwahrscheinlich ist die Damage Erweiterung auf dem X Server nicht "
 "installiert.Oder die Datei \"%s\" kann nicht geschrieben werden.\n"
+

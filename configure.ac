@@ -123,6 +123,13 @@ if test "x$HAVE_APPLET" = "xno"; then
   AC_MSG_ERROR([The Byzanz applet requires libpanelapplet-2.0 >= $APPLET_REQ, gnome-vfs-2.0 >= $GNOME_VFS_REQ and libgnomeui-2.0 >= $GNOMEUI_REQ to compile.])
 fi
 
+AC_PATH_PROG(GCONFTOOL, gconftool-2, no)
+if test x"$GCONFTOOL" = xno; then
+  AC_MSG_ERROR([gconftool-2 executable not found in your path - should be installed with GConf])
+fi
+
+AM_GCONF_SOURCE_2
+
 GIFENC_CFLAGS="$GTK_CFLAGS $ERROR_CFLAGS"
 GIFENC_LIBS="$GTK_LIBS"
 AS_SCRUB_INCLUDE(GIFENC_CFLAGS)
