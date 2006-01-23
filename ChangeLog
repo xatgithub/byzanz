@@ -1,5 +1,10 @@
 2006-01-23  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
+	* NEWS:
+	  update a bit
+
+2006-01-23  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
 	* src/byzanzrecorder.c: (recorder_job_new),
 	(byzanz_recorder_add_image), (stored_image_store),
 	(render_cursor_to_image), (cursor_hash), (cursor_equal),
