@@ -27,6 +27,7 @@
 static int duration = 10;
 static int delay = 1;
 static gboolean loop = FALSE;
+static gboolean cursor = FALSE;
 static gboolean verbose = FALSE;
 static GdkRectangle area = { 0, 0, G_MAXINT / 2, G_MAXINT / 2 };
 
@@ -35,6 +36,7 @@ static GOptionEntry entries[] =
   { "duration", 'd', 0, G_OPTION_ARG_INT, &duration, N_("Duration of animation (default: 10 seconds)"), N_("SECS") },
   { "delay", 0, 0, G_OPTION_ARG_INT, &delay, N_("Delay before start (default: 1 second)"), N_("SECS") },
   { "loop", 'l', 0, G_OPTION_ARG_NONE, &loop, N_("Let the animation loop"), NULL },
+  { "cursor", 'c', 0, G_OPTION_ARG_NONE, &cursor, N_("Record the mouse cursor"), NULL },
   { "x", 'x', 0, G_OPTION_ARG_INT, &area.x, N_("X coordinate of rectangle to record"), N_("PIXEL") },
   { "y", 'y', 0, G_OPTION_ARG_INT, &area.y, N_("Y coordinate of rectangle to record"), N_("PIXEL") },
   { "width", 'w', 0, G_OPTION_ARG_INT, &area.width, N_("Width of recording rectangle"), N_("PIXEL") },
@@ -123,7 +125,7 @@ main (int argc, char **argv)
     return 0;
   }
   rec = byzanz_recorder_new (argv[1], gdk_get_default_root_window (),
-      &area, loop);
+      &area, loop, cursor);
   if (rec == NULL) {
     g_print (_("Could not prepare recording.\n"
 	  "Most likely the Damage extension is not available on the X server "

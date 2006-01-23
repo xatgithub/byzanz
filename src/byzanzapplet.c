@@ -258,7 +258,7 @@ byzanz_applet_start_recording (AppletPrivate *priv)
   if (window) {
     int fd = g_file_open_tmp ("byzanzXXXXXX", &priv->tmp_file, NULL);
     if (fd > 0) 
-      priv->rec = byzanz_recorder_new_fd (fd, window, &area, TRUE);
+      priv->rec = byzanz_recorder_new_fd (fd, window, &area, TRUE, TRUE);
     g_object_unref (window);
   }
   if (priv->rec) {

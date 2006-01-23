@@ -1,3 +1,21 @@
+2006-01-23  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
+	* src/byzanzrecorder.c: (recorder_job_new),
+	(byzanz_recorder_add_image), (stored_image_store),
+	(render_cursor_to_image), (cursor_hash), (cursor_equal),
+	(byzanz_recorder_queue_image), (byzanz_recorder_timeout_cb),
+	(byzanz_recorder_idle_cb), (byzanz_recorder_filter_events),
+	(byzanz_recorder_new), (byzanz_recorder_new_fd),
+	(byzanz_recorder_prepare), (byzanz_recorder_start),
+	(byzanz_recorder_stop), (byzanz_recorder_destroy):
+	* src/byzanzrecorder.h:
+	  add ability to record the mouse. Probably way buggy. At least it
+	  makes the recordings huge.
+	* src/byzanzapplet.c: (byzanz_applet_start_recording):
+	* src/record.c: (main):
+	  use the new funky mouse recording feature (applet uses it
+	  uncoditionally)
+
 2006-01-19  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
 	* po/de.po:
