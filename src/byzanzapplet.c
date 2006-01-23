@@ -41,6 +41,7 @@ typedef struct {
   GtkWidget *		image;		/* image displayed in button */
   GtkWidget *		dropdown;	/* dropdown button */
   GtkWidget *		menu;		/* the menu that's dropped down */
+  GtkWidget *		record_cursor;	/* checkmenuitem for cursor recording */
   GtkTooltips *		tooltips;	/* our tooltips */
   
   ByzanzRecorder *	rec;		/* the recorder (if recording) */
@@ -258,7 +259,9 @@ byzanz_applet_start_recording (AppletPrivate *priv)
   if (window) {
     int fd = g_file_open_tmp ("byzanzXXXXXX", &priv->tmp_file, NULL);
     if (fd > 0) 
-      priv->rec = byzanz_recorder_new_fd (fd, window, &area, TRUE, TRUE);
+      priv->rec = byzanz_recorder_new_fd (fd, window, &area, TRUE, 
+	  gtk_check_menu_item_get_active (
+	    GTK_CHECK_MENU_ITEM (priv->record_cursor)));
     g_object_unref (window);
   }
   if (priv->rec) {
@@ -355,6 +358,15 @@ byzanz_about_cb (BonoboUIComponent *uic, AppletPrivate *priv, const char *verb)
     NULL );
 }
 
+static void
+record_cursor_toggled_cb (GtkWidget *menuitem, AppletPrivate *priv)
+{
+  gboolean active = gtk_check_menu_item_get_active (
+      GTK_CHECK_MENU_ITEM (priv->record_cursor));
+
+  panel_applet_gconf_set_bool (priv->applet, "record_cursor", active, NULL);
+}
+
 static const BonoboUIVerb byzanz_menu_verbs [] = {
 	BONOBO_UI_UNSAFE_VERB ("ByzanzAbout",      byzanz_about_cb),
         BONOBO_UI_VERB_END
@@ -366,6 +378,7 @@ byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
   AppletPrivate *priv;
   guint i;
   char *method;
+  GtkWidget *tmp;
   
   gnome_vfs_init ();
   gnome_authentication_manager_init ();
@@ -403,6 +416,18 @@ byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
     gtk_menu_shell_append (GTK_MENU_SHELL (priv->menu), menuitem);
     gtk_widget_show (menuitem);
   }
+  tmp = gtk_separator_menu_item_new ();
+  gtk_widget_show (tmp);
+  gtk_menu_shell_append (GTK_MENU_SHELL (priv->menu), tmp);
+  /* translators: keep the mnemonic here different from the selection methods */
+  priv->record_cursor = gtk_check_menu_item_new_with_mnemonic (
+      _("record _mouse cursor"));
+  gtk_menu_shell_append (GTK_MENU_SHELL (priv->menu), priv->record_cursor);
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (priv->record_cursor),
+      panel_applet_gconf_get_bool (priv->applet, "record_cursor", NULL));
+  g_signal_connect (priv->record_cursor, "toggled", 
+      G_CALLBACK (record_cursor_toggled_cb), priv);
+  gtk_widget_show (priv->record_cursor);
   
   /* create UI */
   priv->dropdown = panel_dropdown_new ();

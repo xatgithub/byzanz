@@ -1,5 +1,12 @@
 2006-01-23  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
+	* src/byzanz.schemas.in:
+	* src/byzanzapplet.c: (byzanz_applet_start_recording),
+	(record_cursor_toggled_cb), (byzanz_applet_fill):
+	  add option to select if the mouse cursor should be recorded
+
+2006-01-23  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
 	* NEWS:
 	  update a bit
 

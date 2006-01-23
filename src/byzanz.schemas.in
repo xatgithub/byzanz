@@ -16,9 +16,21 @@
         <key>/schemas/apps/byzanz-applet/prefs/method</key>
 	<owner>byzanz-applet</owner>
 	<type>string</type>
+        <default>screen</default>
 	<locale name="C">
 	  <short>Recording method</short>
 	  <long>Use this method as the default method for recording. Must be one of "screen" for recording the whole screen, "area" for selecting an area or "window" to select a window.</long>
+	</locale>
+      </schema>
+
+      <schema>
+        <key>/schemas/apps/byzanz-applet/prefs/record_cursor</key>
+	<owner>byzanz-applet</owner>
+	<type>bool</type>
+        <default>TRUE</default>
+	<locale name="C">
+	  <short>Record mouse cursor</short>
+	  <long>If set, Byzanz will record the mouse cursor. While useful, recording the mouse cursor results in bigger files and should therefore be used with care.</long>
 	</locale>
       </schema>
 
