@@ -279,27 +279,38 @@ panel_dropdown_parent_set (GtkWidget *widget, GtkWidget *previous_parent)
 }
 
 static void
-panel_dropdown_finalize (GObject *object)
+panel_dropdown_destroy (GtkObject *object)
 {
   PanelDropdown *dropdown = PANEL_DROPDOWN (object);
 
-  if (dropdown->arrow) {
-    g_object_unref (dropdown->arrow);
-    gtk_container_remove (GTK_CONTAINER (dropdown), dropdown->arrow);
+  if (dropdown->popup)
+    panel_dropdown_set_popup_widget (dropdown, NULL);
+  if (dropdown->arrow_button) {
+    g_object_unref (dropdown->arrow_button);
+    dropdown->arrow_button = NULL;
   }
-  gtk_container_remove (GTK_CONTAINER (dropdown), dropdown->box);
+  dropdown->arrow = NULL;
+  if (dropdown->child) {
+    g_object_unref (dropdown->child);
+    dropdown->child = NULL;
+  }
+  
+  if (GTK_OBJECT_CLASS (parent_class)->destroy)
+    (* GTK_OBJECT_CLASS (parent_class)->destroy) (object);
+
+  dropdown->box = NULL;
 }
 
 static void
 panel_dropdown_class_init (PanelDropdownClass *class)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (class);
+  GtkObjectClass *object_class = GTK_OBJECT_CLASS (class);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (class);
   GtkContainerClass *container_class = GTK_CONTAINER_CLASS (class);
 
   parent_class = g_type_class_peek_parent (class);
 
-  object_class->finalize = panel_dropdown_finalize;
+  object_class->destroy = panel_dropdown_destroy;
 
   widget_class->parent_set = panel_dropdown_parent_set;
   widget_class->size_request = panel_dropdown_size_request;
@@ -318,7 +329,6 @@ panel_dropdown_init (PanelDropdown *dropdown)
 
   dropdown->arrow = gtk_arrow_new (GTK_ARROW_DOWN, GTK_SHADOW_NONE);
   dropdown->box = gtk_hbox_new (FALSE, 0);
-  g_object_ref (dropdown->arrow);
   gtk_widget_show (dropdown->box);
   gtk_container_add (GTK_CONTAINER (dropdown), dropdown->box);
   gtk_widget_show (dropdown->arrow);
@@ -387,8 +397,9 @@ panel_dropdown_set_popup_widget	(PanelDropdown *dropdown, GtkWidget *widget)
     g_signal_connect (dropdown->popup, "deactivate", 
 	G_CALLBACK (panel_dropdown_deactivate_menu_cb), dropdown);
   }
-  gtk_widget_set_sensitive (dropdown->arrow_button,
-      dropdown->popup != NULL);
+  if (dropdown->arrow_button)
+    gtk_widget_set_sensitive (dropdown->arrow_button,
+	dropdown->popup != NULL);
 }
 
 static void

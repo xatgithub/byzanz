@@ -589,7 +589,7 @@ static void
 render_cursor_to_image (GdkImage *image, XFixesCursorImage *cursor, gint x, gint y)
 {
   GdkRectangle rect;
-  gint i, j;
+  gint i, j, cursor_x, cursor_y, cursor_rowstride;
   guint8 *cursor_data, *cursor_row, *image_data, *image_row;
 #if G_BYTE_ORDER == G_BIG_ENDIAN
 #  define alpha -1
@@ -600,14 +600,18 @@ render_cursor_to_image (GdkImage *image, XFixesCursorImage *cursor, gint x, gint
 #endif
 
   rect.x = x - cursor->xhot;
+  rect.width = MIN (cursor->width + MIN (0, rect.x), image->width - rect.x);
+  cursor_x = MAX (0, -rect.x);
   rect.x = MAX (rect.x, 0);
-  rect.width = MIN (cursor->width, image->width - rect.x);
+
   rect.y = y - cursor->yhot;
+  rect.height = MIN (cursor->height + MIN (0, rect.y), image->height - rect.y);
+  cursor_y = MAX (0, -rect.y);
   rect.y = MAX (rect.y, 0);
-  rect.height = MIN (cursor->height, image->height - rect.y);
-  cursor_data = ((guint8 *) cursor->pixels) + 4 * (
-      cursor->width * (rect.y - y + cursor->yhot) +
-      rect.x - x + cursor->xhot)
+
+  cursor_rowstride = cursor->width * 4;
+  cursor_data = ((guint8 *) cursor->pixels) + 4 * cursor_x +
+      cursor_rowstride * cursor_y
 #if G_BYTE_ORDER == G_BIG_ENDIAN
       + 1
 #endif
@@ -632,7 +636,7 @@ render_cursor_to_image (GdkImage *image, XFixesCursorImage *cursor, gint x, gint
       cursor_row += 4;
       image_row += image->bpp;
     }
-    cursor_data += cursor->width * 4;
+    cursor_data += cursor_rowstride;
     image_data += image->bpl;
   }
 #undef alpha_index
@@ -676,8 +680,9 @@ byzanz_recorder_queue_image (ByzanzRecorder *rec)
   if (!gdk_region_empty (rec->region)) {
     job = recorder_job_new (rec, RECORDER_JOB_ENCODE, &tv, rec->region);
     if (job) {
-      if (render_cursor)
-	render_cursor_to_image (job->image, rec->cursor, rec->cursor_x, rec->cursor_y);
+      if (render_cursor) 
+	render_cursor_to_image (job->image, rec->cursor, 
+	    rec->cursor_x - rec->area.x, rec->cursor_y - rec->area.y);
       g_async_queue_push (rec->jobs, job);
       //g_print ("pushing ENCODE\n");
       rec->region = gdk_region_new ();
@@ -698,7 +703,7 @@ byzanz_recorder_timeout_cb (gpointer recorder)
   if (IS_RECORDING_CURSOR (rec)) {
     gint x, y;
     gdk_window_get_pointer (rec->window, &x, &y, NULL);
-    if (x == rec->cursor_x && y == rec->cursor_y)
+    if (x == rec->cursor_x && y == rec->cursor_y && gdk_region_empty (rec->region))
       return TRUE;
     rec->cursor_x = x;
     rec->cursor_y = y;

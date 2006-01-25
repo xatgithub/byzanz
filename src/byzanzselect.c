@@ -293,10 +293,11 @@ byzanz_select_window (GdkRectangle *area)
   gdk_cursor_unref (cursor);
   if (!data.window)
     return NULL;
-  area->x = area->y = 0;
+  gdk_window_get_root_origin (data.window, &area->x, &area->y);
   gdk_drawable_get_size (data.window, &area->width, &area->height);
+  g_object_unref (data.window);
 
-  return data.window;
+  return g_object_ref (gdk_get_default_root_window ());
 }
   
 /*** API ***/

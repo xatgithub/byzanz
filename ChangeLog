@@ -1,3 +1,16 @@
+2006-01-25  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
+	* src/byzanzrecorder.c: (render_cursor_to_image),
+	(byzanz_recorder_queue_image), (byzanz_recorder_timeout_cb):
+	  handle the mouse correctly, when the area doesn't start at (0,0)
+	* src/byzanzselect.c: (byzanz_select_window):
+	  record root window area corresponding to the selected window, not
+	  the selected window.
+	* src/paneldropdown.c: (panel_dropdown_destroy),
+	(panel_dropdown_class_init), (panel_dropdown_init),
+	(panel_dropdown_set_popup_widget):
+	  Destroy the window correctly. 
+
 2006-01-23  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
 	* src/byzanz.schemas.in:
