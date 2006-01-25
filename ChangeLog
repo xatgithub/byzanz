@@ -1,5 +1,12 @@
 2006-01-25  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
+	* src/record.c:
+	  update a string to be the same as another one with the same meaning
+	* po/de.po:
+	  update
+
+2006-01-25  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
 	* src/byzanzrecorder.c: (render_cursor_to_image),
 	(byzanz_recorder_queue_image), (byzanz_recorder_timeout_cb):
 	  handle the mouse correctly, when the area doesn't start at (0,0)
