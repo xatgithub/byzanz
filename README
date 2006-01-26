@@ -1,2 +1,14 @@
-"byzanz is awesome. i love byzanz. to me it represents pragmatic utility over idealistic artistry"
+"byzanz is awesome. i love byzanz. to me it represents pragmatic utility over 
+ idealistic artistry"
    -- Mike Hearn
+
+Byzanz is a simple tool to record a running X desktop to an animated GIF file.
+It is implemented as a GNOME applet. A command line tool for testing purposes 
+is also available.
+
+The most current code is available in GNOME CVS in the byzanz module. It can 
+be obtained via the following command:
+  cvs -d :pserver:anonymous@anoncvs.gnome.org:/cvs/gnome co byzanz
+Releases are available for download at
+  http://www.freedesktop.org/~company/byzanz
+

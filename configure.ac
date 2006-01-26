@@ -5,7 +5,7 @@ dnl need to do this here so intltool-update doesn't die a slow but awful death
 PACKAGE=byzanz
 dnl when going to/from release please set the nano (fourth number) right !
 dnl releases only do Wall, cvs and prerelease does Werror too
-AS_VERSION($PACKAGE, TOOLS_VERSION, 0, 0, 3, 1, BYZANZ_CVS="no", BYZANZ_CVS="yes")
+AS_VERSION($PACKAGE, TOOLS_VERSION, 0, 1, 0, 0, BYZANZ_CVS="no", BYZANZ_CVS="yes")
 
 dnl AM_MAINTAINER_MODE only provides the option to configure to enable it
 AM_MAINTAINER_MODE

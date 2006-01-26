@@ -1,9 +1,9 @@
 0.0.4
 =====
  Features:
- - record the mouse cursor, too
- - revamp the applet, so it mirrors what I want more closely
- - add "record window" option
+ - optionally record the mouse cursor, too
+ - revamp the applet, so it looks more like what I want
+ - add "select window to record" option
  - store preferences in GConf
 
 0.0.3

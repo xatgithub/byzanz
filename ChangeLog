@@ -1,3 +1,17 @@
+2006-01-26  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
+	* Makefile.am:
+	  include MAINTAINERS
+	* NEWS:
+	  clean up
+	* README:
+	  put something in it
+	* po/de.po:
+	* po/es.po:
+	  update
+	* configure.ac:
+	  0.1.0
+
 2006-01-26  Benjamin Otte  <otte@gnome.org>
 
 	* src/screenshot-utils.c: (get_atom_property):
