@@ -594,7 +594,7 @@ render_cursor_to_image (GdkImage *image, XFixesCursorImage *cursor, gint x, gint
 #if G_BYTE_ORDER == G_BIG_ENDIAN
 #  define alpha -1
 #elif G_BYTE_ORDER == G_LITTLE_ENDIAN
-#  define alpha 2
+#  define alpha 3
 #else 
 #  error "Unknown glib byte order."
 #endif

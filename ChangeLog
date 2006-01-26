@@ -1,3 +1,8 @@
+2006-01-26  Benjamin Otte  <otte@gnome.org>
+
+	* src/byzanzrecorder.c: (render_cursor_to_image):
+	  fix wrong alpha index in LE cursor rendering
+
 2006-01-25  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
 	* src/record.c:
