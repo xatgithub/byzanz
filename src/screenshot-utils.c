@@ -23,13 +23,13 @@ get_atom_property (Window  xwindow,
   
   gdk_error_trap_push ();
   type = None;
-  atom_cast = (guchar *) a;
   result = XGetWindowProperty (gdk_display,
 			       xwindow,
 			       atom,
 			       0, G_MAXLONG,
 			       False, XA_ATOM, &type, &format, &nitems,
 			       &bytes_after, &atom_cast);  
+  a = (Atom *) atom_cast;
   err = gdk_error_trap_pop ();
   if (err != Success ||
       result != Success)

@@ -1,5 +1,10 @@
 2006-01-26  Benjamin Otte  <otte@gnome.org>
 
+	* src/screenshot-utils.c: (get_atom_property):
+	  I'm too stupid to fix gcc warnings
+
+2006-01-26  Benjamin Otte  <otte@gnome.org>
+
 	* src/byzanzrecorder.c: (render_cursor_to_image):
 	  fix wrong alpha index in LE cursor rendering
 
