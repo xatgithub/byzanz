@@ -262,6 +262,12 @@ byzanz_applet_start_recording (AppletPrivate *priv)
       priv->rec = byzanz_recorder_new_fd (fd, window, &area, TRUE, 
 	  gtk_check_menu_item_get_active (
 	    GTK_CHECK_MENU_ITEM (priv->record_cursor)));
+    if (!priv->rec) {
+      close (fd);
+      g_unlink (priv->tmp_file);
+      g_free (priv->tmp_file);
+      priv->tmp_file = NULL;
+    }
     g_object_unref (window);
   }
   if (priv->rec) {

@@ -1,3 +1,13 @@
+2006-01-28  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
+	* src/byzanzapplet.c: (byzanz_applet_start_recording):
+	  if creating the recorder fails, make sure to not start recording -
+	  silently failing is not much better, but at least an improvement
+	* configure.ac:
+	  0.1.0.1
+
+==================== 0.1.0 ====================
+
 2006-01-26  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
 	* Makefile.am:
@@ -260,7 +270,7 @@
 	* configure.ac:
 	  0.0.3.1
 
-==================== 0.0.2 ====================
+==================== 0.0.3 ====================
 
 2006-01-13  Benjamin Otte  <otte@gnome.org>
 
