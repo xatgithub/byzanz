@@ -47,7 +47,7 @@ log2n (guint number)
 /*** WRITE ROUTINES ***/
 
 static void
-gifenc_write (Gifenc *enc, guint8 *data, guint len)
+gifenc_write (Gifenc *enc, const guint8 *data, guint len)
 {
   ssize_t ret;
 
@@ -60,14 +60,6 @@ gifenc_write (Gifenc *enc, guint8 *data, guint len)
     len -= ret;
     data += ret;
   }
-}
-
-static void
-gifenc_write_string (Gifenc *enc, char *string)
-{
-  g_return_if_fail (enc->n_bits == 0);
-  
-  gifenc_write (enc, (guint8 *) string, strlen (string));
 }
 
 static void
@@ -110,7 +102,7 @@ gifenc_write_bits (Gifenc *enc, guint bits, guint nbits)
 static void
 gifenc_write_header (Gifenc *enc)
 {
-  gifenc_write_string (enc, "GIF89a");
+  gifenc_write (enc, (const guchar *) "GIF89a", 6);
 }
 
 static void

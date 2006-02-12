@@ -1,5 +1,14 @@
 2006-02-12  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
+	* gifenc/gifenc.c: (gifenc_write), (gifenc_write_header):
+	  remove gifenc_write_string in favor of gifenc_write
+	* src/byzanzrecorder.c: (stored_image_store),
+	(byzanz_recorder_quantize), (byzanz_recorder_encode_get_data),
+	(render_cursor_to_image):
+	  no void * arithmetic
+
+2006-02-12  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
 	* macros/as-compiler-flag.m4:
 	  make this not barf when -Wstrict-prototypes is set, so behdad gets
 	  -Werror again

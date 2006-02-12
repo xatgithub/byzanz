@@ -357,8 +357,8 @@ stored_image_store (ByzanzRecorder *rec, GdkImage *image, GdkRegion *region, con
   store->offset = offset;
   gdk_region_get_rectangles (store->region, &rects, &nrects);
   for (i = 0; i < nrects; i++) {
-    gpointer mem;
-    mem = image->mem + rects[i].x * image->bpp + image->bpl * rects[i].y
+    guchar *mem;
+    mem = (guchar *) image->mem + rects[i].x * image->bpp + image->bpl * rects[i].y
 	+ (image->bpp == 4 && image->byte_order == GDK_MSB_FIRST ? 1 : 0);
     for (line = 0; line < rects[i].height; line++) {
       int amount = rects[i].width * image->bpp;
@@ -454,7 +454,7 @@ byzanz_recorder_quantize (ByzanzRecorder *rec, GdkImage *image)
   GifencPalette *palette;
 
   palette = gifenc_quantize_image (
-      image->mem + (image->bpp == 4 && image->byte_order == GDK_MSB_FIRST ? 1 : 0),
+      (guchar *) image->mem + (image->bpp == 4 && image->byte_order == GDK_MSB_FIRST ? 1 : 0),
       rec->area.width, rec->area.height, image->bpp, image->bpl, TRUE,
       (image->byte_order == GDK_MSB_FIRST) ? G_BIG_ENDIAN : G_LITTLE_ENDIAN, 
       255);
@@ -470,7 +470,7 @@ byzanz_recorder_encode_get_data (ByzanzRecorder *rec, gpointer data, GdkRectangl
 {
   GdkImage *image = data;
 
-  *data_out = image->mem + rect->y * image->bpl + rect->x * image->bpp + 
+  *data_out = (guchar *) image->mem + rect->y * image->bpl + rect->x * image->bpp + 
 	    (image->bpp == 4 && image->byte_order == GDK_MSB_FIRST ? 1 : 0);
   *bpp_out = image->bpp;
   *bpl_out = image->bpl;
@@ -616,7 +616,7 @@ render_cursor_to_image (GdkImage *image, XFixesCursorImage *cursor, gint x, gint
       + 1
 #endif
     ;
-  image_data = image->mem + rect.x * image->bpp + image->bpl * rect.y
+  image_data = (guchar *) image->mem + rect.x * image->bpp + image->bpl * rect.y
 	+ (image->bpp == 4 && image->byte_order == GDK_MSB_FIRST ? 1 : 0);
   for (i = 0; i < rect.height; i++) {
     cursor_row = cursor_data;
