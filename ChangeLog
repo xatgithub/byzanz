@@ -1,3 +1,13 @@
+2006-02-12  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
+	* macros/as-compiler-flag.m4:
+	  make this not barf when -Wstrict-prototypes is set, so behdad gets
+	  -Werror again
+	* src/byzanzapplet.c: (byzanz_applet_show_error),
+	(byzanz_applet_method_selected_cb):
+	* src/byzanzselect.c:
+	  fix warnings for behdads warning flags.
+
 2006-01-28  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
 	* src/byzanzapplet.c: (byzanz_applet_start_recording):

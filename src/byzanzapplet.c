@@ -75,9 +75,9 @@ byzanz_applet_show_error (GtkWindow *parent, const char *error, const char *deta
   msg = g_strdup_vprintf (details, args);
   va_end (args);
   dialog = gtk_message_dialog_new (parent, GTK_DIALOG_MODAL, GTK_MESSAGE_ERROR,
-      GTK_BUTTONS_CLOSE, error ? error : msg);
+      GTK_BUTTONS_CLOSE, "%s", error ? error : msg);
   if (error)
-    gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (dialog), msg);
+    gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (dialog), "%s", msg);
   gtk_dialog_run (GTK_DIALOG (dialog));
   gtk_widget_destroy (dialog);
   g_free (msg);
@@ -337,9 +337,11 @@ byzanz_applet_set_default_method (AppletPrivate *priv, int id, gboolean update_g
 static void
 byzanz_applet_method_selected_cb (GtkMenuItem *item, AppletPrivate *priv)
 {
+  gpointer tmp;
   int id;
 
-  id = GPOINTER_TO_INT (g_object_get_qdata (G_OBJECT (item), index_quark));
+  tmp = g_object_get_qdata (G_OBJECT (item), index_quark);
+  id = GPOINTER_TO_INT (tmp);
   byzanz_applet_set_default_method (priv, id, TRUE);
 
   if (!byzanz_applet_is_recording (priv))

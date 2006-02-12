@@ -271,7 +271,7 @@ select_window_button_pressed_cb (GtkWidget *widget, GdkEventButton *event, gpoin
   return TRUE;
 }
 
-GdkWindow *
+static GdkWindow *
 byzanz_select_window (GdkRectangle *area)
 {
   GdkCursor *cursor;
