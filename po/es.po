@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Byzanz\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2006-01-26 13:10+0100\n"
-"PO-Revision-Date: 2006-01-09 01:28-0500\n"
+"PO-Revision-Date: 2006-01-31 10:18-0500\n"
 "Last-Translator: Antonio Ognio <gnrfan@gnrfan.org>\n"
 "Language-Team: Spanish <traductores@es.gnome.org>\n"
 "MIME-Version: 1.0\n"
@@ -18,25 +18,28 @@ msgstr ""
 
 #: ../src/byzanz.schemas.in.h:1
 msgid "Directory to save in"
-msgstr ""
+msgstr "Directorio donde guardar"
 
 #: ../src/byzanz.schemas.in.h:2
 msgid ""
 "If set, Byzanz will record the mouse cursor. While useful, recording the "
 "mouse cursor results in bigger files and should therefore be used with care."
 msgstr ""
+"Si se configura asi, Byzanz grabará el cursor del ratón. A pesar de que es "
+"ùtil, guardar el cursor del ratón resulta en archivos mas grandes y por lo "
+"tanto debe ser usada con cuidado."
 
 #: ../src/byzanz.schemas.in.h:3 ../src/record.c:39
 msgid "Record mouse cursor"
-msgstr ""
+msgstr "Grabar cursor del ratón"
 
 #: ../src/byzanz.schemas.in.h:4
 msgid "Recording method"
-msgstr ""
+msgstr "Método de grabación"
 
 #: ../src/byzanz.schemas.in.h:5
 msgid "This is the directory that Byzanz will default to when saving a file."
-msgstr ""
+msgstr "Este es el directorio por omisión en donde Byzanz grabará archivos. "
 
 #: ../src/byzanz.schemas.in.h:6
 msgid ""
@@ -44,10 +47,13 @@ msgid ""
 "\" for recording the whole screen, \"area\" for selecting an area or \"window"
 "\" to select a window."
 msgstr ""
+"Usar este método como el método de grabación por omisión. Debe ser uno entre "
+"\"pantalla\" para guardar toda la pantalla, \"area\" para seleccionar un àrea "
+"ó \"ventana\" para seleccionar una ventana."
 
 #: ../src/byzanzapplet.c:110
 msgid "A file could not be saved."
-msgstr ""
+msgstr "No se pudo guardar un archivo."
 
 #: ../src/byzanzapplet.c:111
 #, c-format
@@ -55,6 +61,8 @@ msgid ""
 "\"%s\" could not be saved.\n"
 "The error that occured was: %s"
 msgstr ""
+"\"%s\" no se pudo grabar."
+"El error que ocurrió fué: %s"
 
 #: ../src/byzanzapplet.c:175
 msgid "Save Recorded File"
@@ -62,7 +70,7 @@ msgstr "Guardar archivo grabado"
 
 #: ../src/byzanzapplet.c:224
 msgid "Stop current recording"
-msgstr ""
+msgstr "Detener la grabación actual"
 
 #: ../src/byzanzapplet.c:352 ../src/ByzanzApplet.server.in.in.h:2
 msgid "Desktop Recorder"
@@ -74,23 +82,23 @@ msgstr "Graba lo que esta sucediendo en su escritorio"
 
 #: ../src/byzanzapplet.c:357
 msgid "translator-credits"
-msgstr ""
+msgstr "Antonio Ognio <gnrfan@gnrfan.org>"
 
 #: ../src/byzanzapplet.c:424
 msgid "record _mouse cursor"
-msgstr ""
+msgstr "guardar cursor del ratón"
 
 #: ../src/byzanzapplet.xml.h:1
 msgid "_About"
-msgstr ""
+msgstr "_Acerca de"
 
 #: ../src/byzanzselect.c:312
 msgid "Record whole _screen"
-msgstr ""
+msgstr "Guardar toda la _pantalla"
 
 #: ../src/byzanzselect.c:312
 msgid "Record whole screen"
-msgstr ""
+msgstr "Guardar toda la pantalla"
 
 #: ../src/byzanzselect.c:314
 #, fuzzy
@@ -104,11 +112,11 @@ msgstr "Seleccione el área"
 
 #: ../src/byzanzselect.c:316
 msgid "Select _window to record"
-msgstr ""
+msgstr "Seleccione la _ventana a grabar"
 
 #: ../src/byzanzselect.c:316
 msgid "Select window to record"
-msgstr ""
+msgstr "Seleccione la ventana a grabar"
 
 #: ../src/ByzanzApplet.server.in.in.h:1
 msgid "Byzanz Factory"
@@ -138,7 +146,7 @@ msgstr "Coordenada X del rectángulo a grabar"
 
 #: ../src/record.c:40 ../src/record.c:41 ../src/record.c:42 ../src/record.c:43
 msgid "PIXEL"
-msgstr ""
+msgstr "Pixel"
 
 #: ../src/record.c:41
 msgid "Y coordinate of rectangle to record"

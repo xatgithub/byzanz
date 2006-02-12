@@ -1,5 +1,13 @@
 2006-02-12  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
+	* configure.ac:
+	* po/fr.po:
+	  add French translation
+	* po/es.po:
+	  update from Antonio Ognio
+
+2006-02-12  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
 	* gifenc/gifenc.c: (gifenc_write), (gifenc_write_header):
 	  remove gifenc_write_string in favor of gifenc_write
 	* src/byzanzrecorder.c: (stored_image_store),
