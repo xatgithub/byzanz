@@ -1,5 +1,10 @@
 2006-02-12  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
+	* src/byzanzapplet.c: (byzanz_applet_start_recording):
+	  silence the compiler again
+
+2006-02-12  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
 	* configure.ac:
 	* po/fr.po:
 	  add French translation

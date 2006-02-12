@@ -252,7 +252,7 @@ byzanz_applet_start_recording (AppletPrivate *priv)
     priv->rec = NULL;
   }
   
-  priv->tmp_file = "SELECTING"; /* so the rest of the world thinks we're recording */
+  priv->tmp_file = (char *) "SELECTING"; /* so the rest of the world thinks we're recording */
   byzanz_applet_update (priv);
   window = byzanz_select_method_select (priv->method, &area); 
   priv->tmp_file = NULL;
