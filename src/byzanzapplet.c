@@ -251,6 +251,15 @@ byzanz_applet_start_recording (AppletPrivate *priv)
     byzanz_recorder_destroy (priv->rec);
     priv->rec = NULL;
   }
+  /* check for correct bpp */
+  window = gdk_get_default_root_window ();
+  if (gdk_drawable_get_depth (window) != 24 && 
+      gdk_drawable_get_depth (window) != 32) {
+    byzanz_applet_show_error (NULL, _("Cannot start recording."),
+	_("Byzanz requires a 24bpp or 32bpp depth for recording."
+	  "The current resolution is set to %dbpp."), gdk_drawable_get_depth (window));
+    return;
+  }
   
   priv->tmp_file = (char *) "SELECTING"; /* so the rest of the world thinks we're recording */
   byzanz_applet_update (priv);

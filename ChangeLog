@@ -1,5 +1,15 @@
 2006-03-22  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
+	* src/byzanzrecorder.c: (byzanz_recorder_new),
+	(byzanz_recorder_new_fd):
+	  fail if window depth isn't 24 or 32
+	* src/byzanzapplet.c: (byzanz_applet_start_recording):
+	* src/record.c: (main):
+	  error out nicely if window depth isn't 24 or 32
+	(thx to Jacob Kroon for using these ancient configuration)
+
+2006-03-22  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
 	* configure.ac:
 	  fix typo in AC_MSG_ERROR (spotted by Josh Triplett)
 	* src/Makefile.am:
