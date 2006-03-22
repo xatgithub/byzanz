@@ -1,6 +1,7 @@
 noinst_LTLIBRARIES = libbyzanz.la
 bin_PROGRAMS = byzanz-record
 libexec_PROGRAMS = byzanz-applet
+man_MANS = byzanz-record.1
 
 noinst_HEADERS = \
 	byzanzrecorder.h \

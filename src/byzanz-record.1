@@ -1,0 +1,73 @@
+.\" Manual page for byzanz-record.
+.\" Written by Josh Triplett <josh@freedesktop.org>,
+.\" with some help from help2man.
+.\"
+.\" Copyright (C) 2006 Josh Triplett
+.\"
+.\" This manual page is free software; you can redistribute it and/or
+.\" modify it under the terms of the GNU Library General Public
+.\" License as published by the Free Software Foundation; either
+.\" version 2 of the License, or (at your option) any later version.
+.\"
+.\" This manual page is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" Library General Public License for more details.
+.TH BYZANZ-RECORD "1"
+.SH NAME
+byzanz-record \- record your desktop session to an animated GIF
+.SH SYNOPSIS
+.B byzanz-record
+.RI [ options ] " filename.gif"
+.SH DESCRIPTION
+Byzanz records your desktop session to an animated GIF.  You can record your
+entire screen, a single window, or an arbitrary region.  \fBbyzanz-record\fP
+allows you to make recordings from the command line.  Graphical users may want
+to use the panel applet instead.
+.SH OPTIONS
+.SS "Application Options:"
+.TP
+\fB\-d\fR, \fB\-\-duration\fR=\fISECS\fR
+Duration of animation (default: 10 seconds)
+.TP
+\fB\-\-delay\fR=\fISECS\fR
+Delay before start (default: 1 second)
+.TP
+\fB\-l\fR, \fB\-\-loop\fR
+Let the animation loop
+.TP
+\fB\-c\fR, \fB\-\-cursor\fR
+Record mouse cursor
+.TP
+\fB\-x\fR, \fB\-\-x\fR=\fIPIXEL\fR
+X coordinate of rectangle to record
+.TP
+\fB\-y\fR, \fB\-\-y\fR=\fIPIXEL\fR
+Y coordinate of rectangle to record
+.TP
+\fB\-w\fR, \fB\-\-width\fR=\fIPIXEL\fR
+Width of recording rectangle
+.TP
+\fB\-h\fR, \fB\-\-height\fR=\fIPIXEL\fR
+Height of recording rectangle
+.TP
+\fB\-v\fR, \fB\-\-verbose\fR
+Be verbose
+.TP
+\fB\-\-display\fR=\fIDISPLAY\fR
+X display to use
+.SS "Help Options:"
+.TP
+\-?, \fB\-\-help\fR
+Show help options
+.TP
+\fB\-\-help\-gtk\fR
+Show GTK+ Options
+.TP
+\fB\-\-help\-all\fR
+Show all help options
+.SH AUTHOR
+byzanz was written by Benjamin Otte <otte@gnome.org>.
+.PP
+This manual page was written by Josh Triplett <josh@freedesktop.org>, for the
+Debian project (but may be used by others).

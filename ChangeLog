@@ -1,6 +1,14 @@
 2006-03-22  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
 	* configure.ac:
+	  fix typo in AC_MSG_ERROR (spotted by Josh Triplett)
+	* src/Makefile.am:
+	* src/byzanz-record.1:
+	  add man page for byzanz-record (Josh Triplett again)
+
+2006-03-22  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
+	* configure.ac:
 	* po/tr.po:
 	  add Turkish translation from Bulent Sener <bsener inonu edu tr>
 

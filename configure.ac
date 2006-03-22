@@ -115,7 +115,7 @@ fi
 
 PKG_CHECK_MODULES(GTHREAD, xdamage >= $XDAMAGE_REQ gthread-2.0 >= $GTHREAD_REQ,HAVE_GTHREAD=yes,HAVE_GTHREAD=no)
 if test "x$HAVE_GTHREAD" = "xno"; then
-  AC_MSG_ERROR([Byzanz requires GThread-2.0 >= $GLIB_REQ and XDamage >= $XDAMAGE_REQ to compile.])
+  AC_MSG_ERROR([Byzanz requires GThread-2.0 >= $GTHREAD_REQ and XDamage >= $XDAMAGE_REQ to compile.])
 fi
 
 PKG_CHECK_MODULES(APPLET, libpanelapplet-2.0 >= $APPLET_REQ gnome-vfs-2.0 >= $GNOME_VFS_REQ libgnomeui-2.0 >= $GNOMEUI_REQ, HAVE_APPLET=yes,HAVE_APPLET=no)
