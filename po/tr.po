@@ -1,0 +1,199 @@
+# translation of tr.po to Turkish
+# This file is put in the public domain.
+#
+# Bülent ŞENER <bsener@inonu.edu.tr>, 2006.
+msgid ""
+msgstr ""
+"Project-Id-Version: tr\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2006-01-26 13:10+0100\n"
+"PO-Revision-Date: 2006-02-14 10:01+0200\n"
+"Last-Translator: Bülent ŞENER <bsener@inonu.edu.tr>\n"
+"Language-Team: Turkish <ceviri@gnome.org.tr>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: KBabel 1.11.1\n"
+
+#: ../src/byzanz.schemas.in.h:1
+msgid "Directory to save in"
+msgstr "Kaydedilecek dizin"
+
+#: ../src/byzanz.schemas.in.h:2
+msgid ""
+"If set, Byzanz will record the mouse cursor. While useful, recording the "
+"mouse cursor results in bigger files and should therefore be used with care."
+msgstr ""
+"Eğer Byzanz fare imlecimi kaydet'i seçerseniz, bu kullanışlı olur "
+"Ancak büyük dosyalar oluşacaktır. Dikkatli kullanılmalı"
+
+#: ../src/byzanz.schemas.in.h:3 ../src/record.c:39
+msgid "Record mouse cursor"
+msgstr "Fare imlecini kaydet"
+
+#: ../src/byzanz.schemas.in.h:4
+msgid "Recording method"
+msgstr "Kayıt yöntemi"
+
+#: ../src/byzanz.schemas.in.h:5
+msgid "This is the directory that Byzanz will default to when saving a file."
+msgstr "Bu Byzanz'ın öntanımlı olarak dosya kaydetme dizinidir."
+
+#: ../src/byzanz.schemas.in.h:6
+msgid ""
+"Use this method as the default method for recording. Must be one of \"screen"
+"\" for recording the whole screen, \"area\" for selecting an area or \"window"
+"\" to select a window."
+msgstr ""
+
+#: ../src/byzanzapplet.c:110
+msgid "A file could not be saved."
+msgstr "Dosya kaydedilemedi."
+
+#: ../src/byzanzapplet.c:111
+#, c-format
+msgid ""
+"\"%s\" could not be saved.\n"
+"The error that occured was: %s"
+msgstr ""
+"\"%s\" kaydedilemedi.\n"
+"Hata mesajı: %s"
+
+#: ../src/byzanzapplet.c:175
+msgid "Save Recorded File"
+msgstr "Dosyayı Kaydet"
+
+#: ../src/byzanzapplet.c:224
+msgid "Stop current recording"
+msgstr "Geçerli kaydı durdur"
+
+#: ../src/byzanzapplet.c:352 ../src/ByzanzApplet.server.in.in.h:2
+msgid "Desktop Recorder"
+msgstr "Masaüstü Kayıtçısı"
+
+#: ../src/byzanzapplet.c:355 ../src/ByzanzApplet.server.in.in.h:3
+msgid "Record what's happening on your desktop"
+msgstr "Masaüstünüzde olan şeyleri kaydedin"
+
+#: ../src/byzanzapplet.c:357
+msgid "translator-credits"
+msgstr "Bülent ŞENER <bsener@inonu.edu.tr>"
+
+#: ../src/byzanzapplet.c:424
+msgid "record _mouse cursor"
+msgstr "Fare İ_mlecini Kaydet"
+
+#: ../src/byzanzapplet.xml.h:1
+msgid "_About"
+msgstr "_Hakkında"
+
+#: ../src/byzanzselect.c:312
+msgid "Record whole _screen"
+msgstr "_Tüm Pencereleri Kaydet"
+
+#: ../src/byzanzselect.c:312
+msgid "Record whole screen"
+msgstr "Tüm Pencereleri Kaydet"
+
+#: ../src/byzanzselect.c:314
+msgid "Select _area to record"
+msgstr "K_ayıt Alanını Seçin"
+
+#: ../src/byzanzselect.c:314
+msgid "Select area to record"
+msgstr "Kayıt Alanını Seçin"
+
+#: ../src/byzanzselect.c:316
+msgid "Select _window to record"
+msgstr "Kayıt _Penceresini Seç"
+
+#: ../src/byzanzselect.c:316
+msgid "Select window to record"
+msgstr "Kayıt Penceresini Seç"
+
+#: ../src/ByzanzApplet.server.in.in.h:1
+msgid "Byzanz Factory"
+msgstr "Byzanz Fabrikası"
+
+#: ../src/record.c:36
+msgid "Duration of animation (default: 10 seconds)"
+msgstr "Gösteri Zamanlaması (Standart: 10 Saniye)"
+
+#: ../src/record.c:36 ../src/record.c:37
+msgid "SECS"
+msgstr "SECS"
+
+#: ../src/record.c:37
+msgid "Delay before start (default: 1 second)"
+msgstr "Başlamadan önce bekle (Standart: 1 Saniye)"
+
+#: ../src/record.c:38
+msgid "Let the animation loop"
+msgstr "Gösteri döngüsü sürsün"
+
+#: ../src/record.c:40
+msgid "X coordinate of rectangle to record"
+msgstr "Kayıt dörtgeninin X koordinatı"
+
+#: ../src/record.c:40 ../src/record.c:41 ../src/record.c:42 ../src/record.c:43
+msgid "PIXEL"
+msgstr "PIXEL"
+
+#: ../src/record.c:41
+msgid "Y coordinate of rectangle to record"
+msgstr "Kayıt dörtgeninin Y koordinatı"
+
+#: ../src/record.c:42
+msgid "Width of recording rectangle"
+msgstr "Kayıt dörtgenin genişliği"
+
+#: ../src/record.c:43
+msgid "Height of recording rectangle"
+msgstr "Kayıt dörtgenin yüksekliği"
+
+#: ../src/record.c:44
+msgid "Be verbose"
+msgstr ""
+
+#: ../src/record.c:66
+#, c-format
+msgid "usage: %s [OPTIONS] filename\n"
+msgstr "kullanımı: %s [SEÇENEK] dosyaadı\n"
+
+#: ../src/record.c:67
+#, c-format
+msgid "       %s --help\n"
+msgstr "           %s --help\n"
+
+#: ../src/record.c:73
+msgid "Recording done. Cleaning up...\n"
+msgstr "Kayıt tamamlandı. Temizleniyor...\n"
+
+#: ../src/record.c:83
+#, c-format
+msgid "Recording starts. Will record %d seconds...\n"
+msgstr "Kayıt başlıyor. %d saniye içinde başlayacak...\n"
+
+#: ../src/record.c:93
+msgid "Preparing recording. Will start in 1 second...\n"
+msgstr "Kayda hazırlanıyor. 1 saniye içinde başlayacak...\n"
+
+#: ../src/record.c:115
+msgid "record your current desktop session"
+msgstr "geçerli masaüstü oturumunuzu kaydedin"
+
+#: ../src/record.c:119
+#, c-format
+msgid "Wrong option: %s\n"
+msgstr "Hatalı Seçenek: %s\n"
+
+#: ../src/record.c:130
+#, c-format
+msgid ""
+"Could not prepare recording.\n"
+"Most likely the Damage extension is not available on the X server or the "
+"file \"%s\" is not writable.\n"
+msgstr ""
+"Kayıt için hazırlanılamadı.\n"
+"X sunucusu üzerinde uzantı sorunuvar ya da \"%s\" dosyası yazılabilir değil.\n"
+

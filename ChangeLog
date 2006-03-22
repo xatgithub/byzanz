@@ -1,3 +1,9 @@
+2006-03-22  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
+	* configure.ac:
+	* po/tr.po:
+	  add Turkish translation from Bulent Sener <bsener inonu edu tr>
+
 2006-02-12  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
 	* src/byzanzapplet.c: (byzanz_applet_start_recording):
