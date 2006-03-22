@@ -1,5 +1,10 @@
 2006-03-22  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
+	* src/byzanzrecorder.c: (byzanz_recorder_run_encoder):
+	  attempt to silence a warning from gcc 4.1
+
+2006-03-22  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
 	* src/byzanzrecorder.c: (byzanz_recorder_new),
 	(byzanz_recorder_new_fd):
 	  fail if window depth isn't 24 or 32

@@ -577,7 +577,7 @@ loop:
     rec->file_cache_data_size = 0;
   }
   g_queue_free (rec->file_cache);
-  g_atomic_int_dec_and_test (&rec->encoder_running);
+  g_atomic_int_add (&rec->encoder_running, -1);
 
   return rec;
 #undef USING_FILE_CACHE
