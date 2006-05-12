@@ -128,8 +128,8 @@ main (int argc, char **argv)
   window = gdk_get_default_root_window ();
   if (gdk_drawable_get_depth (window) != 24 && 
       gdk_drawable_get_depth (window) != 32) {
-    g_print (_("Byzanz requires a 24bpp or 32bpp depth for recording."
-	  "The current resolultion is set to %dbpp."), gdk_drawable_get_depth (window));
+    g_print (_("Byzanz requires a 24bpp or 32bpp depth for recording. "
+	  "The current resolution is set to %dbpp."), gdk_drawable_get_depth (window));
     return 2;
   }
   rec = byzanz_recorder_new (argv[1], gdk_get_default_root_window (),

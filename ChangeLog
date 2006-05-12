@@ -1,5 +1,16 @@
 2006-05-12  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
+	* src/byzanzapplet.c: (byzanz_applet_start_recording):
+	* src/record.c: (main):
+	  fix typos.
+	* po/fr.po:
+	* po/tr.po:
+	  update po files
+	* po/de.po:
+	  update po files and translate
+
+2006-05-12  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
 	patch by Richard Ferguson <gnome at fergusnet dot com>
 
 	* data/byzanz-record-screen.png:

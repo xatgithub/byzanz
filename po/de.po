@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Byzanz\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2006-01-26 13:10+0100\n"
+"POT-Creation-Date: 2006-05-12 18:37+0200\n"
 "PO-Revision-Date: 2006-01-04 20:01+0100\n"
 "Last-Translator: Benjamin Otte <otte@gnome.org>\n"
 "Language-Team: German <de@li.org>\n"
@@ -72,19 +72,32 @@ msgstr "Speichere Aufgenommene Datei"
 msgid "Stop current recording"
 msgstr "Beende aktuelle Aufnahme"
 
-#: ../src/byzanzapplet.c:352 ../src/ByzanzApplet.server.in.in.h:2
+#: ../src/byzanzapplet.c:258
+msgid "Cannot start recording."
+msgstr "Kann die Aufnahme nicht beginnen."
+
+#: ../src/byzanzapplet.c:259 ../src/record.c:131
+#, c-format
+msgid ""
+"Byzanz requires a 24bpp or 32bpp depth for recording. The current resolution "
+"is set to %dbpp."
+msgstr ""
+"Bzyanz benötigt eine Bildtiefe von 24bpp oder 32bpp zum Aufnehmen. Die "
+"aktuelle Auflösung ist aber %dbpp"
+
+#: ../src/byzanzapplet.c:369 ../src/ByzanzApplet.server.in.in.h:2
 msgid "Desktop Recorder"
 msgstr "Desktop Rekorder"
 
-#: ../src/byzanzapplet.c:355 ../src/ByzanzApplet.server.in.in.h:3
+#: ../src/byzanzapplet.c:372 ../src/ByzanzApplet.server.in.in.h:3
 msgid "Record what's happening on your desktop"
 msgstr "Nehmen Sie auf, was auf Ihrem Desktop passiert"
 
-#: ../src/byzanzapplet.c:357
+#: ../src/byzanzapplet.c:374
 msgid "translator-credits"
 msgstr "Benjamin Otte <otte@gnome.org>"
 
-#: ../src/byzanzapplet.c:424
+#: ../src/byzanzapplet.c:441
 msgid "Record _Mouse Cursor"
 msgstr "nehme _Mauszeiger auf"
 
@@ -183,16 +196,16 @@ msgstr "Aufnahme beginnt. Sie wird %d Sekunden dauern...\n"
 msgid "Preparing recording. Will start in 1 second...\n"
 msgstr "Bereite Aufnahme vor. Aufnahme beginnt in 1 Sekunde...\n"
 
-#: ../src/record.c:115
+#: ../src/record.c:116
 msgid "record your current desktop session"
 msgstr "Nehmen Sie Ihren Desktop auf"
 
-#: ../src/record.c:119
+#: ../src/record.c:120
 #, c-format
 msgid "Wrong option: %s\n"
 msgstr "Falsche Option: %s\n"
 
-#: ../src/record.c:130
+#: ../src/record.c:138
 #, c-format
 msgid ""
 "Could not prepare recording.\n"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: tr\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2006-01-26 13:10+0100\n"
+"POT-Creation-Date: 2006-05-12 18:37+0200\n"
 "PO-Revision-Date: 2006-02-14 10:01+0200\n"
 "Last-Translator: Bülent ŞENER <bsener@inonu.edu.tr>\n"
 "Language-Team: Turkish <ceviri@gnome.org.tr>\n"
@@ -24,8 +24,8 @@ msgid ""
 "If set, Byzanz will record the mouse cursor. While useful, recording the "
 "mouse cursor results in bigger files and should therefore be used with care."
 msgstr ""
-"Eğer Byzanz fare imlecimi kaydet'i seçerseniz, bu kullanışlı olur "
-"Ancak büyük dosyalar oluşacaktır. Dikkatli kullanılmalı"
+"Eğer Byzanz fare imlecimi kaydet'i seçerseniz, bu kullanışlı olur Ancak "
+"büyük dosyalar oluşacaktır. Dikkatli kullanılmalı"
 
 #: ../src/byzanz.schemas.in.h:3 ../src/record.c:39
 msgid "Record mouse cursor"
@@ -67,19 +67,31 @@ msgstr "Dosyayı Kaydet"
 msgid "Stop current recording"
 msgstr "Geçerli kaydı durdur"
 
-#: ../src/byzanzapplet.c:352 ../src/ByzanzApplet.server.in.in.h:2
+#: ../src/byzanzapplet.c:258
+#, fuzzy
+msgid "Cannot start recording."
+msgstr "Geçerli kaydı durdur"
+
+#: ../src/byzanzapplet.c:259 ../src/record.c:131
+#, c-format
+msgid ""
+"Byzanz requires a 24bpp or 32bpp depth for recording. The current resolution "
+"is set to %dbpp."
+msgstr ""
+
+#: ../src/byzanzapplet.c:369 ../src/ByzanzApplet.server.in.in.h:2
 msgid "Desktop Recorder"
 msgstr "Masaüstü Kayıtçısı"
 
-#: ../src/byzanzapplet.c:355 ../src/ByzanzApplet.server.in.in.h:3
+#: ../src/byzanzapplet.c:372 ../src/ByzanzApplet.server.in.in.h:3
 msgid "Record what's happening on your desktop"
 msgstr "Masaüstünüzde olan şeyleri kaydedin"
 
-#: ../src/byzanzapplet.c:357
+#: ../src/byzanzapplet.c:374
 msgid "translator-credits"
 msgstr "Bülent ŞENER <bsener@inonu.edu.tr>"
 
-#: ../src/byzanzapplet.c:424
+#: ../src/byzanzapplet.c:441
 msgid "Record _Mouse Cursor"
 msgstr "Fare İ_mlecini Kaydet"
 
@@ -178,16 +190,16 @@ msgstr "Kayıt başlıyor. %d saniye içinde başlayacak...\n"
 msgid "Preparing recording. Will start in 1 second...\n"
 msgstr "Kayda hazırlanıyor. 1 saniye içinde başlayacak...\n"
 
-#: ../src/record.c:115
+#: ../src/record.c:116
 msgid "record your current desktop session"
 msgstr "geçerli masaüstü oturumunuzu kaydedin"
 
-#: ../src/record.c:119
+#: ../src/record.c:120
 #, c-format
 msgid "Wrong option: %s\n"
 msgstr "Hatalı Seçenek: %s\n"
 
-#: ../src/record.c:130
+#: ../src/record.c:138
 #, c-format
 msgid ""
 "Could not prepare recording.\n"
@@ -195,5 +207,5 @@ msgid ""
 "file \"%s\" is not writable.\n"
 msgstr ""
 "Kayıt için hazırlanılamadı.\n"
-"X sunucusu üzerinde uzantı sorunuvar ya da \"%s\" dosyası yazılabilir değil.\n"
-
+"X sunucusu üzerinde uzantı sorunuvar ya da \"%s\" dosyası yazılabilir "
+"değil.\n"
