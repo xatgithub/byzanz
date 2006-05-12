@@ -80,7 +80,7 @@ msgid "translator-credits"
 msgstr "Bülent ŞENER <bsener@inonu.edu.tr>"
 
 #: ../src/byzanzapplet.c:424
-msgid "record _mouse cursor"
+msgid "Record _Mouse Cursor"
 msgstr "Fare İ_mlecini Kaydet"
 
 #: ../src/byzanzapplet.xml.h:1
@@ -88,27 +88,27 @@ msgid "_About"
 msgstr "_Hakkında"
 
 #: ../src/byzanzselect.c:312
-msgid "Record whole _screen"
+msgid "Record _Desktop"
 msgstr "_Tüm Pencereleri Kaydet"
 
 #: ../src/byzanzselect.c:312
-msgid "Record whole screen"
+msgid "Record the entire desktop"
 msgstr "Tüm Pencereleri Kaydet"
 
 #: ../src/byzanzselect.c:314
-msgid "Select _area to record"
+msgid "Record _Area"
 msgstr "K_ayıt Alanını Seçin"
 
 #: ../src/byzanzselect.c:314
-msgid "Select area to record"
+msgid "Record a selected area of the desktop"
 msgstr "Kayıt Alanını Seçin"
 
 #: ../src/byzanzselect.c:316
-msgid "Select _window to record"
+msgid "Record _Window"
 msgstr "Kayıt _Penceresini Seç"
 
 #: ../src/byzanzselect.c:316
-msgid "Select window to record"
+msgid "Record a selected window"
 msgstr "Kayıt Penceresini Seç"
 
 #: ../src/ByzanzApplet.server.in.in.h:1

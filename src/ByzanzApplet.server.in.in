@@ -24,7 +24,7 @@
 	</oaf_attribute>
 	<oaf_attribute name="name" type="string" _value="Desktop Recorder"/>
 	<oaf_attribute name="description" type="string" _value="Record what's happening on your desktop"/>
-	<oaf_attribute name="panel:icon" type="string" value="byzanz"/>
+	<oaf_attribute name="panel:icon" type="string" value="byzanz-record-desktop.png"/>
 	<oaf_attribute name="bugzilla:bugzilla" type="string" value="GNOME"/>
         <oaf_attribute name="bugzilla:product" type="string" value="byzanz"/>
         <oaf_attribute name="bugzilla:component" type="string" value="applet"/>

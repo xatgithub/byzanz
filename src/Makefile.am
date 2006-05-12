@@ -59,6 +59,7 @@ CLEANFILES = $(server_in_files) $(server_DATA) $(schemas_DATA)
 
 EXTRA_DIST = \
 	ByzanzApplet.server.in.in \
+	$(man_MANS) \
 	$(ui_DATA) \
 	$(schemas_in_files)
 

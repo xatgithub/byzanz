@@ -309,11 +309,11 @@ static const struct {
   const char * method_name;
   GdkWindow * (* select) (GdkRectangle *rect);
 } methods [] = {
-  { N_("Record whole _screen"), N_("Record whole screen"), 
-    "byzanz-record-screen", "screen", byzanz_select_screen },
-  { N_("Select _area to record"), N_("Select area to record"), 
+  { N_("Record _Desktop"), N_("Record the entire desktop"), 
+    "byzanz-record-desktop", "screen", byzanz_select_screen },
+  { N_("Record _Area"), N_("Record a selected area of the desktop"), 
     "byzanz-record-area", "area", byzanz_select_area },
-  { N_("Select _window to record"), N_("Select window to record"), 
+  { N_("Record _Window"), N_("Record a selected window"), 
     "byzanz-record-window", "window", byzanz_select_window }
 };
 #define BYZANZ_METHOD_COUNT G_N_ELEMENTS(methods)

@@ -85,7 +85,7 @@ msgid "translator-credits"
 msgstr "Benjamin Otte <otte@gnome.org>"
 
 #: ../src/byzanzapplet.c:424
-msgid "record _mouse cursor"
+msgid "Record _Mouse Cursor"
 msgstr "nehme _Mauszeiger auf"
 
 #: ../src/byzanzapplet.xml.h:1
@@ -93,27 +93,27 @@ msgid "_About"
 msgstr "_Info"
 
 #: ../src/byzanzselect.c:312
-msgid "Record whole _screen"
+msgid "Record _Desktop"
 msgstr "Ganzen _Bildschirm aufnehmen"
 
 #: ../src/byzanzselect.c:312
-msgid "Record whole screen"
+msgid "Record the entire desktop"
 msgstr "Ganzen Bildschirm aufnehmen"
 
 #: ../src/byzanzselect.c:314
-msgid "Select _area to record"
+msgid "Record _Area"
 msgstr "_aufzunehmenden Bereich auswählen"
 
 #: ../src/byzanzselect.c:314
-msgid "Select area to record"
+msgid "Record a selected area of the desktop"
 msgstr "aufzunehmenden Bereich auswählen"
 
 #: ../src/byzanzselect.c:316
-msgid "Select _window to record"
+msgid "Record _Window"
 msgstr "_Fenster zum Aufnehmen auswählen"
 
 #: ../src/byzanzselect.c:316
-msgid "Select window to record"
+msgid "Record a selected window"
 msgstr "Fenster zum Aufnehmen auswählen"
 
 #: ../src/ByzanzApplet.server.in.in.h:1

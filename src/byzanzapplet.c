@@ -438,7 +438,7 @@ byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
   gtk_menu_shell_append (GTK_MENU_SHELL (priv->menu), tmp);
   /* translators: keep the mnemonic here different from the selection methods */
   priv->record_cursor = gtk_check_menu_item_new_with_mnemonic (
-      _("record _mouse cursor"));
+      _("Record _Mouse Cursor"));
   gtk_menu_shell_append (GTK_MENU_SHELL (priv->menu), priv->record_cursor);
   gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (priv->record_cursor),
       panel_applet_gconf_get_bool (priv->applet, "record_cursor", NULL));

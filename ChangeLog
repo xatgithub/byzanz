@@ -1,3 +1,30 @@
+2006-05-12  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
+	patch by Richard Ferguson <gnome at fergusnet dot com>
+
+	* data/byzanz-record-screen.png:
+	  remove because of new name
+	* data/byzanz-record-area.png:
+	* data/byzanz-record-desktop.png:
+	* data/byzanz-record-window.png:
+	  add nicer icons
+	* data/Makefile.am:
+	* data/byzanz-record-area.svg:
+	* data/byzanz-record-desktop.svg:
+	* data/byzanz-record-window.svg:
+	  and add those icons as SVG
+	* po/de.po:
+	* po/es.po:
+	* po/tr.po:
+	  update translations for 
+	* src/ByzanzApplet.server.in.in:
+	  use byzanz-record-desktop as image until someone does a cool one
+	* src/byzanzapplet.c: (byzanz_applet_fill):
+	* src/byzanzselect.c:
+	  typo fixes (mostly upper/lower case)
+	* src/Makefile.am:
+	  dist the man file
+
 2006-03-22  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
 	* src/byzanzrecorder.c: (byzanz_recorder_run_encoder):
