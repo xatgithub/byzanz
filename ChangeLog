@@ -1,3 +1,15 @@
+2006-09-17  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
+	* gifenc/quantize.c: (gifenc_palette_get_simple):
+	  fix 64bit casting bug
+
+2006-05-12  Benjamin Otte  <in7y118@public.uni-hamburg.de>
+
+	* NEWS:
+	  update
+	* configure.ac:
+	  0.1.1
+
 2006-05-12  Benjamin Otte  <in7y118@public.uni-hamburg.de>
 
 	* src/byzanzapplet.c: (byzanz_applet_start_recording):

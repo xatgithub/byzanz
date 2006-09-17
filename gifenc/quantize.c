@@ -99,7 +99,7 @@ gifenc_palette_get_simple (guint byte_order, gboolean alpha)
     }
   }
   palette->byte_order = byte_order;
-  palette->data = (gpointer) (alpha ? 0x1 : 0x0);
+  palette->data = GINT_TO_POINTER (alpha ? 1 : 0);
   palette->lookup = gifenc_palette_simple_lookup;
   palette->free = NULL;
 
