@@ -21,7 +21,7 @@ AC_SUBST(ACLOCAL_AMFLAGS, "-I macros")
 AC_PROG_INTLTOOL
 
 dnl the gettext stuff needed
-ALL_LINGUAS="de dz es fr tr"
+ALL_LINGUAS="ar de dz es fr tr"
 GETTEXT_PACKAGE=$PACKAGE
 AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_DIR(GNOMELOCALEDIR, "${datadir}/locale", [locale directory])
