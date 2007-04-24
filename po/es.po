@@ -1,20 +1,22 @@
-# translation of es.po to Spanish
+# translation of byzanz to Spanish
 # Traducción española de byzanz.
 # Copyright (C) 2006 The GNOME Foundation
-# Antonio Ognio <gnrfan@gnrfan.org>, 2006.
 #
+# Antonio Ognio <gnrfan@gnrfan.org>, 2006.
+# Jorge González <jorgegonz@svn.gnome.org>, 2007.
 msgid ""
 msgstr ""
-"Project-Id-Version: Byzanz\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2006-01-26 13:10+0100\n"
-"PO-Revision-Date: 2006-01-31 10:18-0500\n"
-"Last-Translator: Antonio Ognio <gnrfan@gnrfan.org>\n"
+"Project-Id-Version: byzanz.HEAD.es\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/\n"
+"POT-Creation-Date: 2007-04-01 03:56+0100\n"
+"PO-Revision-Date: 2007-04-25 00:06+0200\n"
+"Last-Translator: Jorge González <jorgegonz@svn.gnome.org>\n"
 "Language-Team: Spanish <traductores@es.gnome.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms:  nplurals=2; plural=(n != 1);\n"
+"X-Generator: KBabel 1.11.4\n"
 
 #: ../src/byzanz.schemas.in.h:1
 msgid "Directory to save in"
@@ -48,8 +50,8 @@ msgid ""
 "\" to select a window."
 msgstr ""
 "Usar este método como el método de grabación por omisión. Debe ser uno entre "
-"\"pantalla\" para guardar toda la pantalla, \"area\" para seleccionar un àrea "
-"ó \"ventana\" para seleccionar una ventana."
+"\"pantalla\" para guardar toda la pantalla, \"area\" para seleccionar un "
+"àrea ó \"ventana\" para seleccionar una ventana."
 
 #: ../src/byzanzapplet.c:110
 msgid "A file could not be saved."
@@ -60,9 +62,7 @@ msgstr "No se pudo guardar un archivo."
 msgid ""
 "\"%s\" could not be saved.\n"
 "The error that occured was: %s"
-msgstr ""
-"\"%s\" no se pudo grabar."
-"El error que ocurrió fué: %s"
+msgstr "\"%s\" no se pudo grabar.El error que ocurrió fué: %s"
 
 #: ../src/byzanzapplet.c:175
 msgid "Save Recorded File"
@@ -72,19 +72,32 @@ msgstr "Guardar archivo grabado"
 msgid "Stop current recording"
 msgstr "Detener la grabación actual"
 
-#: ../src/byzanzapplet.c:352 ../src/ByzanzApplet.server.in.in.h:2
+#: ../src/byzanzapplet.c:258
+msgid "Cannot start recording."
+msgstr "No se puede iniciar la grabación."
+
+#: ../src/byzanzapplet.c:259 ../src/record.c:131
+#, c-format
+msgid ""
+"Byzanz requires a 24bpp or 32bpp depth for recording. The current resolution "
+"is set to %dbpp."
+msgstr "Byzanz requiere una profundidad de 24bpp o 32bpp. La resolución actual está ajustada a %dbpp."
+
+#: ../src/byzanzapplet.c:369 ../src/ByzanzApplet.server.in.in.h:2
 msgid "Desktop Recorder"
 msgstr "Grabador de escritorio"
 
-#: ../src/byzanzapplet.c:355 ../src/ByzanzApplet.server.in.in.h:3
+#: ../src/byzanzapplet.c:372 ../src/ByzanzApplet.server.in.in.h:3
 msgid "Record what's happening on your desktop"
 msgstr "Graba lo que esta sucediendo en su escritorio"
 
-#: ../src/byzanzapplet.c:357
+#: ../src/byzanzapplet.c:374
 msgid "translator-credits"
-msgstr "Antonio Ognio <gnrfan@gnrfan.org>"
+msgstr ""
+"Jorge González <jorgegonz@svn.gnome.org>, 2007.\n"
+"Antonio Ognio <gnrfan@gnrfan.org>, 2006."
 
-#: ../src/byzanzapplet.c:424
+#: ../src/byzanzapplet.c:441
 msgid "Record _Mouse Cursor"
 msgstr "guardar cursor del ratón"
 
@@ -101,14 +114,12 @@ msgid "Record the entire desktop"
 msgstr "Guardar toda la pantalla"
 
 #: ../src/byzanzselect.c:314
-#, fuzzy
 msgid "Record _Area"
-msgstr "Seleccione el área"
+msgstr "Grabar un á_rea"
 
 #: ../src/byzanzselect.c:314
-#, fuzzy
 msgid "Record a selected area of the desktop"
-msgstr "Seleccione el área"
+msgstr "Grabar el área seleccionada del escritorio"
 
 #: ../src/byzanzselect.c:316
 msgid "Record _Window"
@@ -123,18 +134,16 @@ msgid "Byzanz Factory"
 msgstr "Fábrica de Byzanz"
 
 #: ../src/record.c:36
-#, fuzzy
 msgid "Duration of animation (default: 10 seconds)"
-msgstr "Duración de la animación"
+msgstr "Duración de la animación (predeterminado: 10 segundos)"
 
 #: ../src/record.c:36 ../src/record.c:37
 msgid "SECS"
 msgstr "SEGS"
 
 #: ../src/record.c:37
-#, fuzzy
 msgid "Delay before start (default: 1 second)"
-msgstr "Retardo inicial"
+msgstr "Retardo inicial antes del inicio (predeterminado: 1 segundo)"
 
 #: ../src/record.c:38
 msgid "Let the animation loop"
@@ -172,7 +181,7 @@ msgstr "uso: %s [OPCIONES] archivo\n"
 #: ../src/record.c:67
 #, c-format
 msgid "       %s --help\n"
-msgstr ""
+msgstr "       %s --help\n"
 
 #: ../src/record.c:73
 msgid "Recording done. Cleaning up...\n"
@@ -187,16 +196,16 @@ msgstr "Iniciando grabación. Se grabarán %d segundos...\n"
 msgid "Preparing recording. Will start in 1 second...\n"
 msgstr "Preparando la grabación... Comenzará en 1 segundo...\n"
 
-#: ../src/record.c:115
+#: ../src/record.c:116
 msgid "record your current desktop session"
 msgstr "grabar su sesión actual de escritorio"
 
-#: ../src/record.c:119
+#: ../src/record.c:120
 #, c-format
 msgid "Wrong option: %s\n"
 msgstr "Opción incorrecta: %s\n"
 
-#: ../src/record.c:130
+#: ../src/record.c:138
 #, c-format
 msgid ""
 "Could not prepare recording.\n"
@@ -207,5 +216,3 @@ msgstr ""
 "Lo mas probable es que la extensión Damage no esté disponible en el servidor "
 "X ó que no se tenga permiso de escritura sobre el archivo \"%s\".\n"
 
-#~ msgid "SAVE"
-#~ msgstr "GUARDAR"
