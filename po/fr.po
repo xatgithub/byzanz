@@ -1,15 +1,19 @@
-# Traducción española de byzanz.
-# Copyright (C) 2006 The GNOME Foundation
-# Antonio Ognio <gnrfan@gnrfan.org>, 2006.
-# 
+# French byzanz translation.
+# Copyright (C) 2004-2007 The Free Software Foundation, Inc
+# This file is distributed under the same license as the byzanz package.
+#
+# Jonathan Ernst <jonathan@ernstfamily.ch>, 2007.
+# Robert-André Mauchin <zebob.m@gmail.com>, 2007.
+#
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Byzanz\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2006-05-12 18:37+0200\n"
-"PO-Revision-Date: 2006-01-28 10:04+0100\n"
-"Last-Translator: \n"
-"Language-Team: French <ersplus@free.fr>\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/\n"
+"POT-Creation-Date: 2007-04-26 00:17+0200\n"
+"PO-Revision-Date: 2007-04-26 00:16+0200\n"
+"Last-Translator: Robert-André Mauchin <zebob.m@gmail.com>\n"
+"Language-Team: GNOME French Team <gnomefr@traduc.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -17,15 +21,15 @@ msgstr ""
 
 #: ../src/byzanz.schemas.in.h:1
 msgid "Directory to save in"
-msgstr "Dossier d'enregistrement"
+msgstr "Répertoire d'enregistrement"
 
 #: ../src/byzanz.schemas.in.h:2
 msgid ""
 "If set, Byzanz will record the mouse cursor. While useful, recording the "
 "mouse cursor results in bigger files and should therefore be used with care."
 msgstr ""
-"Si sélectionné, Byzanz enregistrera le curseur de la souris. "
-"L'enregistrement du curseur de la souris a comme conséquence de plus grands "
+"Si sélectionné, Byzanz enregistrera le curseur de la souris. Bien qu'utile, "
+"l'enregistrement du curseur de la souris a pour conséquence de plus grands "
 "fichiers et devra donc être employé avec soin."
 
 #: ../src/byzanz.schemas.in.h:3 ../src/record.c:39
@@ -34,12 +38,13 @@ msgstr "Enregistrer le curseur de la souris"
 
 #: ../src/byzanz.schemas.in.h:4
 msgid "Recording method"
-msgstr "Mthode d'enregistrement"
+msgstr "Méthode d'enregistrement"
 
 #: ../src/byzanz.schemas.in.h:5
 msgid "This is the directory that Byzanz will default to when saving a file."
 msgstr ""
-"C'est le dossier pardéfaut qu'utilisera Byzanz pour enregistrer les fichiers."
+"Il s'agit du dossier par défaut qu'utilisera Byzanz pour enregistrer les "
+"fichiers."
 
 #: ../src/byzanz.schemas.in.h:6
 msgid ""
@@ -47,12 +52,14 @@ msgid ""
 "\" for recording the whole screen, \"area\" for selecting an area or \"window"
 "\" to select a window."
 msgstr ""
-"Doit être un \"screen \" pour enregistrer l'écran entier, \"area \" pour "
-"choisir un secteur ou une \"window \" pour enregistrer une fenêtre. "
+"Utilise cette méthode comme la méthode par défaut pour l'enregistrement. "
+"Peut prendre les valeurs de « screen » pour enregistrer l'écran entier, "
+"« area » pour choisir un zone de l'écran ou « window » pour enregistrer une "
+"fenêtre."
 
 #: ../src/byzanzapplet.c:110
 msgid "A file could not be saved."
-msgstr "Un fichier ne peut pas être enregisté"
+msgstr "Un fichier ne peut pas être enregistré."
 
 #: ../src/byzanzapplet.c:111
 #, c-format
@@ -60,8 +67,8 @@ msgid ""
 "\"%s\" could not be saved.\n"
 "The error that occured was: %s"
 msgstr ""
-"\"%s\" ne peut être enregistré.\n"
-"L'erreur qui s'est produite était : %s"
+"« %s » ne peut être enregistré.\n"
+"L'erreur qui s'est produite était : %s"
 
 #: ../src/byzanzapplet.c:175
 msgid "Save Recorded File"
@@ -72,9 +79,8 @@ msgid "Stop current recording"
 msgstr "Arreter l'enregistrement"
 
 #: ../src/byzanzapplet.c:258
-#, fuzzy
 msgid "Cannot start recording."
-msgstr "Arreter l'enregistrement"
+msgstr "Impossible de démarrer l'enregistrement"
 
 #: ../src/byzanzapplet.c:259 ../src/record.c:131
 #, c-format
@@ -82,6 +88,8 @@ msgid ""
 "Byzanz requires a 24bpp or 32bpp depth for recording. The current resolution "
 "is set to %dbpp."
 msgstr ""
+"Byzanz requiert une profondeur de couleurs de 24 bpp ou 32 bpp pour "
+"l'enregistrement. La résolution actuelle est définie à %d bpp."
 
 #: ../src/byzanzapplet.c:369 ../src/ByzanzApplet.server.in.in.h:2
 msgid "Desktop Recorder"
@@ -89,11 +97,13 @@ msgstr "Enregistreur de bureau"
 
 #: ../src/byzanzapplet.c:372 ../src/ByzanzApplet.server.in.in.h:3
 msgid "Record what's happening on your desktop"
-msgstr "Enregitrer ce qui se passe sur votre bureau"
+msgstr "Enregistre ce qui se passe sur votre bureau"
 
 #: ../src/byzanzapplet.c:374
 msgid "translator-credits"
-msgstr "Traducteurs"
+msgstr ""
+"Jonathan Ernst <jonathan@ernstfamily.ch>\n"
+"Robert-André Mauchin <zebob.m@gmail.com>"
 
 #: ../src/byzanzapplet.c:441
 msgid "Record _Mouse Cursor"
@@ -101,53 +111,47 @@ msgstr "Enregistrer le _curseur de la souris"
 
 #: ../src/byzanzapplet.xml.h:1
 msgid "_About"
-msgstr "_A propos"
+msgstr "À _propos"
 
 #: ../src/byzanzselect.c:312
-#, fuzzy
 msgid "Record _Desktop"
-msgstr "Enregistrer la totalité de l'écran"
+msgstr "Enregistrer le _bureau"
 
 #: ../src/byzanzselect.c:312
-#, fuzzy
 msgid "Record the entire desktop"
-msgstr "Enregistrer la totalité de l'écran"
+msgstr "Enregistre la totalité du bureau"
 
 #: ../src/byzanzselect.c:314
-#, fuzzy
 msgid "Record _Area"
-msgstr "Sélectionner la _zone à enregistrer"
+msgstr "_Zone à enregistrer"
 
 #: ../src/byzanzselect.c:314
-#, fuzzy
 msgid "Record a selected area of the desktop"
-msgstr "Sélectionner la zone à enregistrer"
+msgstr "Enregistre une zone sélectionnée du bureau"
 
 #: ../src/byzanzselect.c:316
-#, fuzzy
 msgid "Record _Window"
-msgstr "Sélectionner la _fenêtre à enregistrer"
+msgstr "_Fenêtre à enregistrer"
 
 #: ../src/byzanzselect.c:316
-#, fuzzy
 msgid "Record a selected window"
-msgstr "Sélectionner la fenêtre à enregistrer"
+msgstr "Enregistre une fenêtre sélectionnée"
 
 #: ../src/ByzanzApplet.server.in.in.h:1
 msgid "Byzanz Factory"
-msgstr "Byzanz Factory"
+msgstr "Usine Byzanz"
 
 #: ../src/record.c:36
 msgid "Duration of animation (default: 10 seconds)"
-msgstr "Durée de l'animation"
+msgstr "Durée de l'animation (par défaut : 10 secondes)"
 
 #: ../src/record.c:36 ../src/record.c:37
 msgid "SECS"
-msgstr "SEGS"
+msgstr "SECS"
 
 #: ../src/record.c:37
 msgid "Delay before start (default: 1 second)"
-msgstr "Délais avant le démarrage (défaut 1 seconde)"
+msgstr "Délai avant le démarrage (par défaut : 1 seconde)"
 
 #: ../src/record.c:38
 msgid "Let the animation loop"
@@ -159,7 +163,7 @@ msgstr "Coordonnée X du rectangle à enregistrer"
 
 #: ../src/record.c:40 ../src/record.c:41 ../src/record.c:42 ../src/record.c:43
 msgid "PIXEL"
-msgstr "Pixel"
+msgstr "PIXEL"
 
 #: ../src/record.c:41
 msgid "Y coordinate of rectangle to record"
@@ -175,12 +179,12 @@ msgstr "Hauteur du rectangle à enregistrer"
 
 #: ../src/record.c:44
 msgid "Be verbose"
-msgstr "Détails"
+msgstr "Mode verbeux"
 
 #: ../src/record.c:66
 #, c-format
 msgid "usage: %s [OPTIONS] filename\n"
-msgstr "usage : %s [OPTIONS] fichier\n"
+msgstr "utilisation : %s [OPTIONS] fichier\n"
 
 #: ../src/record.c:67
 #, c-format
@@ -189,25 +193,25 @@ msgstr "       %s --help\n"
 
 #: ../src/record.c:73
 msgid "Recording done. Cleaning up...\n"
-msgstr "Enregistrement terminé. Netoyage...\n"
+msgstr "Enregistrement terminé. Nettoyage...\n"
 
 #: ../src/record.c:83
 #, c-format
 msgid "Recording starts. Will record %d seconds...\n"
-msgstr "Débuts de l'enregistrement. %d secondes seront enregitrée...\n"
+msgstr "Démarrage de l'enregistrement. %d secondes seront enregistrées...\n"
 
 #: ../src/record.c:93
 msgid "Preparing recording. Will start in 1 second...\n"
-msgstr "Preparation de l'enregistrement... il démarrera dans 1 seconde...\n"
+msgstr "Préparation de l'enregistrement... Il démarrera dans 1 seconde...\n"
 
 #: ../src/record.c:116
 msgid "record your current desktop session"
-msgstr "enregistrer votre session de bureau courante"
+msgstr "enregistre votre session de bureau actuelle"
 
 #: ../src/record.c:120
 #, c-format
 msgid "Wrong option: %s\n"
-msgstr "Options incorrectes : %s\n"
+msgstr "Option erronée : %s\n"
 
 #: ../src/record.c:138
 #, c-format
@@ -217,8 +221,5 @@ msgid ""
 "file \"%s\" is not writable.\n"
 msgstr ""
 "N'a pas pu préparer l'enregistrement.\n"
-"Très probablement l'extension Damage n'est pas disponible sur le serveur X "
-"ou le fichier \"%s\" est en lecture seule.\n"
-
-#~ msgid "SAVE"
-#~ msgstr "GUARDAR"
+"L'extension Damage n'est probablement pas disponible sur le serveur X ou le "
+"fichier « %s » est en lecture seule.\n"
