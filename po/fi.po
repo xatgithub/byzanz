@@ -1,0 +1,224 @@
+# Finnish messages for byzanz.
+# Copyright (C) 2007 Ilkka Tuohela
+# Suomennos: http://gnome-fi.sourceforge.net/
+#
+# Ilkka Tuohela <hile@iki.fi>, 2007.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: byzanz\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2007-08-13 16:24+0300\n"
+"PO-Revision-Date: 2007-04-18 08:58+0300\n"
+"Last-Translator: Ilkka Tuohela <hile@iki.fi>\n"
+"Language-Team: Finnish <gnome-fi-laatu@lists.sourceforge.net>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../src/byzanz.schemas.in.h:1
+msgid "Directory to save in"
+msgstr "Tallennushakemisto"
+
+#: ../src/byzanz.schemas.in.h:2
+msgid ""
+"If set, Byzanz will record the mouse cursor. While useful, recording the "
+"mouse cursor results in bigger files and should therefore be used with care."
+msgstr ""
+"Jos asetettu, byzanz nauhoittaa myös hiiren kursorin. Vaikkakin tämä on "
+"hyödyllistä, hiiren kursorin tallentaminen kasvattaa tiedostojen kokoa "
+"ja siksi tätä tulisi käyttää varoen."
+
+#: ../src/byzanz.schemas.in.h:3 ../src/record.c:39
+msgid "Record mouse cursor"
+msgstr "Tallenna hiiren kursori"
+
+#: ../src/byzanz.schemas.in.h:4
+msgid "Recording method"
+msgstr "Tallennustapa"
+
+#: ../src/byzanz.schemas.in.h:5
+msgid "This is the directory that Byzanz will default to when saving a file."
+msgstr "Byzanzin tallentamien tiedostojen oletushakemisto"
+
+#: ../src/byzanz.schemas.in.h:6
+msgid ""
+"Use this method as the default method for recording. Must be one of \"screen"
+"\" for recording the whole screen, \"area\" for selecting an area or \"window"
+"\" to select a window."
+msgstr ""
+"Tätä menetelmää käytetään nauhoituksen oletustapana. Arvon täytyy olla "
+"joko \"screen\" (nauhoittaa koko näytön), \"area\" (nauhoittaa alueen) "
+"tai \"window\" (nauhoittaa valitun ikkunan)."
+
+#: ../src/byzanzapplet.c:110
+msgid "A file could not be saved."
+msgstr "Tiedostoa ei voitu tallentaa."
+
+#: ../src/byzanzapplet.c:111
+#, c-format
+msgid ""
+"\"%s\" could not be saved.\n"
+"The error that occured was: %s"
+msgstr ""
+"Tiedostoa \"%s\" ei voitu tallentaa.\n"
+"Tapahtunut virhe oli: %s"
+
+#: ../src/byzanzapplet.c:175
+msgid "Save Recorded File"
+msgstr "Tallenna nauhoitettu tiedosto"
+
+#: ../src/byzanzapplet.c:224
+msgid "Stop current recording"
+msgstr "Pysäytä nauhoitus"
+
+#: ../src/byzanzapplet.c:258
+msgid "Cannot start recording."
+msgstr "Nauhoitusta ei voi aloittaa."
+
+#: ../src/byzanzapplet.c:259 ../src/record.c:131
+#, c-format
+msgid ""
+"Byzanz requires a 24bpp or 32bpp depth for recording. The current resolution "
+"is set to %dbpp."
+msgstr ""
+"Byzanz vaatii 24bpp- tai 32bpp-syvyisen näytön nauhoitusta varten. Nykyinen "
+"bittisyvyys on %dbpp."
+
+#: ../src/byzanzapplet.c:369 ../src/ByzanzApplet.server.in.in.h:2
+msgid "Desktop Recorder"
+msgstr "Työpöytätallennin"
+
+#: ../src/byzanzapplet.c:372 ../src/ByzanzApplet.server.in.in.h:3
+msgid "Record what's happening on your desktop"
+msgstr "Tallenna, mitä työpöydälläsi tapahtuu"
+
+#: ../src/byzanzapplet.c:374
+msgid "translator-credits"
+msgstr ""
+"Ilkka Tuohela, 2007.\n"
+"\n"
+"http://www.gnome.fi/"
+
+#: ../src/byzanzapplet.c:441
+msgid "Record _Mouse Cursor"
+msgstr "Tallenna _hiiren kursori"
+
+#: ../src/byzanzapplet.xml.h:1
+msgid "_About"
+msgstr "_Tietoja"
+
+#: ../src/byzanzselect.c:312
+msgid "Record _Desktop"
+msgstr "Tallenna t_yöpöytä"
+
+#: ../src/byzanzselect.c:312
+msgid "Record the entire desktop"
+msgstr "Tallenna koko työpöytä"
+
+#: ../src/byzanzselect.c:314
+msgid "Record _Area"
+msgstr "Tallenna _alue"
+
+#: ../src/byzanzselect.c:314
+msgid "Record a selected area of the desktop"
+msgstr "Tallenna valittu alue työpöydästä"
+
+#: ../src/byzanzselect.c:316
+msgid "Record _Window"
+msgstr "Tallenna _ikkuna"
+
+#: ../src/byzanzselect.c:316
+msgid "Record a selected window"
+msgstr "Tallenna valittu ikkuna"
+
+#: ../src/ByzanzApplet.server.in.in.h:1
+msgid "Byzanz Factory"
+msgstr "Byzanz-tehdas"
+
+#: ../src/record.c:36
+msgid "Duration of animation (default: 10 seconds)"
+msgstr "Animaation kesto (oletus: 10 sekuntia)"
+
+#: ../src/record.c:36 ../src/record.c:37
+msgid "SECS"
+msgstr "SEKUNTIA"
+
+#: ../src/record.c:37
+msgid "Delay before start (default: 1 second)"
+msgstr "Viive ennen aloitusta (oletus: 1 sekunti)"
+
+#: ../src/record.c:38
+msgid "Let the animation loop"
+msgstr "Toista animaatiota lopusta alkuun"
+
+#: ../src/record.c:40
+msgid "X coordinate of rectangle to record"
+msgstr "Nauhoitettavan neliön x-koordinaatti"
+
+#: ../src/record.c:40 ../src/record.c:41 ../src/record.c:42 ../src/record.c:43
+msgid "PIXEL"
+msgstr "PIKSELI"
+
+#: ../src/record.c:41
+msgid "Y coordinate of rectangle to record"
+msgstr "Nauhoitettavan neliön y-koordinaatti"
+
+#: ../src/record.c:42
+msgid "Width of recording rectangle"
+msgstr "Nauhoitettavan neliön leveys"
+
+#: ../src/record.c:43
+msgid "Height of recording rectangle"
+msgstr "Nauhoitettavan neliön korkeus"
+
+#: ../src/record.c:44
+msgid "Be verbose"
+msgstr "Enemmän viestejä"
+
+#: ../src/record.c:66
+#, c-format
+msgid "usage: %s [OPTIONS] filename\n"
+msgstr "käyttö: %s [VALITSIMET] tiedostonimi\n"
+
+#: ../src/record.c:67
+#, c-format
+msgid "       %s --help\n"
+msgstr "       %s --help\n"
+
+#: ../src/record.c:73
+msgid "Recording done. Cleaning up...\n"
+msgstr "Nauhoitus valmis, siivotaan...\n"
+
+#: ../src/record.c:83
+#, c-format
+msgid "Recording starts. Will record %d seconds...\n"
+msgstr "Nauhoitus alkaa. Nauhoitetaan %d sekuntia...\n"
+
+#: ../src/record.c:93
+msgid "Preparing recording. Will start in 1 second...\n"
+msgstr "Valmistellaan nauhoitusta. Aloitetaan 1 sekunnin kuluttua...\n"
+
+#: ../src/record.c:116
+msgid "record your current desktop session"
+msgstr "tallenna työpöytäistuntosi"
+
+#: ../src/record.c:120
+#, c-format
+msgid "Wrong option: %s\n"
+msgstr "Virheellinen valitsin: %s\n"
+
+#: ../src/record.c:138
+#, c-format
+msgid ""
+"Could not prepare recording.\n"
+"Most likely the Damage extension is not available on the X server or the "
+"file \"%s\" is not writable.\n"
+msgstr ""
+"Nauhoitusta ei voitu alustaa.\n"
+"Luultavasti X-palvelimen Damage-laajennos ei ole käytössä, tai tiedosto "
+"\"%s\" ei ole kirjoitettavissa.\n"
+
+
+
