@@ -11,14 +11,13 @@ msgstr ""
 "Project-Id-Version: oc\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/\n"
 "POT-Creation-Date: 2007-10-13 17:46+0200\n"
-"PO-Revision-Date: 2007-11-20 14:29+0100\n"
+"PO-Revision-Date: 2007-11-21 18:31+0100\n"
 "Last-Translator: Yannig Marchegay (Kokoyaya) <yannig@marchegay.org>\n"
 "Language-Team: Occitan <ubuntu-l10n-oci@lists.ubuntu.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: KBabel 1.11.4\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);"
 
 #: ../src/byzanz.schemas.in.h:1
 msgid "Directory to save in"
@@ -149,7 +148,7 @@ msgstr ""
 
 #: ../src/record.c:40 ../src/record.c:41 ../src/record.c:42 ../src/record.c:43
 msgid "PIXEL"
-msgstr ""
+msgstr "PIXEL"
 
 #: ../src/record.c:41
 msgid "Y coordinate of rectangle to record"
