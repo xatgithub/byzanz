@@ -1,3 +1,8 @@
+2008-03-24  Kostas Papadimas <pkst@gnome.org>
+
+	* configure.in: Added 'el' to ALL_LINGUAS.
+	* MAINTAINERS: Fixed file format to pass pre-commit hook in SVN.
+
 2007-10-14  Yannig Marchegay  <yannig@marchegay.org>
 
 	* configure.in: Added 'oc' to ALL_LINGUAS.
