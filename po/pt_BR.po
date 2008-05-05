@@ -1,0 +1,217 @@
+# Portuguese translations for byzanz package.
+# Copyright (C) 2008 THE byzanz'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the byzanz package.
+# Fábio Nogueira <deb-user-ba@ubuntu.com>, 2008.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: byzanz.DEAD.pt_BR\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/\n"
+"POT-Creation-Date: 2008-05-05 11:35-0300\n"
+"PO-Revision-Date: 2008-05-03 17:07-0300\n"
+"Last-Translator: Fábio Nogueira <deb-user-ba@ubuntu.com>\n"
+"Language-Team: Brazilian Portuguese <gnome-l10n-br@listas.cipsga.org.br>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: ../src/byzanz.schemas.in.h:1
+msgid "Directory to save in"
+msgstr "Diretório para salvar"
+
+#: ../src/byzanz.schemas.in.h:2
+msgid ""
+"If set, Byzanz will record the mouse cursor. While useful, recording the "
+"mouse cursor results in bigger files and should therefore be used with care."
+msgstr ""
+"Se configurado, o Byzanz irá gravar o cursor do mouse. Embora útil, gravar o "
+"cursor do mouse resulta em arquivos maiores e portanto deve ser utilizado "
+"com cuidado."
+
+#: ../src/byzanz.schemas.in.h:3 ../src/record.c:39
+msgid "Record mouse cursor"
+msgstr "Gravar o cursor do mouse"
+
+#: ../src/byzanz.schemas.in.h:4
+msgid "Recording method"
+msgstr "Método de gravação"
+
+#: ../src/byzanz.schemas.in.h:5
+msgid "This is the directory that Byzanz will default to when saving a file."
+msgstr "Este é o diretório que o Byzanz irá por padrão salvar os arquivos."
+
+#: ../src/byzanz.schemas.in.h:6
+msgid ""
+"Use this method as the default method for recording. Must be one of \"screen"
+"\" for recording the whole screen, \"area\" for selecting an area or \"window"
+"\" to select a window."
+msgstr ""
+"Utilize este método como o padrão para gravação. Deve ser \"screen\" para "
+"gravação de toda tela, \"area\" para selecionar uma área ou \"window\" para "
+"selecionar uma janela."
+
+#: ../src/byzanzapplet.c:110
+msgid "A file could not be saved."
+msgstr "Um arquivo não pode ser salvo."
+
+#: ../src/byzanzapplet.c:111
+#, c-format
+msgid ""
+"\"%s\" could not be saved.\n"
+"The error that occured was: %s"
+msgstr ""
+"\"%s\" não pode ser salvo.\n"
+"O erro que ocorreu foi: %s"
+
+#: ../src/byzanzapplet.c:175
+msgid "Save Recorded File"
+msgstr "Salvar Arquivo Gravado"
+
+#: ../src/byzanzapplet.c:224
+msgid "Stop current recording"
+msgstr "Parar a gravação atual"
+
+#: ../src/byzanzapplet.c:258
+msgid "Cannot start recording."
+msgstr "Não é possível iniciar a gravação."
+
+#: ../src/byzanzapplet.c:259 ../src/record.c:131
+#, c-format
+msgid ""
+"Byzanz requires a 24bpp or 32bpp depth for recording. The current resolution "
+"is set to %dbpp."
+msgstr ""
+"Byzanz exige uma profundidade de 24bpp ou 32bpp para gravação. A resolução "
+"atual está configurada para %dbpp."
+
+#: ../src/byzanzapplet.c:369 ../src/ByzanzApplet.server.in.in.h:2
+msgid "Desktop Recorder"
+msgstr "Gravador da Área de Trabalho"
+
+#: ../src/byzanzapplet.c:372 ../src/ByzanzApplet.server.in.in.h:3
+msgid "Record what's happening on your desktop"
+msgstr "Grave o que está acontecendo na sua área de trabalho"
+
+#: ../src/byzanzapplet.c:374
+msgid "translator-credits"
+msgstr "Fábio Nogueira <deb-user-ba@ubuntu.com>, 2008."
+
+#: ../src/byzanzapplet.c:441
+msgid "Record _Mouse Cursor"
+msgstr "Gravar Cursor do _Mouse"
+
+#: ../src/byzanzapplet.xml.h:1
+msgid "_About"
+msgstr "_Sobre"
+
+#: ../src/byzanzselect.c:312
+msgid "Record _Desktop"
+msgstr "Gravar a Área _de Trabalho"
+
+#: ../src/byzanzselect.c:312
+msgid "Record the entire desktop"
+msgstr "Gravar toda a área de trabalho"
+
+#: ../src/byzanzselect.c:314
+msgid "Record _Area"
+msgstr "Gravar uma Áre_a"
+
+#: ../src/byzanzselect.c:314
+msgid "Record a selected area of the desktop"
+msgstr "Gravar uma área selecionada da área de trabalho"
+
+#: ../src/byzanzselect.c:316
+msgid "Record _Window"
+msgstr "Gravar a _Janela"
+
+#: ../src/byzanzselect.c:316
+msgid "Record a selected window"
+msgstr "Gravar a janela selecionada"
+
+#: ../src/ByzanzApplet.server.in.in.h:1
+msgid "Byzanz Factory"
+msgstr "Fábrica de Byzanz"
+
+#: ../src/record.c:36
+msgid "Duration of animation (default: 10 seconds)"
+msgstr "Duração da animação (padrão: 10 segundos)"
+
+#: ../src/record.c:36 ../src/record.c:37
+msgid "SECS"
+msgstr "SEGS"
+
+#: ../src/record.c:37
+msgid "Delay before start (default: 1 second)"
+msgstr "Atraso antes de iniciar (padrão: 1 segundo)"
+
+#: ../src/record.c:38
+msgid "Let the animation loop"
+msgstr "Deixar que a animação se repita"
+
+#: ../src/record.c:40
+msgid "X coordinate of rectangle to record"
+msgstr "coordenada X do retângulo para gravar"
+
+#: ../src/record.c:40 ../src/record.c:41 ../src/record.c:42 ../src/record.c:43
+msgid "PIXEL"
+msgstr "PIXEL"
+
+#: ../src/record.c:41
+msgid "Y coordinate of rectangle to record"
+msgstr "coordenada Y do retângulo para gravar"
+
+#: ../src/record.c:42
+msgid "Width of recording rectangle"
+msgstr "Largura do retângulo para gravação"
+
+#: ../src/record.c:43
+msgid "Height of recording rectangle"
+msgstr "Altura do retângulo para gravação"
+
+#: ../src/record.c:44
+msgid "Be verbose"
+msgstr "Detalhado"
+
+#: ../src/record.c:66
+#, c-format
+msgid "usage: %s [OPTIONS] filename\n"
+msgstr "uso: %s [OPÇÕES] nome do arquivo\n"
+
+#: ../src/record.c:67
+#, c-format
+msgid "       %s --help\n"
+msgstr "       %s --help\n"
+
+#: ../src/record.c:73
+msgid "Recording done. Cleaning up...\n"
+msgstr "Gravação finalizada. Limpando...\n"
+
+#: ../src/record.c:83
+#, c-format
+msgid "Recording starts. Will record %d seconds...\n"
+msgstr "Iniciando gravação. Serão gravados %d segundos...\n"
+
+#: ../src/record.c:93
+msgid "Preparing recording. Will start in 1 second...\n"
+msgstr "Preparando a gravação. Será iniciada em 1 segundo...\n"
+
+#: ../src/record.c:116
+msgid "record your current desktop session"
+msgstr "gravar sua sessão atual da área de trabalho"
+
+#: ../src/record.c:120
+#, c-format
+msgid "Wrong option: %s\n"
+msgstr "Opção incorreta: %s\n"
+
+#: ../src/record.c:138
+#, c-format
+msgid ""
+"Could not prepare recording.\n"
+"Most likely the Damage extension is not available on the X server or the "
+"file \"%s\" is not writable.\n"
+msgstr ""
+"Não é possível preparar a gravação.\n"
+"É possível que a extensão Damage não esteja disponível no servidor X ou o "
+"arquivo \"%s\" não é gravável.\n"
