@@ -1,0 +1,217 @@
+# Vietnamese translation for Byzanz.
+# Copyright © 2008 GNOME i18n Project for Vietnamese.
+# Clytie Siddall <clytie@riverland.net.au>, 2008.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: byzanz GNOME TRUNK\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/\n"
+"POT-Creation-Date: 2008-06-06 04:10+0000\n"
+"PO-Revision-Date: 2008-06-06 21:25+0930\n"
+"Last-Translator: Clytie Siddall <clytie@riverland.net.au>\n"
+"Language-Team: Vietnamese <vi-VN@googlegroups.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: LocFactoryEditor 1.7b3\n"
+
+#: ../src/byzanz.schemas.in.h:1
+msgid "Directory to save in"
+msgstr "Thư mục vào đó cần lưu"
+
+#: ../src/byzanz.schemas.in.h:2
+msgid ""
+"If set, Byzanz will record the mouse cursor. While useful, recording the "
+"mouse cursor results in bigger files and should therefore be used with care."
+msgstr "Bật tùy chọn này thì trình Byzanz sẽ thu con trỏ chuột. Dù có ích, chức năng thu con trỏ chuột gây ra tập tin lớn: hãy sử dụng cẩn thận."
+
+#: ../src/byzanz.schemas.in.h:3
+#: ../src/record.c:39
+msgid "Record mouse cursor"
+msgstr "Thu con trỏ chuột"
+
+#: ../src/byzanz.schemas.in.h:4
+msgid "Recording method"
+msgstr "Phương pháp thu"
+
+#: ../src/byzanz.schemas.in.h:5
+msgid "This is the directory that Byzanz will default to when saving a file."
+msgstr "Đây là thư mục mặc định vào đó Byzanz sẽ lưu tập tin."
+
+#: ../src/byzanz.schemas.in.h:6
+msgid ""
+"Use this method as the default method for recording. Must be one of \"screen"
+"\" for recording the whole screen, \"area\" for selecting an area or \"window"
+"\" to select a window."
+msgstr "Hãy sử dụng phương pháp này làm mặc định khi thu. Phải là một của:\n"
+" • screen		thu toàn bộ màn hình\n"
+" • area		thu vùng màn hình được chọn\n"
+" • window	thu cửa sổ được chọn."
+
+#: ../src/byzanzapplet.c:110
+msgid "A file could not be saved."
+msgstr "Một tập tin không lưu được."
+
+#: ../src/byzanzapplet.c:111
+#, c-format
+msgid ""
+"\"%s\" could not be saved.\n"
+"The error that occured was: %s"
+msgstr "« %s » không lưu được.\n"
+"Gặp lỗi: %s"
+
+#: ../src/byzanzapplet.c:175
+msgid "Save Recorded File"
+msgstr "Lưu tập tin đã lưu"
+
+#: ../src/byzanzapplet.c:224
+msgid "Stop current recording"
+msgstr "Dừng thu"
+
+#: ../src/byzanzapplet.c:258
+msgid "Cannot start recording."
+msgstr "Không thể bắt đầu thu."
+
+#: ../src/byzanzapplet.c:259
+#: ../src/record.c:131
+#, c-format
+msgid ""
+"Byzanz requires a 24bpp or 32bpp depth for recording. The current resolution "
+"is set to %dbpp."
+msgstr "Trình Byzanz đòi hỏi độ sâu 24bpp hay 32bpp để thu. Độ phân giải hiện thời được đặt thành %dbpp."
+
+#: ../src/byzanzapplet.c:369
+#: ../src/ByzanzApplet.server.in.in.h:2
+msgid "Desktop Recorder"
+msgstr "Bộ thu màn hình nền"
+
+#: ../src/byzanzapplet.c:372
+#: ../src/ByzanzApplet.server.in.in.h:3
+msgid "Record what's happening on your desktop"
+msgstr "Thu sự kiện trên màn hình nền"
+
+#: ../src/byzanzapplet.c:374
+msgid "translator-credits"
+msgstr "Nhóm Việt hóa GNOME <gnomevi-list@lists.sourceforge.net>"
+
+#: ../src/byzanzapplet.c:441
+msgid "Record _Mouse Cursor"
+msgstr "Thu _con trỏ chuột"
+
+#: ../src/byzanzapplet.xml.h:1
+msgid "_About"
+msgstr "_Giới thiệu"
+
+#: ../src/byzanzselect.c:312
+msgid "Record _Desktop"
+msgstr "Thu _màn hình nền"
+
+#: ../src/byzanzselect.c:312
+msgid "Record the entire desktop"
+msgstr "Thu toàn bộ màn hình nền"
+
+#: ../src/byzanzselect.c:314
+msgid "Record _Area"
+msgstr "Thu _vùng"
+
+#: ../src/byzanzselect.c:314
+msgid "Record a selected area of the desktop"
+msgstr "Thu một vùng được chọn của màn hình nền"
+
+#: ../src/byzanzselect.c:316
+msgid "Record _Window"
+msgstr "Thu cửa _sổ"
+
+#: ../src/byzanzselect.c:316
+msgid "Record a selected window"
+msgstr "Thu một cửa sổ được chọn"
+
+#: ../src/ByzanzApplet.server.in.in.h:1
+msgid "Byzanz Factory"
+msgstr "Bộ tạo Byzanz"
+
+#: ../src/record.c:36
+msgid "Duration of animation (default: 10 seconds)"
+msgstr "Thời gian hoạt ảnh (mặc định: 10 giây)"
+
+#: ../src/record.c:36
+#: ../src/record.c:37
+msgid "SECS"
+msgstr "GIÂY"
+
+#: ../src/record.c:37
+msgid "Delay before start (default: 1 second)"
+msgstr "Khoảng đợi trước khi bắt đầu (mặc định: 1 giây)"
+
+#: ../src/record.c:38
+msgid "Let the animation loop"
+msgstr "Cho phép hoạt ảnh cuộn lại"
+
+#: ../src/record.c:40
+msgid "X coordinate of rectangle to record"
+msgstr "Toạ độ X của hình chữ nhật cần thu"
+
+#: ../src/record.c:40
+#: ../src/record.c:41
+#: ../src/record.c:42
+#: ../src/record.c:43
+msgid "PIXEL"
+msgstr "ĐIỂM ẢNH"
+
+#: ../src/record.c:41
+msgid "Y coordinate of rectangle to record"
+msgstr "Toạ độ Y của hình chữ nhật cần thu"
+
+#: ../src/record.c:42
+msgid "Width of recording rectangle"
+msgstr "Chiều rộng của hình chữ nhật đang thu"
+
+#: ../src/record.c:43
+msgid "Height of recording rectangle"
+msgstr "Chiều cao của hình chữ nhật đang thu"
+
+#: ../src/record.c:44
+msgid "Be verbose"
+msgstr "Xuất chi tiết"
+
+#: ../src/record.c:66
+#, c-format
+msgid "usage: %s [OPTIONS] filename\n"
+msgstr "sử dụng: %s [TÙY_CHỌN] tên_tập_tin\n"
+
+#: ../src/record.c:67
+#, c-format
+msgid "       %s --help\n"
+msgstr "       %s --help\n"
+
+#: ../src/record.c:73
+msgid "Recording done. Cleaning up...\n"
+msgstr "Hoàn tất thu. Đang làm sạch...\n"
+
+#: ../src/record.c:83
+#, c-format
+msgid "Recording starts. Will record %d seconds...\n"
+msgstr "Sắp thu — sẽ thu %d giây...\n"
+
+#: ../src/record.c:93
+msgid "Preparing recording. Will start in 1 second...\n"
+msgstr "Đang chuẩn bị chức năng thu : sẽ bắt đầu sau 1 giây...\n"
+
+#: ../src/record.c:116
+msgid "record your current desktop session"
+msgstr "thu buổi hợp đang chạy trên màn hình nền"
+
+#: ../src/record.c:120
+#, c-format
+msgid "Wrong option: %s\n"
+msgstr "Tùy chọn sai: %s\n"
+
+#: ../src/record.c:138
+#, c-format
+msgid ""
+"Could not prepare recording.\n"
+"Most likely the Damage extension is not available on the X server or the "
+"file \"%s\" is not writable.\n"
+msgstr "Không thể chuẩn bị chức năng thu.\n"
+"Rất có thể là phần mở rộng Damage không công bố thông qua trình phục vụ X, hoặc « %s » không ghi được.\n"
