@@ -114,6 +114,10 @@ main (int argc, char **argv)
 
   g_thread_init (NULL);
   context = g_option_context_new (_("record your current desktop session"));
+#ifdef GETTEXT_PACKAGE
+  g_option_context_set_translation_domain(context, GETTEXT_PACKAGE);
+#endif
+
   g_option_context_add_main_entries (context, entries, GETTEXT_PACKAGE);
   g_option_context_add_group (context, gtk_get_option_group (TRUE));
   if (!g_option_context_parse (context, &argc, &argv, &error)) {

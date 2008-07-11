@@ -1,3 +1,13 @@
+2008-07-11  Nickolay V. Shmyrev  <nshmyrev@yandex.ru>
+
+	* configure.ac:
+	
+	Added "ru" to ALL_LIGNUAS.
+	
+	* src/record.c (main):
+	
+	Set the translation domain for the option context.
+
 2008-06-06   Clytie Siddall <clytie@riverland.net.au>
 
 	* configure.ac: Added "vi" to ALL_LINGUAS.
