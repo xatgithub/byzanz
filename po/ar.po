@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arabic\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/\n"
-"POT-Creation-Date: 2007-04-21 22:53+0100\n"
+"POT-Creation-Date: 2008-07-31 10:44+0100\n"
 "PO-Revision-Date: 2007-04-14 18:49+0100\n"
 "Last-Translator: Djihed Afifi <djihed@gmail.com>\n"
 "Language-Team: Arabeyes <doc@arabeyes.org>\n"
@@ -74,7 +74,7 @@ msgstr "أوقف العملية الحالية"
 msgid "Cannot start recording."
 msgstr "لا يمكن بدأ تشغيل الشاشة الجديدة"
 
-#: ../src/byzanzapplet.c:259 ../src/record.c:131
+#: ../src/byzanzapplet.c:259 ../src/record.c:135
 #, c-format
 msgid ""
 "Byzanz requires a 24bpp or 32bpp depth for recording. The current resolution "
@@ -218,16 +218,15 @@ msgstr ""
 msgid "record your current desktop session"
 msgstr "نهاية الجلسة الحالية"
 
-#: ../src/record.c:120
+#: ../src/record.c:124
 #, fuzzy, c-format
 msgid "Wrong option: %s\n"
 msgstr "خيارات التَّحذير"
 
-#: ../src/record.c:138
+#: ../src/record.c:142
 #, c-format
 msgid ""
 "Could not prepare recording.\n"
 "Most likely the Damage extension is not available on the X server or the "
 "file \"%s\" is not writable.\n"
 msgstr ""
-
