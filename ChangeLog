@@ -1,3 +1,7 @@
+2008-10-08  Kjartan Maraas  <kmaraas@gnome.org>
+
+	* configure.ac: Added 'nb' to ALL_LINGUAS.
+
 2008-07-11  Nickolay V. Shmyrev  <nshmyrev@yandex.ru>
 
 	* configure.ac:
