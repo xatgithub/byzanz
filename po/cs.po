@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: byzanz\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/\n"
-"POT-Creation-Date: 2008-05-01 02:08+0200\n"
-"PO-Revision-Date: 2008-05-01 02:01+0100\n"
-"Last-Translator: Petr Kovar <pknbe@volny.cz>\n"
+"POT-Creation-Date: 2008-10-12 14:57+0200\n"
+"PO-Revision-Date: 2008-10-07 20:29+0100\n"
+"Last-Translator: Adrian Guniš <andygun696@gmail.com>\n"
 "Language-Team: Czech <gnome-cs-list@gnome.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
@@ -26,8 +26,8 @@ msgid ""
 "If set, Byzanz will record the mouse cursor. While useful, recording the "
 "mouse cursor results in bigger files and should therefore be used with care."
 msgstr ""
-"Pokud nastavíte, Byzanz bude nahrávat kurzor myši. Nahrávání kurzoru myši má "
-"za následek větší soubory a mělo by být proto používáno s rozmyslem."
+"Pokud nastavíte, Byzanz bude nahrávat kurzor myši. Při nahrávání kurzoru "
+"myši vznikají větší soubory a mělo by být proto používáno s rozmyslem."
 
 #: ../src/byzanz.schemas.in.h:3 ../src/record.c:39
 msgid "Record mouse cursor"
@@ -41,7 +41,7 @@ msgstr "Metoda nahrávání"
 msgid "This is the directory that Byzanz will default to when saving a file."
 msgstr ""
 "Toto je adresář, který je v Byzanz nastaven jako výchozí pro ukládání "
-"souboru."
+"souborů."
 
 #: ../src/byzanz.schemas.in.h:6
 msgid ""
@@ -64,7 +64,7 @@ msgid ""
 "The error that occured was: %s"
 msgstr ""
 "\"%s\" nelze uložit.\n"
-"Chyba, která nastala, byla: %s"
+"Chyba, která nastala: %s"
 
 #: ../src/byzanzapplet.c:175
 msgid "Save Recorded File"
@@ -78,7 +78,7 @@ msgstr "Zastavit současné nahrávání"
 msgid "Cannot start recording."
 msgstr "Nelze spustit nahrávání."
 
-#: ../src/byzanzapplet.c:259 ../src/record.c:131
+#: ../src/byzanzapplet.c:259 ../src/record.c:135
 #, c-format
 msgid ""
 "Byzanz requires a 24bpp or 32bpp depth for recording. The current resolution "
@@ -97,7 +97,7 @@ msgstr "Nahrávání dění na pracovní ploše"
 
 #: ../src/byzanzapplet.c:374
 msgid "translator-credits"
-msgstr "Adrian Guniš <andygun@seznam.cz>"
+msgstr "Adrian Guniš <andygun696@gmail.com>"
 
 #: ../src/byzanzapplet.c:441
 msgid "Record _Mouse Cursor"
@@ -178,7 +178,7 @@ msgstr "Vypisovat podrobnosti"
 #: ../src/record.c:66
 #, c-format
 msgid "usage: %s [OPTIONS] filename\n"
-msgstr "použití: %s [VOLBY] názevsouboru\n"
+msgstr "použití: %s [PŘEPÍNAČE] název_souboru\n"
 
 #: ../src/record.c:67
 #, c-format
@@ -196,18 +196,18 @@ msgstr "Spouští se nahrávání. Nahraje se %d sekund...\n"
 
 #: ../src/record.c:93
 msgid "Preparing recording. Will start in 1 second...\n"
-msgstr "Připravuji nahrávání. Spustí se za 1 sekundu...\n"
+msgstr "Připravuje se nahrávání. Spustí se za 1 sekundu...\n"
 
 #: ../src/record.c:116
 msgid "record your current desktop session"
 msgstr "nahrát pracovní plochu aktuálního sezení"
 
-#: ../src/record.c:120
+#: ../src/record.c:124
 #, c-format
 msgid "Wrong option: %s\n"
-msgstr "Špatná volba: %s\n"
+msgstr "Špatný přepínač: %s\n"
 
-#: ../src/record.c:138
+#: ../src/record.c:142
 #, c-format
 msgid ""
 "Could not prepare recording.\n"
