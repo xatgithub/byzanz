@@ -1,3 +1,8 @@
+2008-11-07  Kjartan Maraas  <kmaraas@gnome.org>
+
+	* gifenc/quantize.c: Comment out a function to make it build (uses
+	-Werror)
+
 2008-10-08  Kjartan Maraas  <kmaraas@gnome.org>
 
 	* configure.ac: Added 'nb' to ALL_LINGUAS.

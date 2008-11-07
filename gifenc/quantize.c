@@ -157,6 +157,7 @@ gifenc_octree_free (gpointer data)
   g_free (tree);
 }
 
+#if 0
 #define PRINT_NON_LEAVES 1
 static void
 gifenc_octree_print (GifencOctree *tree, guint flags)
@@ -179,6 +180,7 @@ gifenc_octree_print (GifencOctree *tree, guint flags)
   }
 #undef FLAG_SET
 }
+#endif
 
 static guint
 color_to_index (guint color, guint level)
