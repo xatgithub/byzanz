@@ -1,3 +1,7 @@
+2008-11-11  Wadim Dziedzic  <wdziedzic@aviary.pl>
+
+	* configure.ac: Added "pl" to ALL_LIGUAS
+
 2008-11-09  Kenneth Nielsen  <k.nielsen81@gmail.com>
 
 	* configure.ac: Added "da" to ALL_LINGUAS
