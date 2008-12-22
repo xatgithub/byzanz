@@ -1,17 +1,17 @@
 # Translation of byzanz to Hungarian
-# Copyright (C) 2007 Free Software Foundation, Inc.
+# Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 # This file is distributed under the same license as the byzanz package.
 #
 # Bálint Magyar <magyarbalint@indi.hu>, 2007.
-# Gabor Kelemen <kelemeng@gnome.hu>, 2007.
+# Gabor Kelemen <kelemeng@gnome.hu>, 2007, 2008.
 msgid ""
 msgstr ""
 "Project-Id-Version: byzanz.HEAD\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/\n"
 "POT-Creation-Date: 2007-10-09 03:54+0100\n"
-"PO-Revision-Date: 2007-10-12 00:14+0200\n"
+"PO-Revision-Date: 2008-12-22 15:26+0100\n"
 "Last-Translator: Gabor Kelemen <kelemeng@gnome.hu>\n"
-"Language-Team: Hungarian <ubuntu-l10n-hu@lists.ubuntu.com>\n"
+"Language-Team: Hungarian <gnome@fsf.hu>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -45,7 +45,7 @@ msgid ""
 "Use this method as the default method for recording. Must be one of \"screen"
 "\" for recording the whole screen, \"area\" for selecting an area or \"window"
 "\" to select a window."
-msgstr "Az alapértelmezett felvételi módszer. A lehetséges értékek: \"screen\" (teljes képernyő felvétele), \"area\" (egy kijelölt terület) vagy \"window\" (egy kijelölt ablak)."
+msgstr "Az alapértelmezett felvételi módszer. A lehetséges értékek: „screen” (teljes képernyő felvétele), „area” (egy kijelölt terület) vagy „window” (egy kijelölt ablak)."
 
 #: ../src/byzanzapplet.c:110
 msgid "A file could not be saved."
@@ -57,7 +57,7 @@ msgid ""
 "\"%s\" could not be saved.\n"
 "The error that occured was: %s"
 msgstr ""
-"\"%s\" mentése sikertelen.\n"
+"„%s” mentése sikertelen.\n"
 "A következő hiba történt: %s"
 
 #: ../src/byzanzapplet.c:175
@@ -81,11 +81,11 @@ msgstr "A felvételhez 24 vagy 32 bpp-es színmélységű megjelenítés szüks�
 
 #: ../src/byzanzapplet.c:369 ../src/ByzanzApplet.server.in.in.h:2
 msgid "Desktop Recorder"
-msgstr "Munkaasztal-felvevő"
+msgstr "Asztalfelvevő"
 
 #: ../src/byzanzapplet.c:372 ../src/ByzanzApplet.server.in.in.h:3
 msgid "Record what's happening on your desktop"
-msgstr "Felvétel készítése a munkaasztaláról"
+msgstr "Felvétel készítése az asztaláról"
 
 #: ../src/byzanzapplet.c:374
 msgid "translator-credits"
@@ -103,11 +103,11 @@ msgstr "_Névjegy"
 
 #: ../src/byzanzselect.c:312
 msgid "Record _Desktop"
-msgstr "_Munkaasztal felvétele"
+msgstr "_Asztal felvétele"
 
 #: ../src/byzanzselect.c:312
 msgid "Record the entire desktop"
-msgstr "A teljes munkaasztal felvétele"
+msgstr "A teljes asztal felvétele"
 
 #: ../src/byzanzselect.c:314
 msgid "Record _Area"
@@ -115,7 +115,7 @@ msgstr "_Terület felvétele"
 
 #: ../src/byzanzselect.c:314
 msgid "Record a selected area of the desktop"
-msgstr "A munkaasztal egy kijelölt területének felvétele"
+msgstr "Az asztal egy kijelölt területének felvétele"
 
 #: ../src/byzanzselect.c:316
 msgid "Record _Window"
@@ -181,16 +181,16 @@ msgstr "       %s --help\n"
 
 #: ../src/record.c:73
 msgid "Recording done. Cleaning up...\n"
-msgstr "Felvétel kész. Tisztítás folyamatban...\n"
+msgstr "Felvétel kész. Tisztítás folyamatban…\n"
 
 #: ../src/record.c:83
 #, c-format
 msgid "Recording starts. Will record %d seconds...\n"
-msgstr "A felvétel megkezdődött. %d másodperc rögzítése...\n"
+msgstr "A felvétel megkezdődött. %d másodperc rögzítése…\n"
 
 #: ../src/record.c:93
 msgid "Preparing recording. Will start in 1 second...\n"
-msgstr "Felvétel előkészítése. Egy másodperc múlva indul...\n"
+msgstr "Felvétel előkészítése. Egy másodperc múlva indul…\n"
 
 #: ../src/record.c:116
 msgid "record your current desktop session"
@@ -209,5 +209,5 @@ msgid ""
 "file \"%s\" is not writable.\n"
 msgstr ""
 "A felvétel előkészítése meghiúsult.\n"
-"Az X kiszolgálón valószínűleg nem elérhető a Damage kiterjesztés, vagy a(z) \"%s\" fájl nem írható.\n"
+"Az X kiszolgálón valószínűleg nem elérhető a Damage kiterjesztés, vagy a(z) „%s” fájl nem írható.\n"
 
