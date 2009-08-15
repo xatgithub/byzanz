@@ -44,6 +44,12 @@ log2n (guint number)
   return ret;
 }
 
+#define RED(x) ((guint8) ((x) >> 16))
+#define GREEN(x) ((guint8) ((x) >> 8))
+#define BLUE(x) ((guint8) (x))
+
+#define COLOR(r, g, b) (((r) << 16) | ((g) << 8) | (b))
+
 /*** WRITE ROUTINES ***/
 
 static void
@@ -125,20 +131,15 @@ static void
 gifenc_write_color_table (Gifenc *enc, GifencPalette *palette)
 {
   guint i, table_size;
-  guint8 buf[3];
 
   if (!palette)
     return;
   i = gifenc_palette_get_num_colors (palette);
   table_size = 1 << log2n (i - 1);
   for (i = 0; i < palette->num_colors; i++) {
-    GIFENC_WRITE_TRIPLET (buf, palette->colors[i]);
-    if (palette->byte_order == G_LITTLE_ENDIAN) {
-      guint8 tmp = buf[2];
-      buf[2] = buf[0];
-      buf[0] = tmp;
-    }
-    gifenc_write (enc, buf, 3);
+    gifenc_write_byte (enc, RED (palette->colors[i]));
+    gifenc_write_byte (enc, GREEN (palette->colors[i]));
+    gifenc_write_byte (enc, BLUE (palette->colors[i]));
   }
   if (palette->alpha) {
     gifenc_write (enc, (guint8 *) "\272\219\001", 3);
@@ -438,30 +439,6 @@ gifenc_set_looping (Gifenc *enc)
   gifenc_write_loop (enc);
 }
 
-/*** test code ***/
-
-//#include "testimage.h"
-
-guint8 *
-gifenc_dither_pixbuf (GdkPixbuf *pixbuf, const GifencPalette *palette)
-{
-  guint8 *ret;
-  guint width, height;
-  
-  g_return_val_if_fail (!gdk_pixbuf_get_has_alpha (pixbuf), NULL);
-  g_return_val_if_fail (palette->byte_order == G_BIG_ENDIAN, NULL);
-
-  width = gdk_pixbuf_get_width (pixbuf);
-  height = gdk_pixbuf_get_height (pixbuf);
-  ret = g_new (guint8, width * height);
-
-  gifenc_dither_rgb (ret, width, palette, gdk_pixbuf_get_pixels (pixbuf),
-      width, height,
-      gdk_pixbuf_get_has_alpha (pixbuf) ? 4 : 3,
-      gdk_pixbuf_get_rowstride (pixbuf));
-  return ret;
-}
-
 /* Floyd-Steinman factors */
 #define FACTOR0 (23)
 #define FACTOR1 (79)
@@ -471,7 +448,7 @@ gifenc_dither_pixbuf (GdkPixbuf *pixbuf, const GifencPalette *palette)
 void
 gifenc_dither_rgb (guint8* target, guint target_rowstride, 
     const GifencPalette *palette, const guint8 *data, guint width, guint height, 
-    guint bpp, guint rowstride)
+    guint rowstride)
 {
   guint x, y, i, c;
   gint *this_error, *next_error;
@@ -485,7 +462,7 @@ gifenc_dither_rgb (guint8* target, guint target_rowstride,
   next_error = g_new (gint, (width + 2) * 3);
   i = 0;
   for (y = 0; y < height; y++) {
-    const guchar *row = data;
+    const guint32 *row = (const guint32 *) data;
     gint *cur_error = this_error + 3;
     gint *cur_next_error = next_error;
     err[0] = err[1] = err[2] = 0;
@@ -495,22 +472,22 @@ gifenc_dither_rgb (guint8* target, guint target_rowstride,
       //    (err[0] + cur_error[0]) >> 8, (err[1] + cur_error[1]) >> 8,
       //    (err[2] + cur_error[2]) >> 8);
       for (c = 0; c < 3; c++) {
-	err[c] = ((err[c] + cur_error[c]) >> 8) + (gint) row[c];
+	err[c] = ((err[c] + cur_error[c]) >> 8) + (guint8) (*row >> 8 * c);
 	this[c] = err[c] = CLAMP (err[c], 0, 0xFF);
       }
+      pixel = COLOR (err[2], err[1], err[0]);
       //g_print ("  %2X%2X%2X =>", this[0], this[1], this[2]);
-      GIFENC_READ_TRIPLET (pixel, this);
       target[x] = palette->lookup (palette->data, pixel, &pixel);
-      GIFENC_WRITE_TRIPLET (this, pixel);
       //g_print (" %2X%2X%2X (%u) %p\n", this[0], this[1], this[2], (guint) target[x], target + x);
       for (c = 0; c < 3; c++) {
+	this[c] = *row >> 8 * c;
 	err[c] -= this[c];
 	cur_next_error[c] += FACTOR0 * err[c];
 	cur_next_error[c + 3] += FACTOR1 * err[c];
 	cur_next_error[c + 6] = FACTOR2 * err[c];
 	err[c] *= FACTOR_FRONT;
       }
-      row += bpp;
+      row++;
       cur_error += 3;
       cur_next_error += 3;
     }
@@ -528,7 +505,7 @@ gboolean
 gifenc_dither_rgb_with_full_image (guint8 *target, guint target_rowstride, 
     guint8 *full, guint full_rowstride,
     const GifencPalette *palette, const guint8 *data, guint width, guint height, 
-    guint bpp, guint rowstride, GdkRectangle *rect_out)
+    guint rowstride, GdkRectangle *rect_out)
 {
   int x, y, i, c;
   gint *this_error, *next_error;
@@ -545,7 +522,7 @@ gifenc_dither_rgb_with_full_image (guint8 *target, guint target_rowstride,
   next_error = g_new (gint, (width + 2) * 3);
   i = 0;
   for (y = 0; y < (int) height; y++) {
-    const guchar *row = data;
+    const guint32 *row = (const guint32 *) data;
     gint *cur_error = this_error + 3;
     gint *cur_next_error = next_error;
     err[0] = err[1] = err[2] = 0;
@@ -555,11 +532,11 @@ gifenc_dither_rgb_with_full_image (guint8 *target, guint target_rowstride,
       //    (err[0] + cur_error[0]) >> 8, (err[1] + cur_error[1]) >> 8,
       //    (err[2] + cur_error[2]) >> 8);
       for (c = 0; c < 3; c++) {
-	err[c] = ((err[c] + cur_error[c]) >> 8) + (gint) row[c];
+	err[c] = ((err[c] + cur_error[c]) >> 8) + (guint8) (*row >> 8 * c);
 	this[c] = err[c] = CLAMP (err[c], 0, 0xFF);
       }
       //g_print ("  %2X%2X%2X =>", this[0], this[1], this[2]);
-      GIFENC_READ_TRIPLET (pixel, this);
+      pixel = COLOR (this[2], this[1], this[0]);
       target[x] = palette->lookup (palette->data, pixel, &pixel);
       if (target[x] == full[x]) {
 	target[x] = alpha;
@@ -570,16 +547,16 @@ gifenc_dither_rgb_with_full_image (guint8 *target, guint target_rowstride,
 	area.height = MAX (y, area.height);
 	full[x] = target[x];
       }
-      GIFENC_WRITE_TRIPLET (this, pixel);
       //g_print (" %2X%2X%2X (%u) %p\n", this[0], this[1], this[2], (guint) target[x], target + x);
       for (c = 0; c < 3; c++) {
+	this[0] = *row >> 8 * c;
 	err[c] -= this[c];
 	cur_next_error[c] += FACTOR0 * err[c];
 	cur_next_error[c + 3] += FACTOR1 * err[c];
 	cur_next_error[c + 6] = FACTOR2 * err[c];
 	err[c] *= FACTOR_FRONT;
       }
-      row += bpp;
+      row++;
       cur_error += 3;
       cur_next_error += 3;
     }

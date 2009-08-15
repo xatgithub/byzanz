@@ -72,15 +72,12 @@ void		gifenc_add_image	(Gifenc *	enc,
 					 guint		rowstride);
 gboolean	gifenc_close		(Gifenc *	enc);
 
-guint8 *	gifenc_dither_pixbuf	(GdkPixbuf *	pixbuf,
-					 const GifencPalette *	palette);
 void		gifenc_dither_rgb	(guint8 *	target,
 					 guint		target_rowstride,
 					 const GifencPalette *	palette,
 					 const guint8 *	data,
 					 guint		width,
 					 guint		height,
-					 guint		bpp,
 					 guint		rowstride);
 gboolean	gifenc_dither_rgb_with_full_image
 					(guint8 *	target,
@@ -91,21 +88,17 @@ gboolean	gifenc_dither_rgb_with_full_image
 					 const guint8 *	data,
 					 guint		width,
 					 guint		height,
-					 guint		bpp,
 					 guint		rowstride,
 					 GdkRectangle *	rect_out);
 
 /* from quantize.c */
 void		gifenc_palette_free	(GifencPalette *palette);
-GifencPalette *	gifenc_palette_get_simple (guint	byte_order,
-					 gboolean	alpha);
+GifencPalette *	gifenc_palette_get_simple (gboolean	alpha);
 GifencPalette *	gifenc_quantize_image	(const guint8 *	data,
 					 guint		width, 
 					 guint		height,
-					 guint		bpp, 
 					 guint		rowstride, 
 					 gboolean	alpha,
-					 gint		byte_order,
 					 guint		max_colors);
 guint		gifenc_palette_get_alpha_index
 					(const GifencPalette *palette);

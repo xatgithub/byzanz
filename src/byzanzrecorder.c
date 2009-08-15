@@ -257,7 +257,7 @@ byzanz_recorder_dither_region (ByzanzRecorder *rec, GdkRegion *region,
     if (gifenc_dither_rgb_with_full_image (
 	rec->data + rec->area.width * rects[i].y + rects[i].x, rec->area.width, 
 	rec->data_full + rec->area.width * rects[i].y + rects[i].x, rec->area.width, 
-	rec->gifenc->palette, mem, rects[i].width, rects[i].height, 4, bpl, &area)) {
+	rec->gifenc->palette, mem, rects[i].width, rects[i].height, bpl, &area)) {
       area.x += rects[i].x;
       area.y += rects[i].y;
       gdk_region_union_with_rect (rev, &area);
@@ -459,8 +459,7 @@ byzanz_recorder_quantize (ByzanzRecorder *rec, cairo_surface_t *image)
   GifencPalette *palette;
 
   palette = gifenc_quantize_image (cairo_image_surface_get_data (image),
-      rec->area.width, rec->area.height, 4, cairo_image_surface_get_stride (image), TRUE,
-      G_BYTE_ORDER, 255);
+      rec->area.width, rec->area.height, cairo_image_surface_get_stride (image), TRUE, 255);
   
   gifenc_set_palette (rec->gifenc, palette);
   if (rec->loop)

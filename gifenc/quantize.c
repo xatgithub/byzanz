@@ -79,13 +79,11 @@ gifenc_palette_simple_lookup (gpointer data, guint32 color, guint32 *resulting_c
 }
 
 GifencPalette *
-gifenc_palette_get_simple (guint byte_order, gboolean alpha)
+gifenc_palette_get_simple (gboolean alpha)
 {
   GifencPalette *palette;
   guint r, g, b, i = 0;
 
-  g_return_val_if_fail (byte_order == G_LITTLE_ENDIAN || byte_order == G_BIG_ENDIAN, NULL);
-  
   palette = g_new (GifencPalette, 1);
 
   palette->alpha = alpha;
@@ -98,7 +96,6 @@ gifenc_palette_get_simple (guint byte_order, gboolean alpha)
       }
     }
   }
-  palette->byte_order = byte_order;
   palette->data = GINT_TO_POINTER (alpha ? 1 : 0);
   palette->lookup = gifenc_palette_simple_lookup;
   palette->free = NULL;
@@ -211,6 +208,8 @@ gifenc_octree_add_color (OctreeInfo *info, guint32 color, guint count)
 {
   guint i;
   GifencOctree *tree = info->tree;
+
+  color &= 0xFFFFFF;
 
   for (;;) {
     tree->count += count;
@@ -351,14 +350,13 @@ gifenc_octree_lookup (gpointer data, guint32 color, guint32 *looked_up_color)
 }
 
 GifencPalette *
-gifenc_quantize_image (const guint8 *data, guint width, guint height, guint bpp, 
-    guint rowstride, gboolean alpha, gint byte_order, guint max_colors)
+gifenc_quantize_image (const guint8 *data, guint width, guint height,
+    guint rowstride, gboolean alpha, guint max_colors)
 {
   guint x, y;
-  const guint8 *row;
+  const guint32 *row;
   OctreeInfo info = { NULL, NULL, 0 };
   GifencPalette *palette;
-  guint32 color;
   
   g_return_val_if_fail (width * height <= (G_MAXUINT >> 8), NULL);
 
@@ -380,11 +378,9 @@ gifenc_quantize_image (const guint8 *data, guint width, guint height, guint bpp,
   }
   
   for (y = 0; y < height; y++) {
-    row = data;
+    row = (const guint32 *) data;
     for (x = 0; x < width; x++) {
-      GIFENC_READ_TRIPLET (color, row);
-      gifenc_octree_add_color (&info, color, 1);
-      row += bpp;
+      gifenc_octree_add_color (&info, row[x] & 0xFFFFFF, 1);
     }
     //if (info.num_leaves > MAX_LEAVES)
     //  gifenc_octree_reduce_colors (&info, STOP_LEAVES);
@@ -401,7 +397,6 @@ gifenc_quantize_image (const guint8 *data, guint width, guint height, guint bpp,
   palette->alpha = alpha;
   palette->colors = g_new (guint, info.num_leaves);
   palette->num_colors = info.num_leaves;
-  palette->byte_order = byte_order;
   palette->data = info.tree;
   palette->lookup = gifenc_octree_lookup;
   palette->free = gifenc_octree_free;
@@ -411,40 +406,4 @@ gifenc_quantize_image (const guint8 *data, guint width, guint height, guint bpp,
 
   return (GifencPalette *) palette;
 }
-
-#ifdef TEST_QUANTIZE
-
-int
-main (int argc, char **argv)
-{
-  GError *error = NULL;
-  GdkPixbuf *pixbuf;
-  guint8 *image;
-  GifencPalette *palette;
-  Gifenc *enc;
-  
-  gtk_init (&argc, &argv);
-
-  pixbuf = gdk_pixbuf_new_from_file (argc > 1 ? argv[1] : "/root/rachael.jpg", &error);
-  if (error)
-    g_printerr ("error: %s\n", error->message);
-  palette = gifenc_quantize_image (gdk_pixbuf_get_pixels (pixbuf), 
-      gdk_pixbuf_get_width (pixbuf), gdk_pixbuf_get_height (pixbuf), 
-      gdk_pixbuf_get_has_alpha (pixbuf) ? 4 : 3,
-      gdk_pixbuf_get_rowstride (pixbuf), gdk_pixbuf_get_has_alpha (pixbuf), 
-      G_BIG_ENDIAN, 255);
-  
-  image = gifenc_dither_pixbuf (pixbuf, palette);
-  enc = gifenc_open (gdk_pixbuf_get_width (pixbuf), gdk_pixbuf_get_height (pixbuf), "test.gif");
-  gifenc_set_palette (enc, palette);
-  gifenc_add_image (enc, 0, 0, gdk_pixbuf_get_width (pixbuf), 
-      gdk_pixbuf_get_height (pixbuf), 0, image, gdk_pixbuf_get_width (pixbuf));
-  g_free (image);
-  g_object_unref (pixbuf);
-  gifenc_close (enc);
-
-  return 0;
-}
-
-#endif
 
