@@ -192,7 +192,7 @@ byzanz_select_area (GdkRectangle *rect)
   data->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   data->loop = g_main_loop_new (NULL, FALSE);
   data->x0 = data->y0 = -1;
-  if (rgba) {
+  if (rgba && gdk_screen_is_composited (gdk_screen_get_default ())) {
     gtk_widget_set_colormap (data->window, rgba);
   } else {
     GdkWindow *root = gdk_get_default_root_window ();

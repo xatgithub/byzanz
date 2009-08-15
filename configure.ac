@@ -101,7 +101,7 @@ AC_DEFINE_DIR(DATADIR, "${datadir}", [datadir])
 dnl Check for essential libraries first:
 dnl ====================================
 
-GTK_REQ="2.6.0"
+GTK_REQ="2.10.0"
 GTHREAD_REQ="2.6.0"
 APPLET_REQ="2.10.0"
 XDAMAGE_REQ="1.0"
