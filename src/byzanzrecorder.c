@@ -1,5 +1,5 @@
 /* desktop session recorder
- * Copyright (C) 2005 Benjamin Otte <otte@gnome.org
+ * Copyright (C) 2005,2009 Benjamin Otte <otte@gnome.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -27,6 +27,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <cairo.h>
 #include <glib/gstdio.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkx.h>
@@ -59,19 +60,18 @@ typedef enum {
   RECORDER_JOB_USE_FILE_CACHE,
 } RecorderJobType;
 
-typedef gboolean (* DiterRegionGetDataFunc) (ByzanzRecorder *rec, 
+typedef gboolean (* DitherRegionGetDataFunc) (ByzanzRecorder *rec, 
     gpointer data, GdkRectangle *rect,
-    gpointer *data_out, guint *bpp_out, guint *bpl_out);
+    gpointer *data_out, guint *bpl_out);
 
 typedef struct {
   RecorderJobType	type;		/* type of job */
   GTimeVal		tv;		/* time this job was enqueued */
-  GdkImage *		image;		/* image to process */
+  cairo_surface_t *	image;		/* image to process */
   GdkRegion *		region;		/* relevant region of image */
 } RecorderJob;
 
 typedef struct {
-  int			bpp;		/* bpp for image data */
   GdkRegion *		region;		/* the region this image represents */
   GTimeVal		tv;		/* timestamp of image */
   int			fd;		/* file the image is stored in */
@@ -133,10 +133,20 @@ static int fixes_error_base = 0;
 
 /*** JOB FUNCTIONS ***/
 
-static guint
-compute_image_size (GdkImage *image)
+static void
+byzanz_cairo_set_source_window (cairo_t *cr, GdkWindow *window, double x, double y)
 {
-  return image->bpl * image->height;
+  cairo_t *tmp;
+
+  tmp = gdk_cairo_create (window);
+  cairo_set_source_surface (cr, cairo_get_target (tmp), x, y);
+  cairo_destroy (tmp);
+}
+
+static guint
+compute_image_size (cairo_surface_t *image)
+{
+  return cairo_image_surface_get_stride (image) * cairo_image_surface_get_height (image);
 }
 
 static void
@@ -144,7 +154,7 @@ recorder_job_free (ByzanzRecorder *rec, RecorderJob *job)
 {
   if (job->image) {
     rec->cache_size -= compute_image_size (job->image);
-    g_object_unref (job->image);
+    cairo_surface_destroy (job->image);
   }
   if (job->region)
     gdk_region_destroy (job->region);
@@ -177,12 +187,10 @@ recorder_job_new (ByzanzRecorder *rec, RecorderJobType type,
   job->type = type;
   job->region = region;
   if (region != NULL) {
-    GdkRectangle *rects;
-    gint nrects, i;
+    cairo_t *cr;
     if (!job->image) {
       if (rec->cache_size <= rec->max_cache_size) {
-	job->image = gdk_image_new (GDK_IMAGE_FASTEST,
-	    gdk_drawable_get_visual (rec->window),
+	job->image = cairo_image_surface_create (CAIRO_FORMAT_RGB24,
 	    rec->area.width, rec->area.height);
 	rec->cache_size += compute_image_size (job->image);
 	if (!rec->use_file_cache &&
@@ -209,20 +217,16 @@ recorder_job_new (ByzanzRecorder *rec, RecorderJobType type,
 	return NULL;
       }
     } 
-    gdk_region_get_rectangles (region, &rects, &nrects);
     if (type == RECORDER_JOB_ENCODE) {
       Display *dpy = gdk_x11_drawable_get_xdisplay (rec->window);
       XDamageSubtract (dpy, rec->damage, rec->damaged, rec->damaged);
       XFixesSubtractRegion (dpy, rec->damaged, rec->damaged, rec->damaged);
     }
-    for (i = 0; i < nrects; i++) {
-      //g_print ("%d %d %d %d\n", rects[i].x, rects[i].y, rects[i].width, rects[i].height);
-      gdk_drawable_copy_to_image (rec->window, job->image, 
-	  rects[i].x, rects[i].y, 
-	  rects[i].x - rec->area.x, rects[i].y - rec->area.y, 
-	  rects[i].width, rects[i].height);
-    }
-    //g_print ("done\n");
+    cr = cairo_create (job->image);
+    byzanz_cairo_set_source_window (cr, rec->window, rec->area.x, rec->area.y);
+    gdk_cairo_region (cr, region);
+    cairo_paint (cr);
+    cairo_destroy (cr);
     gdk_region_offset (region, -rec->area.x, -rec->area.y);
   }
   return job;
@@ -232,13 +236,13 @@ recorder_job_new (ByzanzRecorder *rec, RecorderJobType type,
 
 static gboolean
 byzanz_recorder_dither_region (ByzanzRecorder *rec, GdkRegion *region,
-    DiterRegionGetDataFunc func, gpointer data)
+    DitherRegionGetDataFunc func, gpointer data)
 {
   GdkRectangle *rects;
   GdkRegion *rev;
   int i, line, nrects;
   guint8 transparent;
-  guint bpp, bpl;
+  guint bpl;
   gpointer mem;
   GdkRectangle area;
   
@@ -248,12 +252,12 @@ byzanz_recorder_dither_region (ByzanzRecorder *rec, GdkRegion *region,
   gdk_region_get_rectangles (region, &rects, &nrects);
   rev = gdk_region_new ();
   for (i = 0; i < nrects; i++) {
-    if (!(*func) (rec, data, rects + i, &mem, &bpp, &bpl))
+    if (!(*func) (rec, data, rects + i, &mem, &bpl))
       return FALSE;
     if (gifenc_dither_rgb_with_full_image (
 	rec->data + rec->area.width * rects[i].y + rects[i].x, rec->area.width, 
 	rec->data_full + rec->area.width * rects[i].y + rects[i].x, rec->area.width, 
-	rec->gifenc->palette, mem, rects[i].width, rects[i].height, bpp, bpl, &area)) {
+	rec->gifenc->palette, mem, rects[i].width, rects[i].height, 4, bpl, &area)) {
       area.x += rects[i].x;
       area.y += rects[i].y;
       gdk_region_union_with_rect (rev, &area);
@@ -322,7 +326,7 @@ stored_image_remove_file (ByzanzRecorder *rec, int fd, char *filename)
 
 /* returns FALSE if no more images can be cached */
 static gboolean
-stored_image_store (ByzanzRecorder *rec, GdkImage *image, GdkRegion *region, const GTimeVal *tv)
+stored_image_store (ByzanzRecorder *rec, cairo_surface_t *image, GdkRegion *region, const GTimeVal *tv)
 {
   off_t offset;
   StoredImage *store;
@@ -330,6 +334,8 @@ stored_image_store (ByzanzRecorder *rec, GdkImage *image, GdkRegion *region, con
   gint i, line, nrects;
   gboolean ret = FALSE;
   guint cache, val;
+  guint stride;
+  guchar *data;
   
   val = g_atomic_int_get (&rec->max_file_cache);
   cache = g_atomic_int_get (&rec->cur_file_cache);
@@ -349,25 +355,25 @@ stored_image_store (ByzanzRecorder *rec, GdkImage *image, GdkRegion *region, con
     offset = lseek (rec->cur_cache_fd, 0, SEEK_END);
   }
   store = g_new (StoredImage, 1);
-  store->bpp = image->bpp;
   store->region = region;
   store->tv = *tv;
   store->fd = rec->cur_cache_fd;
   store->filename = NULL;
   store->offset = offset;
   gdk_region_get_rectangles (store->region, &rects, &nrects);
+  stride = cairo_image_surface_get_stride (image);
+  data = cairo_image_surface_get_data (image);
   for (i = 0; i < nrects; i++) {
     guchar *mem;
-    mem = (guchar *) image->mem + rects[i].x * image->bpp + image->bpl * rects[i].y
-	+ (image->bpp == 4 && image->byte_order == GDK_MSB_FIRST ? 1 : 0);
+    mem = data + rects[i].x * 4 + rects[i].y * stride;
     for (line = 0; line < rects[i].height; line++) {
-      int amount = rects[i].width * image->bpp;
+      int amount = rects[i].width * 4;
       /* This can be made smarter, like retrying and catching EINTR and stuff */
       if (write (store->fd, mem, amount) != amount) {
 	g_print ("couldn't write %d bytes\n", amount);	
 	goto out_err;
       }
-      mem += image->bpl;
+      mem += stride;
     }
   }
 
@@ -397,10 +403,10 @@ out_err:
 
 static gboolean
 stored_image_dither_get_data (ByzanzRecorder *rec, gpointer data, GdkRectangle *rect,
-    gpointer *data_out, guint *bpp_out, guint *bpl_out)
+    gpointer *data_out, guint *bpl_out)
 {
   StoredImage *store = data;
-  guint required_size = rect->width * rect->height * store->bpp;
+  guint required_size = rect->width * rect->height * 4;
   guint8 *ptr;
 
   if (required_size > rec->file_cache_data_size) {
@@ -416,8 +422,7 @@ stored_image_dither_get_data (ByzanzRecorder *rec, gpointer data, GdkRectangle *
     ptr += ret;
     required_size -= ret;
   }
-  *bpp_out = store->bpp;
-  *bpl_out = store->bpp * rect->width;
+  *bpl_out = 4 * rect->width;
   *data_out = rec->file_cache_data;
   return TRUE;
 }
@@ -449,15 +454,13 @@ stored_image_process (ByzanzRecorder *rec)
 }
 
 static void
-byzanz_recorder_quantize (ByzanzRecorder *rec, GdkImage *image)
+byzanz_recorder_quantize (ByzanzRecorder *rec, cairo_surface_t *image)
 {
   GifencPalette *palette;
 
-  palette = gifenc_quantize_image (
-      (guchar *) image->mem + (image->bpp == 4 && image->byte_order == GDK_MSB_FIRST ? 1 : 0),
-      rec->area.width, rec->area.height, image->bpp, image->bpl, TRUE,
-      (image->byte_order == GDK_MSB_FIRST) ? G_BIG_ENDIAN : G_LITTLE_ENDIAN, 
-      255);
+  palette = gifenc_quantize_image (cairo_image_surface_get_data (image),
+      rec->area.width, rec->area.height, 4, cairo_image_surface_get_stride (image), TRUE,
+      G_BYTE_ORDER, 255);
   
   gifenc_set_palette (rec->gifenc, palette);
   if (rec->loop)
@@ -466,22 +469,21 @@ byzanz_recorder_quantize (ByzanzRecorder *rec, GdkImage *image)
 
 static gboolean 
 byzanz_recorder_encode_get_data (ByzanzRecorder *rec, gpointer data, GdkRectangle *rect,
-    gpointer *data_out, guint *bpp_out, guint *bpl_out)
+    gpointer *data_out, guint *bpl_out)
 {
-  GdkImage *image = data;
+  cairo_surface_t *image = data;
 
-  *data_out = (guchar *) image->mem + rect->y * image->bpl + rect->x * image->bpp + 
-	    (image->bpp == 4 && image->byte_order == GDK_MSB_FIRST ? 1 : 0);
-  *bpp_out = image->bpp;
-  *bpl_out = image->bpl;
+  *data_out = cairo_image_surface_get_data (image)
+      + rect->y * cairo_image_surface_get_stride (image)
+      + rect->x * 4;
+  *bpl_out = cairo_image_surface_get_stride (image);
   return TRUE;
 }
 
 static void
-byzanz_recorder_encode (ByzanzRecorder *rec, GdkImage *image, GdkRegion *region)
+byzanz_recorder_encode (ByzanzRecorder *rec, cairo_surface_t *image, GdkRegion *region)
 {
   g_assert (!gdk_region_empty (region));
-  g_return_if_fail (image->bpp == 3 || image->bpp == 4);
   
   byzanz_recorder_dither_region (rec, region, byzanz_recorder_encode_get_data,
       image);
@@ -586,60 +588,21 @@ loop:
 /*** MAIN FUNCTIONS ***/
 
 static void
-render_cursor_to_image (GdkImage *image, XFixesCursorImage *cursor, gint x, gint y)
+render_cursor_to_image (cairo_surface_t *image, XFixesCursorImage *cursor, gint x, gint y)
 {
-  GdkRectangle rect;
-  gint i, j, cursor_x, cursor_y, cursor_rowstride;
-  guint8 *cursor_data, *cursor_row, *image_data, *image_row;
-#if G_BYTE_ORDER == G_BIG_ENDIAN
-#  define alpha -1
-#elif G_BYTE_ORDER == G_LITTLE_ENDIAN
-#  define alpha 3
-#else 
-#  error "Unknown glib byte order."
-#endif
+  cairo_surface_t *cursor_surface;
+  cairo_t *cr;
 
-  rect.x = x - cursor->xhot;
-  rect.width = MIN (cursor->width + MIN (0, rect.x), image->width - rect.x);
-  cursor_x = MAX (0, -rect.x);
-  rect.x = MAX (rect.x, 0);
+  cursor_surface = cairo_image_surface_create_for_data ((guchar *) cursor->pixels,
+      CAIRO_FORMAT_ARGB32, cursor->width, cursor->height, cursor->width * 4);
+  cr = cairo_create (image);
+  
+  cairo_translate (cr, x, y);
+  cairo_set_source_surface (cr, cursor_surface, -(double) cursor->xhot, -(double) cursor->yhot);
+  cairo_paint (cr);
 
-  rect.y = y - cursor->yhot;
-  rect.height = MIN (cursor->height + MIN (0, rect.y), image->height - rect.y);
-  cursor_y = MAX (0, -rect.y);
-  rect.y = MAX (rect.y, 0);
-
-  cursor_rowstride = cursor->width * 4;
-  cursor_data = ((guint8 *) cursor->pixels) + 4 * cursor_x +
-      cursor_rowstride * cursor_y
-#if G_BYTE_ORDER == G_BIG_ENDIAN
-      + 1
-#endif
-    ;
-  image_data = (guchar *) image->mem + rect.x * image->bpp + image->bpl * rect.y
-	+ (image->bpp == 4 && image->byte_order == GDK_MSB_FIRST ? 1 : 0);
-  for (i = 0; i < rect.height; i++) {
-    cursor_row = cursor_data;
-    image_row = image_data;
-    for (j = 0; j < rect.width; j++) {
-      guint8 a = 255 - cursor_row[alpha];
-      if ((image->byte_order == GDK_MSB_FIRST && G_BYTE_ORDER == G_BIG_ENDIAN) ||
-	  (image->byte_order == GDK_LSB_FIRST && G_BYTE_ORDER == G_LITTLE_ENDIAN)) {
-	image_row[0] = image_row[0] * a / 255 + cursor_row[0];
-	image_row[1] = image_row[1] * a / 255 + cursor_row[1];
-	image_row[2] = image_row[2] * a / 255 + cursor_row[2];
-      } else {
-	image_row[0] = image_row[0] * a / 255 + cursor_row[2];
-	image_row[1] = image_row[1] * a / 255 + cursor_row[1];
-	image_row[2] = image_row[2] * a / 255 + cursor_row[0];
-      }
-      cursor_row += 4;
-      image_row += image->bpp;
-    }
-    cursor_data += cursor_rowstride;
-    image_data += image->bpl;
-  }
-#undef alpha_index
+  cairo_destroy (cr);
+  cairo_surface_destroy (cursor_surface);
 }
     
 static guint
