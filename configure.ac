@@ -40,16 +40,10 @@ dnl For interactive UNIX (a Sun thing)
 AC_ISC_POSIX
 
 dnl decide on error flags
-dnl if we support them, we set them unconditionally
-AS_COMPILER_FLAG(-Wall, ERROR_CFLAGS="-Wall", ERROR_CFLAGS="")
-dnl I want this but stupid headers don't let me
-dnl AS_COMPILER_FLAG(-Wshadow, ERROR_CFLAGS="$ERROR_CFLAGS -Wshadow")
-AS_COMPILER_FLAG(-Wfloat-equal, ERROR_CFLAGS="$ERROR_CFLAGS -Wfloat-equal")
-AS_COMPILER_FLAG(-Wextra -Wno-missing-field-initializers -Wno-unused-parameter, ERROR_CFLAGS="$ERROR_CFLAGS -Wextra -Wno-missing-field-initializers -Wno-unused-parameter")
-dnl if we're in nano >= 1, add -Werror if supported
+AS_COMPILER_FLAGS(ERROR_CFLAGS, "-Wall -Wextra -Wno-missing-field-initializers -Wno-unused-parameter -Wold-style-definition -Wdeclaration-after-statement -Wmissing-declarations -Wmissing-prototypes -Wredundant-decls -Wmissing-noreturn -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings -Winline -Wformat-nonliteral -Wformat-security -Wswitch-enum -Wswitch-default -Winit-self -Wmissing-include-dirs -Wundef -Waggregate-return -Wmissing-format-attribute -Wnested-externs -Wunsafe-loop-optimizations -Wpacked -Winvalid-pch -Wsync-nand")
 if test "x$BYZANZ_CVS" = "xyes"
 then
-  AS_COMPILER_FLAG(-Werror, ERROR_CFLAGS="$ERROR_CFLAGS -Werror")
+  AS_COMPILER_FLAGS(ERROR_CFLAGS, "-Werror")
 fi
 
 AC_HEADER_STDC([])
