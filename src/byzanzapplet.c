@@ -74,13 +74,15 @@ byzanz_applet_show_error (GtkWindow *parent, const char *error, const char *deta
   va_start (args, details);
   msg = g_strdup_vprintf (details, args);
   va_end (args);
-  dialog = gtk_message_dialog_new (parent, GTK_DIALOG_MODAL, GTK_MESSAGE_ERROR,
+  dialog = gtk_message_dialog_new (parent, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR,
       GTK_BUTTONS_CLOSE, "%s", error ? error : msg);
+  if (parent == NULL)
+    gtk_window_set_icon_name (GTK_WINDOW (dialog), "byzanz-record-desktop");
   if (error)
     gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (dialog), "%s", msg);
-  gtk_dialog_run (GTK_DIALOG (dialog));
-  gtk_widget_destroy (dialog);
   g_free (msg);
+  g_signal_connect (dialog, "response", G_CALLBACK (gtk_widget_destroy), NULL);
+  gtk_widget_show_all (dialog);
 }
 
 static void
@@ -258,7 +260,7 @@ byzanz_applet_start_recording (AppletPrivate *priv)
     byzanz_applet_show_error (NULL, _("Cannot start recording."),
 	_("Byzanz requires a 24bpp or 32bpp depth for recording. "
 	  "The current resolution is set to %dbpp."), gdk_drawable_get_depth (window));
-    return;
+    goto out;
   }
   
   priv->tmp_file = (char *) "SELECTING"; /* so the rest of the world thinks we're recording */
