@@ -21,10 +21,11 @@
 #  include "config.h"
 #endif
 
+#include <unistd.h>
+
 #include <panel-applet.h>
+#include <gio/gio.h>
 #include <glib/gstdio.h>
-#include <libgnomevfs/gnome-vfs.h>
-#include <libgnomeui/libgnomeui.h>
 #include <panel-applet-gconf.h>
 #include "byzanzrecorder.h"
 #include "byzanzselect.h"
@@ -58,9 +59,9 @@ typedef struct {
 typedef struct {
   AppletPrivate *	priv;
   ByzanzRecorder *	rec;
-  GnomeVFSAsyncHandle *	handle;
-  char *		tmp_file;
-  GnomeVFSURI *		target;
+  GFile *		source;
+  GFile *		destination;
+  GCancellable *	cancellable;
 } PendingRecording;
 
 static void
@@ -91,76 +92,48 @@ pending_recording_destroy (PendingRecording *pending)
 {
   g_assert (pending->rec == NULL);
 
-  if (pending->tmp_file) {
-    g_unlink (pending->tmp_file);
-    g_free (pending->tmp_file);
+  if (pending->source) {
+    g_file_delete (pending->source, NULL, NULL);
+    g_object_unref (pending->source);
   }
-  if (pending->target)
-    gnome_vfs_uri_unref (pending->target);
+  if (pending->destination)
+    g_object_unref (pending->destination);
   g_free (pending);
-  gtk_main_quit ();
 }
 
-static int
-transfer_progress_cb (GnomeVFSAsyncHandle *handle, GnomeVFSXferProgressInfo *info, gpointer data)
+static void
+done_saving_cb (GObject *file, GAsyncResult *res, gpointer data)
 {
   PendingRecording *pending = data;
-  char *target_uri;
+  GError *error = NULL;
 
-  switch (info->status) {
-    case GNOME_VFS_XFER_PROGRESS_STATUS_VFSERROR:
-      target_uri = gnome_vfs_uri_to_string (pending->target, GNOME_VFS_URI_HIDE_PASSWORD | GNOME_VFS_URI_HIDE_FRAGMENT_IDENTIFIER);
-      byzanz_applet_show_error (NULL, _("A file could not be saved."),
-	  _("\"%s\" could not be saved.\nThe error that occured was: %s"), 
-	    target_uri, gnome_vfs_result_to_string (info->vfs_status));
-      g_free (target_uri);
-      return 0;
-    case GNOME_VFS_XFER_PROGRESS_STATUS_OK:
-      if (info->phase == GNOME_VFS_XFER_PHASE_COMPLETED) {
-	g_free (pending->tmp_file);
-	pending->tmp_file = NULL;
-	pending_recording_destroy (pending);
-	gtk_main_quit ();
-	return 0;
-      }
-      return 1;
-    case GNOME_VFS_XFER_PROGRESS_STATUS_OVERWRITE:
-    case GNOME_VFS_XFER_PROGRESS_STATUS_DUPLICATE:
-    default:
-      g_assert_not_reached ();
-      return 0;
+  if (!g_file_copy_finish (G_FILE (file), res, &error)) {
+    byzanz_applet_show_error (NULL, _("Failed to save file."), error->message);
+    g_error_free (error);
   }
+
+  pending_recording_destroy (pending);
 }
 
 static gboolean
 check_done_saving_cb (gpointer data)
 {
   PendingRecording *pending = data;
-  GList *src, *target;
-  GnomeVFSURI *src_uri;
 
   if (byzanz_recorder_is_active (pending->rec))
     return TRUE;
   byzanz_recorder_destroy (pending->rec);
   pending->rec = NULL;
 
-  if (pending->target == NULL) {
+  if (pending->destination == NULL) {
     pending_recording_destroy (pending);
     return FALSE;
   }
-  src_uri = gnome_vfs_uri_new (pending->tmp_file);
-  src = g_list_prepend (NULL, src_uri);
-  target = g_list_prepend (NULL, pending->target);
-  gnome_vfs_async_xfer (&pending->handle, src, target,
-      GNOME_VFS_XFER_REMOVESOURCE | GNOME_VFS_XFER_TARGET_DEFAULT_PERMS,
-      GNOME_VFS_XFER_ERROR_MODE_QUERY,
-      GNOME_VFS_XFER_OVERWRITE_MODE_REPLACE, /* we do overwrite confirmation in the dialog */
-      GNOME_VFS_PRIORITY_DEFAULT,
-      transfer_progress_cb, pending, NULL, NULL);
+  /* There's no g_file_move_async(), so use copy + delete */
+  g_file_copy_async (pending->source, pending->destination,
+      G_FILE_COPY_OVERWRITE, G_PRIORITY_DEFAULT_IDLE,
+      NULL, NULL, NULL, done_saving_cb, pending);
 
-  g_list_free (src);
-  g_list_free (target);
-  gnome_vfs_uri_unref (src_uri);
   return FALSE;
 }
 
@@ -168,9 +141,8 @@ static void
 pending_recording_response (GtkWidget *dialog, int response, PendingRecording *pending)
 {
   if (response == GTK_RESPONSE_ACCEPT) {
-    char *dir = gtk_file_chooser_get_uri (GTK_FILE_CHOOSER (dialog));
-    pending->target = gnome_vfs_uri_new (dir);
-    g_free (dir);
+    char *dir;
+    pending->destination = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
     dir = gtk_file_chooser_get_current_folder_uri (GTK_FILE_CHOOSER (dialog));
     if (dir) {
       panel_applet_gconf_set_string (pending->priv->applet, "save_directory", dir, NULL);
@@ -182,7 +154,7 @@ pending_recording_response (GtkWidget *dialog, int response, PendingRecording *p
 }
 
 static void
-pending_recording_launch (AppletPrivate *priv, ByzanzRecorder *rec, char *tmp_file)
+pending_recording_launch (AppletPrivate *priv, ByzanzRecorder *rec, const char *tmp_file)
 {
   PendingRecording *pending;
   GtkWidget *dialog;
@@ -191,7 +163,7 @@ pending_recording_launch (AppletPrivate *priv, ByzanzRecorder *rec, char *tmp_fi
   pending = g_new0 (PendingRecording, 1);
   pending->priv = priv;
   pending->rec = rec;
-  pending->tmp_file = tmp_file;
+  pending->source = g_file_new_for_path (tmp_file);
   
   dialog = gtk_file_chooser_dialog_new (_("Save Recorded File"),
       NULL, GTK_FILE_CHOOSER_ACTION_SAVE,
@@ -313,6 +285,7 @@ byzanz_applet_stop_recording (AppletPrivate *priv)
   priv->rec = NULL;
   byzanz_applet_update (priv);
   pending_recording_launch (priv, rec, tmp_file);
+  g_free (tmp_file);
 }
 
 static void
@@ -406,8 +379,6 @@ byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
   char *method;
   GtkWidget *tmp;
   
-  gnome_vfs_init ();
-  gnome_authentication_manager_init ();
   if (!index_quark)
     index_quark = g_quark_from_static_string ("Byzanz-Index");
 #ifdef GETTEXT_PACKAGE
