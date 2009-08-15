@@ -2,13 +2,13 @@
     <schemalist>    
 
       <schema>
-        <key>/schemas/apps/byzanz-applet/prefs/save_directory</key>
+        <key>/schemas/apps/byzanz-applet/prefs/save_filename</key>
         <owner>byzanz-applet</owner>
         <type>string</type>
         <default></default>
         <locale name="C">
-          <short>Directory to save in</short>
-          <long>This is the directory that Byzanz will default to when saving a file.</long>
+          <short>Save filename</short>
+          <long>URI for the filename Byzanz will suggest when starting a recording.</long>
         </locale>
       </schema>
       

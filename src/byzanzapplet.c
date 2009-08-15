@@ -141,12 +141,11 @@ static void
 pending_recording_response (GtkWidget *dialog, int response, PendingRecording *pending)
 {
   if (response == GTK_RESPONSE_ACCEPT) {
-    char *dir;
     pending->destination = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
-    dir = gtk_file_chooser_get_current_folder_uri (GTK_FILE_CHOOSER (dialog));
-    if (dir) {
-      panel_applet_gconf_set_string (pending->priv->applet, "save_directory", dir, NULL);
-      g_free (dir);
+    if (pending->destination) {
+      char *uri = g_file_get_uri (pending->destination);
+      panel_applet_gconf_set_string (pending->priv->applet, "save_filename", uri, NULL);
+      g_free (uri);
     }
   }
   gtk_widget_destroy (dialog);
@@ -158,7 +157,7 @@ pending_recording_launch (AppletPrivate *priv, ByzanzRecorder *rec, const char *
 {
   PendingRecording *pending;
   GtkWidget *dialog;
-  char *start_dir;
+  char *uri;
   
   pending = g_new0 (PendingRecording, 1);
   pending->priv = priv;
@@ -171,12 +170,18 @@ pending_recording_launch (AppletPrivate *priv, ByzanzRecorder *rec, const char *
       GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
       NULL);
   gtk_file_chooser_set_local_only (GTK_FILE_CHOOSER (dialog), FALSE);
-  start_dir = panel_applet_gconf_get_string (priv->applet, "save_directory", NULL);
-  if (!start_dir || start_dir[0] == '\0' ||
-      !gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (dialog), start_dir)) {
-    gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), g_get_home_dir ());
+  uri = panel_applet_gconf_get_string (priv->applet, "save_filename", NULL);
+  if (!uri || uri[0] == '\0' ||
+      !gtk_file_chooser_set_uri (GTK_FILE_CHOOSER (dialog), uri)) {
+    g_free (uri);
+    /* Try the key used by old versions. Maybe it's still set. */
+    uri = panel_applet_gconf_get_string (priv->applet, "save_directory", NULL);
+    if (!uri || uri[0] == '\0' ||
+	!gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (dialog), uri)) {
+      gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), g_get_home_dir ());
+    }
   }
-  g_free (start_dir);
+  g_free (uri);
   gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (dialog), TRUE);
   gtk_dialog_set_default_response (GTK_DIALOG (dialog), GTK_RESPONSE_ACCEPT);
   g_signal_connect (dialog, "response", G_CALLBACK (pending_recording_response), pending);
