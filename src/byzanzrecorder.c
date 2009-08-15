@@ -223,11 +223,11 @@ recorder_job_new (ByzanzRecorder *rec, RecorderJobType type,
       XFixesSubtractRegion (dpy, rec->damaged, rec->damaged, rec->damaged);
     }
     cr = cairo_create (job->image);
-    byzanz_cairo_set_source_window (cr, rec->window, rec->area.x, rec->area.y);
+    byzanz_cairo_set_source_window (cr, rec->window, -rec->area.x, -rec->area.y);
+    gdk_region_offset (region, -rec->area.x, -rec->area.y);
     gdk_cairo_region (cr, region);
     cairo_paint (cr);
     cairo_destroy (cr);
-    gdk_region_offset (region, -rec->area.x, -rec->area.y);
   }
   return job;
 }
