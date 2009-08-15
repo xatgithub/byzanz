@@ -56,6 +56,7 @@ typedef struct {
 /*** PENDING RECORDING ***/
 
 typedef struct {
+  AppletPrivate *	priv;
   ByzanzRecorder *	rec;
   GnomeVFSAsyncHandle *	handle;
   char *		tmp_file;
@@ -164,13 +165,31 @@ check_done_saving_cb (gpointer data)
 }
 
 static void
+pending_recording_response (GtkWidget *dialog, int response, PendingRecording *pending)
+{
+  if (response == GTK_RESPONSE_ACCEPT) {
+    char *dir = gtk_file_chooser_get_uri (GTK_FILE_CHOOSER (dialog));
+    pending->target = gnome_vfs_uri_new (dir);
+    g_free (dir);
+    dir = gtk_file_chooser_get_current_folder_uri (GTK_FILE_CHOOSER (dialog));
+    if (dir) {
+      panel_applet_gconf_set_string (pending->priv->applet, "save_directory", dir, NULL);
+      g_free (dir);
+    }
+  }
+  gtk_widget_destroy (dialog);
+  gdk_threads_add_timeout_seconds (1, check_done_saving_cb, pending);
+}
+
+static void
 pending_recording_launch (AppletPrivate *priv, ByzanzRecorder *rec, char *tmp_file)
 {
   PendingRecording *pending;
   GtkWidget *dialog;
-  char *start_dir, *end_dir;
+  char *start_dir;
   
   pending = g_new0 (PendingRecording, 1);
+  pending->priv = priv;
   pending->rec = rec;
   pending->tmp_file = tmp_file;
   
@@ -185,23 +204,11 @@ pending_recording_launch (AppletPrivate *priv, ByzanzRecorder *rec, char *tmp_fi
       !gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (dialog), start_dir)) {
     gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), g_get_home_dir ());
   }
+  g_free (start_dir);
   gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (dialog), TRUE);
   gtk_dialog_set_default_response (GTK_DIALOG (dialog), GTK_RESPONSE_ACCEPT);
-  if (GTK_RESPONSE_ACCEPT == gtk_dialog_run (GTK_DIALOG (dialog))) {
-    char *target_uri = gtk_file_chooser_get_uri (GTK_FILE_CHOOSER (dialog));
-    pending->target = gnome_vfs_uri_new (target_uri);
-    end_dir = gtk_file_chooser_get_current_folder_uri (GTK_FILE_CHOOSER (dialog));
-    if (end_dir && 
-	(!start_dir || !g_str_equal (end_dir, start_dir))) {
-      panel_applet_gconf_set_string (priv->applet, "save_directory", end_dir, NULL);
-    }
-    g_free (end_dir);
-  }
-  g_free (start_dir);
-  gtk_widget_destroy (dialog);
-  g_timeout_add (1000, check_done_saving_cb, pending);
-  gtk_main ();
-  return;
+  g_signal_connect (dialog, "response", G_CALLBACK (pending_recording_response), pending);
+  gtk_widget_show_all (dialog);
 }
 
 /*** APPLET ***/
