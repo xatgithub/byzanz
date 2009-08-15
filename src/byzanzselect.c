@@ -1,5 +1,5 @@
 /* desktop session recorder
- * Copyright (C) 2005 Benjamin Otte <otte@gnome.org
+ * Copyright (C) 2005,2009 Benjamin Otte <otte@gnome.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -180,6 +180,13 @@ quit_cb (gpointer datap)
   return FALSE;
 }
 
+static void
+active_cb (GtkWindow *window, GParamSpec *pspec, WindowData *data)
+{
+  if (!gtk_window_is_active (window))
+    byzanz_select_area_stop (data);
+}
+
 static GdkWindow *
 byzanz_select_area (GdkRectangle *rect)
 {
@@ -206,7 +213,8 @@ byzanz_select_area (GdkRectangle *rect)
   g_signal_connect (data->window, "button-press-event", G_CALLBACK (button_pressed_cb), data);
   g_signal_connect (data->window, "button-release-event", G_CALLBACK (button_released_cb), data);
   g_signal_connect (data->window, "motion-notify-event", G_CALLBACK (motion_notify_cb), data);
-  g_signal_connect (data->window, "delete-event", G_CALLBACK (gtk_main_quit), data);
+  g_signal_connect_swapped (data->window, "delete-event", G_CALLBACK (byzanz_select_area_stop), data);
+  g_signal_connect (data->window, "notify::is-active", G_CALLBACK (active_cb), data);
   g_signal_connect_after (data->window, "realize", G_CALLBACK (realize_cb), data);
   gtk_widget_show_all (data->window);
 
