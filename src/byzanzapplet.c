@@ -131,8 +131,8 @@ check_done_saving_cb (gpointer data)
   }
   /* There's no g_file_move_async(), so use copy + delete */
   g_file_copy_async (pending->source, pending->destination,
-      G_FILE_COPY_OVERWRITE, G_PRIORITY_DEFAULT_IDLE,
-      NULL, NULL, NULL, done_saving_cb, pending);
+      G_FILE_COPY_OVERWRITE | G_FILE_COPY_TARGET_DEFAULT_PERMS,
+      G_PRIORITY_DEFAULT_IDLE, NULL, NULL, NULL, done_saving_cb, pending);
 
   return FALSE;
 }
