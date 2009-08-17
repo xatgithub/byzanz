@@ -786,8 +786,6 @@ byzanz_recorder_new (const gchar *filename, GdkWindow *window, GdkRectangle *are
   g_return_val_if_fail (area->y >= 0, NULL);
   g_return_val_if_fail (area->width > 0, NULL);
   g_return_val_if_fail (area->height > 0, NULL);
-  g_return_val_if_fail (gdk_drawable_get_depth (window) == 24 || \
-      gdk_drawable_get_depth (window) == 32, NULL);
   
   fd = g_open (filename, O_WRONLY | O_CREAT | O_TRUNC, 0666);
   if (fd < 0)
@@ -808,8 +806,6 @@ byzanz_recorder_new_fd (gint fd, GdkWindow *window, GdkRectangle *area,
   g_return_val_if_fail (area->y >= 0, NULL);
   g_return_val_if_fail (area->width > 0, NULL);
   g_return_val_if_fail (area->height > 0, NULL);
-  g_return_val_if_fail (gdk_drawable_get_depth (window) == 24 || \
-      gdk_drawable_get_depth (window) == 32, NULL);
   
   dpy = gdk_x11_display_get_xdisplay (gdk_display_get_default ());
   if (dmg_event_base == 0) {

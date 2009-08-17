@@ -102,7 +102,6 @@ main (int argc, char **argv)
 {
   ByzanzRecorder *rec;
   GOptionContext* context;
-  GdkWindow *window;
   GError *error = NULL;
   
   g_set_prgname (argv[0]);
@@ -128,13 +127,6 @@ main (int argc, char **argv)
   if (argc != 2) {
     usage ();
     return 0;
-  }
-  window = gdk_get_default_root_window ();
-  if (gdk_drawable_get_depth (window) != 24 && 
-      gdk_drawable_get_depth (window) != 32) {
-    g_print (_("Byzanz requires a 24bpp or 32bpp depth for recording. "
-	  "The current resolution is set to %dbpp."), gdk_drawable_get_depth (window));
-    return 2;
   }
   rec = byzanz_recorder_new (argv[1], gdk_get_default_root_window (),
       &area, loop, cursor);
