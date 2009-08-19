@@ -28,7 +28,6 @@
 #include <fcntl.h>
 #include <glib/gstdio.h>
 #include "gifenc.h"
-#include "gifenc-readbits.h"
 
 
 /*** UTILITIES ***/

@@ -24,9 +24,6 @@
 #include <gtk/gtk.h>
 #include <string.h>
 #include "gifenc.h"
-#include "gifenc-readbits.h"
-
-void _gifenc_write (Gifenc *enc, guint8 *data, guint len);
 
 /*** GENERAL ***/
 

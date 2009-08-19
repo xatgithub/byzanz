@@ -5,8 +5,7 @@ libgifenc_la_SOURCES = \
 	quantize.c
 
 noinst_HEADERS = \
-	gifenc.h \
-	gifenc-readbits.h
+	gifenc.h
 
 # we could use just glib instead of gtk here
 # if we removed the gdk-pixbuf support routines
