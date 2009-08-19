@@ -57,14 +57,6 @@ typedef struct {
   GdkRegion *		region;		/* relevant region of image */
 } SessionJob;
 
-typedef struct {
-  GdkRegion *		region;		/* the region this image represents */
-  GTimeVal		tv;		/* timestamp of image */
-  int			fd;		/* file the image is stored in */
-  char *		filename;	/* only set if last image in file */
-  off_t			offset;		/* offset at which the data starts */
-} StoredImage;
-
 struct _ByzanzSession {
   /*< private >*/
   /* set by user - accessed ALSO by thread */
