@@ -55,8 +55,6 @@ typedef enum {
 
 typedef enum {
   SESSION_JOB_QUIT,
-  SESSION_JOB_QUIT_NOW,
-  SESSION_JOB_QUANTIZE,
   SESSION_JOB_ENCODE,
   SESSION_JOB_USE_FILE_CACHE,
 } SessionJobType;
@@ -494,6 +492,7 @@ byzanz_session_run_encoder (gpointer data)
   SessionJob *job;
   GTimeVal quit_tv;
   gboolean quit = FALSE;
+  gboolean has_quantized = FALSE;
 #define USING_FILE_CACHE(rec) ((rec)->file_cache_data_size > 0)
 
   rec->cur_cache_fd = -1;
@@ -519,10 +518,11 @@ loop:
       job = g_async_queue_pop (rec->jobs);
     }
     switch (job->type) {
-      case SESSION_JOB_QUANTIZE:
-	byzanz_session_quantize (rec, job->image);
-	break;
       case SESSION_JOB_ENCODE:
+        if (!has_quantized) {
+	  byzanz_session_quantize (rec, job->image);
+          has_quantized = TRUE;
+        }
 	if (USING_FILE_CACHE (rec)) {
 	  while (!stored_image_store (rec, job->image, job->region, &job->tv)) {
 	    if (!stored_image_process (rec))
@@ -540,10 +540,6 @@ loop:
 	  rec->file_cache_data_size = 4 * 64 * 64;
 	  rec->file_cache_data = g_malloc (rec->file_cache_data_size);
 	}
-	break;
-      case SESSION_JOB_QUIT_NOW:
-	/* clean up cache files and exit */
-	g_assert_not_reached ();
 	break;
       case SESSION_JOB_QUIT:
 	quit_tv = job->tv;
@@ -897,19 +893,9 @@ void
 byzanz_session_start (ByzanzSession *rec)
 {
   Display *dpy;
-  SessionJob *job;
-  GTimeVal tv;
 
   g_return_if_fail (BYZANZ_IS_SESSION (rec));
   g_return_if_fail (rec->state == SESSION_STATE_CREATED);
-
-  rec->region = gdk_region_rectangle (&rec->area);
-  g_get_current_time (&tv);
-  job = session_job_new (rec, SESSION_JOB_QUANTIZE, &tv, rec->region);
-  g_async_queue_push (rec->jobs, job);
-  rec->region = NULL;
-
-  g_assert (rec->region == NULL);
 
   dpy = gdk_x11_display_get_xdisplay (gdk_display_get_default ());
   rec->region = gdk_region_rectangle (&rec->area);
