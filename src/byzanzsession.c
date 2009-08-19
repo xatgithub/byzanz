@@ -21,7 +21,7 @@
 #  include "config.h"
 #endif
 
-#include "byzanzrecorder.h"
+#include "byzanzsession.h"
 
 #include <string.h>
 #include <sys/types.h>
@@ -52,7 +52,7 @@ typedef enum {
   RECORDER_STATE_PREPARED,
   RECORDER_STATE_RECORDING,
   RECORDER_STATE_STOPPED
-} RecorderState;
+} SessionState;
 
 typedef enum {
   RECORDER_JOB_QUIT,
@@ -60,18 +60,18 @@ typedef enum {
   RECORDER_JOB_QUANTIZE,
   RECORDER_JOB_ENCODE,
   RECORDER_JOB_USE_FILE_CACHE,
-} RecorderJobType;
+} SessionJobType;
 
-typedef gboolean (* DitherRegionGetDataFunc) (ByzanzRecorder *rec, 
+typedef gboolean (* DitherRegionGetDataFunc) (ByzanzSession *rec, 
     gpointer data, GdkRectangle *rect,
     gpointer *data_out, guint *bpl_out);
 
 typedef struct {
-  RecorderJobType	type;		/* type of job */
+  SessionJobType	type;		/* type of job */
   GTimeVal		tv;		/* time this job was enqueued */
   cairo_surface_t *	image;		/* image to process */
   GdkRegion *		region;		/* relevant region of image */
-} RecorderJob;
+} SessionJob;
 
 typedef struct {
   GdkRegion *		region;		/* the region this image represents */
@@ -81,7 +81,7 @@ typedef struct {
   off_t			offset;		/* offset at which the data starts */
 } StoredImage;
 
-struct _ByzanzRecorder {
+struct _ByzanzSession {
   /*< private >*/
   /* set by user - accessed ALSO by thread */
   GdkRectangle		area;		/* area of the screen we record */
@@ -92,7 +92,7 @@ struct _ByzanzRecorder {
   gint			max_file_cache;	/* maximum allowed size of all cache files together - ATOMIC */
   /* state */
   guint			cache_size;	/* current cache size */
-  RecorderState		state;		/* state the recorder is in */
+  SessionState		state;		/* state the session is in */
   guint			timeout;	/* signal id for timeout */
   GdkWindow *		window;		/* root window we record */
   Damage		damage;		/* the Damage object */
@@ -152,7 +152,7 @@ compute_image_size (cairo_surface_t *image)
 }
 
 static void
-recorder_job_free (ByzanzRecorder *rec, RecorderJob *job)
+session_job_free (ByzanzSession *rec, SessionJob *job)
 {
   if (job->image) {
     rec->cache_size -= compute_image_size (job->image);
@@ -165,11 +165,11 @@ recorder_job_free (ByzanzRecorder *rec, RecorderJob *job)
 }
 
 /* UGH: This function takes ownership of region, but only if a job could be created */
-static RecorderJob *
-recorder_job_new (ByzanzRecorder *rec, RecorderJobType type, 
+static SessionJob *
+session_job_new (ByzanzSession *rec, SessionJobType type, 
     const GTimeVal *tv, GdkRegion *region)
 {
-  RecorderJob *job;
+  SessionJob *job;
 
   for (;;) {
     job = g_async_queue_try_pop (rec->finished);
@@ -177,10 +177,10 @@ recorder_job_new (ByzanzRecorder *rec, RecorderJobType type,
       break;
     if (rec->cache_size - compute_image_size (job->image) <= rec->max_cache_size)
       break;
-    recorder_job_free (rec, job);
+    session_job_free (rec, job);
   }
   if (!job) 
-    job = g_new0 (RecorderJob, 1);
+    job = g_new0 (SessionJob, 1);
   
   g_assert (job->region == NULL);
   
@@ -197,10 +197,10 @@ recorder_job_new (ByzanzRecorder *rec, RecorderJobType type,
 	rec->cache_size += compute_image_size (job->image);
 	if (!rec->use_file_cache &&
 	    rec->cache_size >= rec->max_cache_size / 2) {
-	  RecorderJob *tmp;
+	  SessionJob *tmp;
 	  guint count;
 	  rec->use_file_cache = TRUE;
-	  tmp = recorder_job_new (rec, RECORDER_JOB_USE_FILE_CACHE, NULL, NULL);
+	  tmp = session_job_new (rec, RECORDER_JOB_USE_FILE_CACHE, NULL, NULL);
 	  /* push job to the front */
 	  g_async_queue_lock (rec->jobs);
 	  count = g_async_queue_length_unlocked (rec->jobs);
@@ -237,7 +237,7 @@ recorder_job_new (ByzanzRecorder *rec, RecorderJobType type,
 /*** THREAD FUNCTIONS ***/
 
 static gboolean
-byzanz_recorder_dither_region (ByzanzRecorder *rec, GdkRegion *region,
+byzanz_session_dither_region (ByzanzSession *rec, GdkRegion *region,
     DitherRegionGetDataFunc func, gpointer data)
 {
   GdkRectangle *rects;
@@ -287,7 +287,7 @@ byzanz_recorder_dither_region (ByzanzRecorder *rec, GdkRegion *region,
 }
 
 static void
-byzanz_recorder_add_image (ByzanzRecorder *rec, const GTimeVal *tv)
+byzanz_session_add_image (ByzanzSession *rec, const GTimeVal *tv)
 {
   glong msecs;
   if (rec->data == NULL) {
@@ -315,7 +315,7 @@ byzanz_recorder_add_image (ByzanzRecorder *rec, const GTimeVal *tv)
 }
 
 static void
-stored_image_remove_file (ByzanzRecorder *rec, int fd, char *filename)
+stored_image_remove_file (ByzanzSession *rec, int fd, char *filename)
 {
   guint size;
 
@@ -328,7 +328,7 @@ stored_image_remove_file (ByzanzRecorder *rec, int fd, char *filename)
 
 /* returns FALSE if no more images can be cached */
 static gboolean
-stored_image_store (ByzanzRecorder *rec, cairo_surface_t *image, GdkRegion *region, const GTimeVal *tv)
+stored_image_store (ByzanzSession *rec, cairo_surface_t *image, GdkRegion *region, const GTimeVal *tv)
 {
   off_t offset;
   StoredImage *store;
@@ -404,7 +404,7 @@ out_err:
 }
 
 static gboolean
-stored_image_dither_get_data (ByzanzRecorder *rec, gpointer data, GdkRectangle *rect,
+stored_image_dither_get_data (ByzanzSession *rec, gpointer data, GdkRectangle *rect,
     gpointer *data_out, guint *bpl_out)
 {
   StoredImage *store = data;
@@ -430,7 +430,7 @@ stored_image_dither_get_data (ByzanzRecorder *rec, gpointer data, GdkRectangle *
 }
 
 static gboolean
-stored_image_process (ByzanzRecorder *rec)
+stored_image_process (ByzanzSession *rec)
 {
   StoredImage *store;
   gboolean ret;
@@ -444,9 +444,9 @@ stored_image_process (ByzanzRecorder *rec)
     g_printerr ("Couldn't seek to %d\n", (int) store->offset);
     g_assert_not_reached ();
   }
-  byzanz_recorder_add_image (rec, &store->tv);
+  byzanz_session_add_image (rec, &store->tv);
   lseek (store->fd, store->offset, SEEK_SET);
-  ret = byzanz_recorder_dither_region (rec, store->region, stored_image_dither_get_data, store);
+  ret = byzanz_session_dither_region (rec, store->region, stored_image_dither_get_data, store);
 
   if (store->filename)
     stored_image_remove_file (rec, store->fd, store->filename);
@@ -456,7 +456,7 @@ stored_image_process (ByzanzRecorder *rec)
 }
 
 static void
-byzanz_recorder_quantize (ByzanzRecorder *rec, cairo_surface_t *image)
+byzanz_session_quantize (ByzanzSession *rec, cairo_surface_t *image)
 {
   GifencPalette *palette;
 
@@ -467,7 +467,7 @@ byzanz_recorder_quantize (ByzanzRecorder *rec, cairo_surface_t *image)
 }
 
 static gboolean 
-byzanz_recorder_encode_get_data (ByzanzRecorder *rec, gpointer data, GdkRectangle *rect,
+byzanz_session_encode_get_data (ByzanzSession *rec, gpointer data, GdkRectangle *rect,
     gpointer *data_out, guint *bpl_out)
 {
   cairo_surface_t *image = data;
@@ -480,19 +480,19 @@ byzanz_recorder_encode_get_data (ByzanzRecorder *rec, gpointer data, GdkRectangl
 }
 
 static void
-byzanz_recorder_encode (ByzanzRecorder *rec, cairo_surface_t *image, GdkRegion *region)
+byzanz_session_encode (ByzanzSession *rec, cairo_surface_t *image, GdkRegion *region)
 {
   g_assert (!gdk_region_empty (region));
   
-  byzanz_recorder_dither_region (rec, region, byzanz_recorder_encode_get_data,
+  byzanz_session_dither_region (rec, region, byzanz_session_encode_get_data,
       image);
 }
 
 static gpointer
-byzanz_recorder_run_encoder (gpointer data)
+byzanz_session_run_encoder (gpointer data)
 {
-  ByzanzRecorder *rec = data;
-  RecorderJob *job;
+  ByzanzSession *rec = data;
+  SessionJob *job;
   GTimeVal quit_tv;
   gboolean quit = FALSE;
 #define USING_FILE_CACHE(rec) ((rec)->file_cache_data_size > 0)
@@ -521,7 +521,7 @@ loop:
     }
     switch (job->type) {
       case RECORDER_JOB_QUANTIZE:
-	byzanz_recorder_quantize (rec, job->image);
+	byzanz_session_quantize (rec, job->image);
 	break;
       case RECORDER_JOB_ENCODE:
 	if (USING_FILE_CACHE (rec)) {
@@ -532,8 +532,8 @@ loop:
 	  }
 	  job->region = NULL;
 	} else {
-	  byzanz_recorder_add_image (rec, &job->tv);
-	  byzanz_recorder_encode (rec, job->image, job->region);
+	  byzanz_session_add_image (rec, &job->tv);
+	  byzanz_session_encode (rec, job->image, job->region);
 	}
 	break;
       case RECORDER_JOB_USE_FILE_CACHE:
@@ -561,7 +561,7 @@ loop:
     g_async_queue_push (rec->finished, job);
   }
   
-  byzanz_recorder_add_image (rec, &quit_tv);
+  byzanz_session_add_image (rec, &quit_tv);
   gifenc_close (rec->gifenc, NULL);
 
   g_free (rec->data);
@@ -618,11 +618,11 @@ cursor_equal (gconstpointer c1, gconstpointer c2)
     ((const XFixesCursorImage *) c2)->cursor_serial;
 }
 
-static gboolean byzanz_recorder_timeout_cb (gpointer recorder);
+static gboolean byzanz_session_timeout_cb (gpointer session);
 static void
-byzanz_recorder_queue_image (ByzanzRecorder *rec)
+byzanz_session_queue_image (ByzanzSession *rec)
 {
-  RecorderJob *job;
+  SessionJob *job;
   GTimeVal tv;
   gboolean render_cursor = FALSE;
   
@@ -641,7 +641,7 @@ byzanz_recorder_queue_image (ByzanzRecorder *rec)
   }
   
   if (!gdk_region_empty (rec->region)) {
-    job = recorder_job_new (rec, RECORDER_JOB_ENCODE, &tv, rec->region);
+    job = session_job_new (rec, RECORDER_JOB_ENCODE, &tv, rec->region);
     if (job) {
       if (render_cursor) 
 	render_cursor_to_image (job->image, rec->cursor, 
@@ -654,14 +654,14 @@ byzanz_recorder_queue_image (ByzanzRecorder *rec)
   
   if (rec->timeout == 0) {
     rec->timeout = g_timeout_add (rec->frame_duration, 
-	byzanz_recorder_timeout_cb, rec);
+	byzanz_session_timeout_cb, rec);
   }
 }
 
 static gboolean
-byzanz_recorder_timeout_cb (gpointer recorder)
+byzanz_session_timeout_cb (gpointer session)
 {
-  ByzanzRecorder *rec = recorder;
+  ByzanzSession *rec = session;
 
   if (IS_RECORDING_CURSOR (rec)) {
     gint x, y;
@@ -676,26 +676,26 @@ byzanz_recorder_timeout_cb (gpointer recorder)
       return FALSE;
     }
   }
-  byzanz_recorder_queue_image (rec);
+  byzanz_session_queue_image (rec);
   return TRUE;
 }
 
 static gboolean
-byzanz_recorder_idle_cb (gpointer recorder)
+byzanz_session_idle_cb (gpointer session)
 {
-  ByzanzRecorder *rec = recorder;
+  ByzanzSession *rec = session;
 
   g_assert (!gdk_region_empty (rec->region));
 
   rec->timeout = 0;
-  byzanz_recorder_queue_image (rec);
+  byzanz_session_queue_image (rec);
   return FALSE;
 }
 
 static GdkFilterReturn
-byzanz_recorder_filter_events (GdkXEvent *xevent, GdkEvent *event, gpointer data)
+byzanz_session_filter_events (GdkXEvent *xevent, GdkEvent *event, gpointer data)
 {
-  ByzanzRecorder *rec = data;
+  ByzanzSession *rec = data;
   XDamageNotifyEvent *dev = (XDamageNotifyEvent *) xevent;
   Display *dpy;
 
@@ -721,7 +721,7 @@ byzanz_recorder_filter_events (GdkXEvent *xevent, GdkEvent *event, gpointer data
       gdk_region_union_with_rect (rec->region, &rect);
       if (rec->timeout == 0) 
 	rec->timeout = g_idle_add_full (G_PRIORITY_DEFAULT,
-	    byzanz_recorder_idle_cb, rec, NULL);
+	    byzanz_session_idle_cb, rec, NULL);
     }
     return GDK_FILTER_REMOVE;
   } else if (dev->type == fixes_event_base + XFixesCursorNotify) {
@@ -742,17 +742,17 @@ byzanz_recorder_filter_events (GdkXEvent *xevent, GdkEvent *event, gpointer data
 }
 
 static void
-byzanz_recorder_state_advance (ByzanzRecorder *recorder)
+byzanz_session_state_advance (ByzanzSession *session)
 {
-  switch (recorder->state) {
+  switch (session->state) {
     case RECORDER_STATE_CREATED:
-      byzanz_recorder_prepare (recorder);
+      byzanz_session_prepare (session);
       break;
     case RECORDER_STATE_PREPARED:
-      byzanz_recorder_start (recorder);
+      byzanz_session_start (session);
       break;
     case RECORDER_STATE_RECORDING:
-      byzanz_recorder_stop (recorder);
+      byzanz_session_stop (session);
       break;
     case RECORDER_STATE_STOPPED:
     case RECORDER_STATE_ERROR:
@@ -762,22 +762,22 @@ byzanz_recorder_state_advance (ByzanzRecorder *recorder)
 }
 
 /**
- * byzanz_recorder_new:
+ * byzanz_session_new:
  * @filename: filename to record to
  * @window: window to record
  * @area: area of window that should be recorded
  * @loop: if the resulting animation should loop
  * @record_cursor: if the cursor image should be recorded
  *
- * Creates a new #ByzanzRecorder and initializes all basic variables. 
+ * Creates a new #ByzanzSession and initializes all basic variables. 
  * gtk_init() and g_thread_init() must have been called before.
  *
- * Returns: a new #ByzanzRecorder or NULL if an error occured. Most likely
+ * Returns: a new #ByzanzSession or NULL if an error occured. Most likely
  *          the XDamage extension is not available on the current X server
  *          then. Another reason would be a thread creation failure.
  **/
-ByzanzRecorder *
-byzanz_recorder_new (const gchar *filename, GdkWindow *window, GdkRectangle *area,
+ByzanzSession *
+byzanz_session_new (const gchar *filename, GdkWindow *window, GdkRectangle *area,
     gboolean loop, gboolean record_cursor)
 {
   gint fd;
@@ -792,11 +792,11 @@ byzanz_recorder_new (const gchar *filename, GdkWindow *window, GdkRectangle *are
   if (fd < 0)
     return NULL;
 
-  return byzanz_recorder_new_fd (fd, window, area, loop, record_cursor);
+  return byzanz_session_new_fd (fd, window, area, loop, record_cursor);
 }
 
 static gboolean
-recorder_gifenc_write (gpointer closure, const guchar *data, gsize len, GError **error)
+session_gifenc_write (gpointer closure, const guchar *data, gsize len, GError **error)
 {
   gssize written;
   int fd = GPOINTER_TO_INT (closure);
@@ -822,16 +822,16 @@ recorder_gifenc_write (gpointer closure, const guchar *data, gsize len, GError *
 }
 
 static void
-recorder_gifenc_close (gpointer closure)
+session_gifenc_close (gpointer closure)
 {
   close (GPOINTER_TO_INT (closure));
 }
 
-ByzanzRecorder *
-byzanz_recorder_new_fd (gint fd, GdkWindow *window, GdkRectangle *area,
+ByzanzSession *
+byzanz_session_new_fd (gint fd, GdkWindow *window, GdkRectangle *area,
     gboolean loop, gboolean record_cursor)
 {
-  ByzanzRecorder *recorder;
+  ByzanzSession *session;
   Display *dpy;
   GdkRectangle root_rect;
 
@@ -851,56 +851,56 @@ byzanz_recorder_new_fd (gint fd, GdkWindow *window, GdkRectangle *area,
 	fixes_event_base + XFixesCursorNotify, 1);
   }
   
-  recorder = g_new0 (ByzanzRecorder, 1);
+  session = g_new0 (ByzanzSession, 1);
 
   /* set user properties */
-  recorder->area = *area;
-  recorder->loop = loop;
-  recorder->frame_duration = 1000 / 25;
-  recorder->max_cache_size = BYZANZ_RECORDER_MAX_CACHE;
-  recorder->max_file_size = BYZANZ_RECORDER_MAX_FILE_SIZE;
-  recorder->max_file_cache = BYZANZ_RECORDER_MAX_FILE_CACHE;
+  session->area = *area;
+  session->loop = loop;
+  session->frame_duration = 1000 / 25;
+  session->max_cache_size = BYZANZ_RECORDER_MAX_CACHE;
+  session->max_file_size = BYZANZ_RECORDER_MAX_FILE_SIZE;
+  session->max_file_cache = BYZANZ_RECORDER_MAX_FILE_CACHE;
   
   /* prepare thread first, so we can easily error out on failure */
-  recorder->window = window;
+  session->window = window;
   g_object_ref (window);
   root_rect.x = root_rect.y = 0;
-  gdk_drawable_get_size (recorder->window,
+  gdk_drawable_get_size (session->window,
       &root_rect.width, &root_rect.height);
-  gdk_rectangle_intersect (&recorder->area, &root_rect, &recorder->area);
-  recorder->gifenc = gifenc_new (recorder->area.width, recorder->area.height, 
-      recorder_gifenc_write, GINT_TO_POINTER (fd), recorder_gifenc_close);
-  if (!recorder->gifenc) {
-    g_free (recorder);
+  gdk_rectangle_intersect (&session->area, &root_rect, &session->area);
+  session->gifenc = gifenc_new (session->area.width, session->area.height, 
+      session_gifenc_write, GINT_TO_POINTER (fd), session_gifenc_close);
+  if (!session->gifenc) {
+    g_free (session);
     return NULL;
   }
-  recorder->jobs = g_async_queue_new ();
-  recorder->finished = g_async_queue_new ();
-  recorder->encoder_running = 1;
-  recorder->encoder = g_thread_create (byzanz_recorder_run_encoder, recorder, 
+  session->jobs = g_async_queue_new ();
+  session->finished = g_async_queue_new ();
+  session->encoder_running = 1;
+  session->encoder = g_thread_create (byzanz_session_run_encoder, session, 
       TRUE, NULL);
-  if (!recorder->encoder) {
-    gifenc_free (recorder->gifenc);
-    g_async_queue_unref (recorder->jobs);
-    g_free (recorder);
+  if (!session->encoder) {
+    gifenc_free (session->gifenc);
+    g_async_queue_unref (session->jobs);
+    g_free (session);
     return NULL;
   }
 
   /* do setup work */
-  recorder->damaged = XFixesCreateRegion (dpy, 0, 0);
-  recorder->tmp_region = XFixesCreateRegion (dpy, 0, 0);
+  session->damaged = XFixesCreateRegion (dpy, 0, 0);
+  session->tmp_region = XFixesCreateRegion (dpy, 0, 0);
   if (record_cursor)
-    recorder->cursors = g_hash_table_new_full (cursor_hash, cursor_equal, 
+    session->cursors = g_hash_table_new_full (cursor_hash, cursor_equal, 
       NULL, (GDestroyNotify) XFree);
 
-  recorder->state = RECORDER_STATE_CREATED;
-  return recorder;
+  session->state = RECORDER_STATE_CREATED;
+  return session;
 }
 
 void
-byzanz_recorder_prepare (ByzanzRecorder *rec)
+byzanz_session_prepare (ByzanzSession *rec)
 {
-  RecorderJob *job;
+  SessionJob *job;
   GdkRegion *region;
   GTimeVal tv;
   
@@ -909,14 +909,14 @@ byzanz_recorder_prepare (ByzanzRecorder *rec)
 
   region = gdk_region_rectangle (&rec->area);
   g_get_current_time (&tv);
-  job = recorder_job_new (rec, RECORDER_JOB_QUANTIZE, &tv, region);
+  job = session_job_new (rec, RECORDER_JOB_QUANTIZE, &tv, region);
   g_async_queue_push (rec->jobs, job);
   //g_print ("pushing QUANTIZE\n");
   rec->state = RECORDER_STATE_PREPARED;
 }
 
 void
-byzanz_recorder_start (ByzanzRecorder *rec)
+byzanz_session_start (ByzanzSession *rec)
 {
   Display *dpy;
 
@@ -928,7 +928,7 @@ byzanz_recorder_start (ByzanzRecorder *rec)
   dpy = gdk_x11_display_get_xdisplay (gdk_display_get_default ());
   rec->region = gdk_region_rectangle (&rec->area);
   gdk_window_add_filter (rec->window, 
-      byzanz_recorder_filter_events, rec);
+      byzanz_session_filter_events, rec);
   rec->damage = XDamageCreate (dpy, GDK_DRAWABLE_XID (rec->window), 
       XDamageReportDeltaRectangles);
   if (rec->cursors) {
@@ -939,28 +939,28 @@ byzanz_recorder_start (ByzanzRecorder *rec)
       g_hash_table_insert (rec->cursors, rec->cursor, rec->cursor);
     gdk_window_get_pointer (rec->window, &rec->cursor_x, &rec->cursor_y, NULL);
   }
-  /* byzanz_recorder_queue_image (rec); - we'll get a damage event anyway */
+  /* byzanz_session_queue_image (rec); - we'll get a damage event anyway */
   
   rec->state = RECORDER_STATE_RECORDING;
 }
 
 void
-byzanz_recorder_stop (ByzanzRecorder *rec)
+byzanz_session_stop (ByzanzSession *rec)
 {
   GTimeVal tv;
-  RecorderJob *job;
+  SessionJob *job;
   Display *dpy;
 
   g_return_if_fail (BYZANZ_IS_RECORDER (rec));
   g_return_if_fail (rec->state == RECORDER_STATE_RECORDING);
 
-  /* byzanz_recorder_queue_image (rec); - useless because last image would have a 0 time */
+  /* byzanz_session_queue_image (rec); - useless because last image would have a 0 time */
   g_get_current_time (&tv);
-  job = recorder_job_new (rec, RECORDER_JOB_QUIT, &tv, NULL);
+  job = session_job_new (rec, RECORDER_JOB_QUIT, &tv, NULL);
   g_async_queue_push (rec->jobs, job);
   //g_print ("pushing QUIT\n");
   gdk_window_remove_filter (rec->window, 
-      byzanz_recorder_filter_events, rec);
+      byzanz_session_filter_events, rec);
   if (rec->timeout != 0) {
     if (!g_source_remove (rec->timeout))
       g_assert_not_reached ();
@@ -976,22 +976,22 @@ byzanz_recorder_stop (ByzanzRecorder *rec)
 }
 
 void
-byzanz_recorder_destroy (ByzanzRecorder *rec)
+byzanz_session_destroy (ByzanzSession *rec)
 {
   Display *dpy;
-  RecorderJob *job;
+  SessionJob *job;
 
   g_return_if_fail (BYZANZ_IS_RECORDER (rec));
 
   while (rec->state != RECORDER_STATE_ERROR &&
          rec->state != RECORDER_STATE_STOPPED)
-    byzanz_recorder_state_advance (rec);
+    byzanz_session_state_advance (rec);
 
   if (g_thread_join (rec->encoder) != rec)
     g_assert_not_reached ();
 
   while ((job = g_async_queue_try_pop (rec->finished)) != NULL)
-    recorder_job_free (rec, job);
+    session_job_free (rec, job);
   dpy = gdk_x11_display_get_xdisplay (gdk_display_get_default ());
   XFixesDestroyRegion (dpy, rec->damaged);
   XFixesDestroyRegion (dpy, rec->tmp_region);
@@ -1009,11 +1009,11 @@ byzanz_recorder_destroy (ByzanzRecorder *rec)
 }
 
 /**
- * byzanz_recorder_set_max_cache:
+ * byzanz_session_set_max_cache:
  * @rec: a recording session
  * @max_cache_bytes: maximum allowed cache size in bytes
  *
- * Sets the maximum allowed cache size. Since the recorder uses two threads -
+ * Sets the maximum allowed cache size. Since the session uses two threads -
  * one for taking screenshots and one for encoding these screenshots into the
  * final file, on heavy screen changes a big number of screenshot images can 
  * build up waiting to be encoded. This value is used to determine the maximum
@@ -1021,7 +1021,7 @@ byzanz_recorder_destroy (ByzanzRecorder *rec)
  * during a recording session.
  **/
 void
-byzanz_recorder_set_max_cache (ByzanzRecorder *rec,
+byzanz_session_set_max_cache (ByzanzSession *rec,
     guint max_cache_bytes)
 {
   g_return_if_fail (BYZANZ_IS_RECORDER (rec));
@@ -1029,24 +1029,24 @@ byzanz_recorder_set_max_cache (ByzanzRecorder *rec,
 
   rec->max_cache_size = max_cache_bytes;
   while (rec->cache_size > max_cache_bytes) {
-    RecorderJob *job = g_async_queue_try_pop (rec->finished);
+    SessionJob *job = g_async_queue_try_pop (rec->finished);
     if (!job)
       break;
-    recorder_job_free (rec, job);
+    session_job_free (rec, job);
   }
 }
 
 /**
- * byzanz_recorder_get_max_cache:
+ * byzanz_session_get_max_cache:
  * @rec: a recording session
  *
- * Gets the maximum allowed cache size. See byzanz_recorder_set_max_cache()
+ * Gets the maximum allowed cache size. See byzanz_session_set_max_cache()
  * for details.
  *
  * Returns: the maximum allowed cache size in bytes
  **/
 guint
-byzanz_recorder_get_max_cache (ByzanzRecorder *rec)
+byzanz_session_get_max_cache (ByzanzSession *rec)
 {
   g_return_val_if_fail (BYZANZ_IS_RECORDER (rec), 0);
 
@@ -1054,7 +1054,7 @@ byzanz_recorder_get_max_cache (ByzanzRecorder *rec)
 }
 
 /**
- * byzanz_recorder_get_cache:
+ * byzanz_session_get_cache:
  * @rec: a recording session
  *
  * Determines the current amount of image cache used.
@@ -1062,7 +1062,7 @@ byzanz_recorder_get_max_cache (ByzanzRecorder *rec)
  * Returns: current cache used in bytes
  **/
 guint
-byzanz_recorder_get_cache (ByzanzRecorder *rec)
+byzanz_session_get_cache (ByzanzSession *rec)
 {
   g_return_val_if_fail (BYZANZ_IS_RECORDER (rec), 0);
   
@@ -1070,20 +1070,20 @@ byzanz_recorder_get_cache (ByzanzRecorder *rec)
 }
 
 /**
- * byzanz_recorder_is_active:
- * @recorder: ia recording session
+ * byzanz_session_is_active:
+ * @session: ia recording session
  *
- * Checks if the recorder is currently running or - after being stopped - if 
+ * Checks if the session is currently running or - after being stopped - if 
  * the encoder is still actively processing cached data.
- * Note that byzanz_recorder_destroy() will block until all cached data has been 
+ * Note that byzanz_session_destroy() will block until all cached data has been 
  * processed, so it might take a long time.
  *
  * Returns: TRUE if the recording session is still active.
  **/
 gboolean
-byzanz_recorder_is_active (ByzanzRecorder *recorder)
+byzanz_session_is_active (ByzanzSession *session)
 {
-  g_return_val_if_fail (BYZANZ_IS_RECORDER (recorder), 0);
+  g_return_val_if_fail (BYZANZ_IS_RECORDER (session), 0);
   
-  return g_atomic_int_get (&recorder->encoder_running) > 0;
+  return g_atomic_int_get (&session->encoder_running) > 0;
 }

@@ -1,4 +1,4 @@
-/* desktop recorder
+/* desktop session
  * Copyright (C) 2005 Benjamin Otte <otte@gnome.org
  *
  * This library is free software; you can redistribute it and/or
@@ -21,7 +21,7 @@
 #  include "config.h"
 #endif
 
-#include "byzanzrecorder.h"
+#include "byzanzsession.h"
 #include "i18n.h"
 
 static int duration = 10;
@@ -68,31 +68,31 @@ usage (void)
 }
 
 static gboolean
-stop_recording (gpointer recorder)
+stop_recording (gpointer session)
 {
   verbose_print (_("Recording done. Cleaning up...\n"));
-  byzanz_recorder_stop (recorder);
+  byzanz_session_stop (session);
   gtk_main_quit ();
   
   return FALSE;
 }
 
 static gboolean
-start_recording (gpointer recorder)
+start_recording (gpointer session)
 {
   verbose_print (_("Recording starts. Will record %d seconds...\n"), duration / 1000);
-  byzanz_recorder_start (recorder);
-  g_timeout_add (duration, stop_recording, recorder);
+  byzanz_session_start (session);
+  g_timeout_add (duration, stop_recording, session);
   
   return FALSE;
 }
 
 static gboolean
-prepare_recording (gpointer recorder)
+prepare_recording (gpointer session)
 {
   verbose_print (_("Preparing recording. Will start in 1 second...\n"));
-  byzanz_recorder_prepare (recorder);
-  g_timeout_add (1000, start_recording, recorder);
+  byzanz_session_prepare (session);
+  g_timeout_add (1000, start_recording, session);
   
   return FALSE;
 }
@@ -100,7 +100,7 @@ prepare_recording (gpointer recorder)
 int
 main (int argc, char **argv)
 {
-  ByzanzRecorder *rec;
+  ByzanzSession *rec;
   GOptionContext* context;
   GError *error = NULL;
   
@@ -128,7 +128,7 @@ main (int argc, char **argv)
     usage ();
     return 0;
   }
-  rec = byzanz_recorder_new (argv[1], gdk_get_default_root_window (),
+  rec = byzanz_session_new (argv[1], gdk_get_default_root_window (),
       &area, loop, cursor);
   if (rec == NULL) {
     g_print (_("Could not prepare recording.\n"
@@ -145,6 +145,6 @@ main (int argc, char **argv)
   
   gtk_main ();
 
-  byzanz_recorder_destroy (rec);
+  byzanz_session_destroy (rec);
   return 0;
 }

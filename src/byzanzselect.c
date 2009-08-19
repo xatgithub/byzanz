@@ -226,7 +226,7 @@ byzanz_select_area (GdkRectangle *rect)
     rect->width = MAX (data->x1, data->x0) - rect->x;
     rect->height = MAX (data->y1, data->y0) - rect->y;
     ret = gdk_get_default_root_window ();
-    /* stupid hack to get around a recorder recording the selection screen */
+    /* stupid hack to get around a session recording the selection screen */
     gdk_display_sync (gdk_display_get_default ());
     g_timeout_add (1000, quit_cb, data);
     g_main_loop_run (data->loop);

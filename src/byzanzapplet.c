@@ -1,4 +1,4 @@
-/* desktop recorder
+/* desktop session
  * Copyright (C) 2005,2009 Benjamin Otte <otte@gnome.org>
  *
  * This library is free software; you can redistribute it and/or
@@ -27,7 +27,7 @@
 #include <gio/gio.h>
 #include <glib/gstdio.h>
 #include <panel-applet-gconf.h>
-#include "byzanzrecorder.h"
+#include "byzanzsession.h"
 #include "byzanzselect.h"
 #include "paneltogglebutton.h"
 #include "paneldropdown.h"
@@ -45,7 +45,7 @@ typedef struct {
   GtkWidget *		record_cursor;	/* checkmenuitem for cursor recording */
   GtkTooltips *		tooltips;	/* our tooltips */
   
-  ByzanzRecorder *	rec;		/* the recorder (if recording) */
+  ByzanzSession *	rec;		/* the session (if recording) */
   char *		tmp_file;	/* filename that's recorded to */
   GTimeVal		start;		/* time the recording started */
 
@@ -58,7 +58,7 @@ typedef struct {
 
 typedef struct {
   AppletPrivate *	priv;
-  ByzanzRecorder *	rec;
+  ByzanzSession *	rec;
   GFile *		source;
   GFile *		destination;
   GCancellable *	cancellable;
@@ -120,9 +120,9 @@ check_done_saving_cb (gpointer data)
 {
   PendingRecording *pending = data;
 
-  if (byzanz_recorder_is_active (pending->rec))
+  if (byzanz_session_is_active (pending->rec))
     return TRUE;
-  byzanz_recorder_destroy (pending->rec);
+  byzanz_session_destroy (pending->rec);
   pending->rec = NULL;
 
   if (pending->destination == NULL) {
@@ -153,7 +153,7 @@ pending_recording_response (GtkWidget *dialog, int response, PendingRecording *p
 }
 
 static void
-pending_recording_launch (AppletPrivate *priv, ByzanzRecorder *rec, const char *tmp_file)
+pending_recording_launch (AppletPrivate *priv, ByzanzSession *rec, const char *tmp_file)
 {
   PendingRecording *pending;
   GtkWidget *dialog;
@@ -232,9 +232,9 @@ byzanz_applet_start_recording (AppletPrivate *priv)
   if (byzanz_applet_is_recording (priv))
     goto out;
   if (priv->rec) {
-    if (byzanz_recorder_is_active (priv->rec))
+    if (byzanz_session_is_active (priv->rec))
       goto out;
-    byzanz_recorder_destroy (priv->rec);
+    byzanz_session_destroy (priv->rec);
     priv->rec = NULL;
   }
   /* check for correct bpp */
@@ -247,7 +247,7 @@ byzanz_applet_start_recording (AppletPrivate *priv)
   if (window) {
     int fd = g_file_open_tmp ("byzanzXXXXXX", &priv->tmp_file, NULL);
     if (fd > 0) 
-      priv->rec = byzanz_recorder_new_fd (fd, window, &area, TRUE, 
+      priv->rec = byzanz_session_new_fd (fd, window, &area, TRUE, 
 	  gtk_check_menu_item_get_active (
 	    GTK_CHECK_MENU_ITEM (priv->record_cursor)));
     if (!priv->rec) {
@@ -259,8 +259,8 @@ byzanz_applet_start_recording (AppletPrivate *priv)
     g_object_unref (window);
   }
   if (priv->rec) {
-    byzanz_recorder_prepare (priv->rec);
-    byzanz_recorder_start (priv->rec);
+    byzanz_session_prepare (priv->rec);
+    byzanz_session_start (priv->rec);
     g_get_current_time (&priv->start);
   }
 
@@ -272,11 +272,11 @@ static void
 byzanz_applet_stop_recording (AppletPrivate *priv)
 {
   char *tmp_file;
-  ByzanzRecorder *rec;
+  ByzanzSession *rec;
   
   g_assert (byzanz_applet_is_recording (priv));
   
-  byzanz_recorder_stop (priv->rec);
+  byzanz_session_stop (priv->rec);
   tmp_file = priv->tmp_file;
   priv->tmp_file = NULL;
   rec = priv->rec;
@@ -346,7 +346,7 @@ byzanz_about_cb (BonoboUIComponent *uic, AppletPrivate *priv, const char *verb)
    };
 
   gtk_show_about_dialog( NULL,
-    "name",                _("Desktop Recorder"), 
+    "name",                _("Desktop Session"), 
     "version",             VERSION,
     "copyright",           "\xC2\xA9 2005-2006 Benjamin Otte",
     "comments",            _("Record what's happening on your desktop"),

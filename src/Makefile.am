@@ -4,14 +4,14 @@ libexec_PROGRAMS = byzanz-applet
 man_MANS = byzanz-record.1
 
 noinst_HEADERS = \
-	byzanzrecorder.h \
+	byzanzsession.h \
 	byzanzselect.h \
 	paneldropdown.h \
 	paneltogglebutton.h \
 	screenshot-utils.h
 
 libbyzanz_la_SOURCES = \
-	byzanzrecorder.c \
+	byzanzsession.c \
 	byzanzselect.c
 
 libbyzanz_la_CFLAGS = $(BYZANZ_CFLAGS) -I$(top_srcdir)/gifenc

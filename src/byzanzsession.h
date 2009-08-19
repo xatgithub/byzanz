@@ -23,29 +23,29 @@
 #ifndef __HAVE_BYZANZ_RECORDER_H__
 #define __HAVE_BYZANZ_RECORDER_H__
 
-typedef struct _ByzanzRecorder ByzanzRecorder;
+typedef struct _ByzanzSession ByzanzSession;
 #define BYZANZ_IS_RECORDER(obj) ((obj) != NULL)
 
-ByzanzRecorder *	byzanz_recorder_new		(const gchar *		filename,
+ByzanzSession * 	byzanz_session_new		(const gchar *		filename,
 							 GdkWindow *		window,
 							 GdkRectangle *		area,
 							 gboolean		loop,
 							 gboolean		record_cursor);
-ByzanzRecorder *	byzanz_recorder_new_fd		(gint			fd,
+ByzanzSession * 	byzanz_session_new_fd		(gint			fd,
 							 GdkWindow *		window,
 							 GdkRectangle *		area,
 							 gboolean		loop,
 							 gboolean		record_cursor);
-void			byzanz_recorder_prepare		(ByzanzRecorder *	recorder);
-void			byzanz_recorder_start		(ByzanzRecorder *	recorder);
-void			byzanz_recorder_stop		(ByzanzRecorder *	recorder);
-void			byzanz_recorder_destroy		(ByzanzRecorder *	recorder);
-gboolean		byzanz_recorder_is_active	(ByzanzRecorder *	recorder);
+void			byzanz_session_prepare		(ByzanzSession *	session);
+void			byzanz_session_start		(ByzanzSession *	session);
+void			byzanz_session_stop		(ByzanzSession *	session);
+void			byzanz_session_destroy		(ByzanzSession *	session);
+gboolean		byzanz_session_is_active	(ByzanzSession *	session);
 /* property functions */
-void			byzanz_recorder_set_max_cache	(ByzanzRecorder *	recorder,
+void			byzanz_session_set_max_cache	(ByzanzSession *	session,
 							 guint			max_cache_bytes);
-guint			byzanz_recorder_get_max_cache	(ByzanzRecorder *       recorder);
-guint			byzanz_recorder_get_cache	(ByzanzRecorder *       recorder);
+guint			byzanz_session_get_max_cache	(ByzanzSession *       session);
+guint			byzanz_session_get_cache	(ByzanzSession *       session);
 					
 
 #endif /* __HAVE_BYZANZ_RECORDER_H__ */
