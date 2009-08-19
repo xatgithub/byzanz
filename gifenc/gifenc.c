@@ -52,20 +52,19 @@ log2n (guint number)
 
 /*** WRITE ROUTINES ***/
 
-static void
-gifenc_write (Gifenc *enc, const guint8 *data, guint len)
+static gboolean
+gifenc_flush (Gifenc *enc, GError **error)
 {
-  ssize_t ret;
+  gboolean result;
 
-  g_return_if_fail (enc->n_bits == 0);
-  
-  while (len > 0) {
-    ret = write (enc->fd, data, len);
-    if (ret < 0)
-      g_assert_not_reached ();
-    len -= ret;
-    data += ret;
-  }
+  if (enc->buffer->len == 0)
+    return TRUE;
+
+  result = enc->write_func (enc->write_data, enc->buffer->data, 
+      enc->buffer->len, error);
+
+  g_byte_array_set_size (enc->buffer, 0);
+  return result;
 }
 
 static void
@@ -74,7 +73,7 @@ gifenc_write_uint16 (Gifenc *enc, guint16 value)
   g_return_if_fail (enc->n_bits == 0);
   
   value = GUINT16_TO_LE (value);
-  gifenc_write (enc, (guint8 *) &value, 2);
+  g_byte_array_append (enc->buffer, (guint8 *) &value, 2);
 }
 
 static void
@@ -82,7 +81,7 @@ gifenc_write_byte (Gifenc *enc, guint8 value)
 {
   g_return_if_fail (enc->n_bits == 0);
   
-  gifenc_write (enc, &value, 1);
+  g_byte_array_append (enc->buffer, &value, 1);
 }
 
 static void
@@ -108,21 +107,21 @@ gifenc_write_bits (Gifenc *enc, guint bits, guint nbits)
 static void
 gifenc_write_header (Gifenc *enc)
 {
-  gifenc_write (enc, (const guchar *) "GIF89a", 6);
+  g_byte_array_append (enc->buffer, (const guchar *) "GIF89a", 6);
 }
 
 static void
-gifenc_write_lsd (Gifenc *enc)
+gifenc_write_lsd (Gifenc *enc, GifencPalette *palette)
 {
-  g_assert (gifenc_palette_get_num_colors (enc->palette) >= 2);
+  g_assert (palette == NULL || gifenc_palette_get_num_colors (palette) >= 2);
 
   gifenc_write_uint16 (enc, enc->width);
   gifenc_write_uint16 (enc, enc->height);
-  gifenc_write_bits (enc, enc->palette ? 1 : 0, 1); /* global color table flag */
+  gifenc_write_bits (enc, palette ? 1 : 0, 1); /* global color table flag */
   gifenc_write_bits (enc, 0x7, 3); /* color resolution */
   gifenc_write_bits (enc, 0, 1); /* sort flag */
-  gifenc_write_bits (enc, enc->palette ? 
-      log2n (gifenc_palette_get_num_colors (enc->palette) - 1) - 1 : 0, 3); /* number of colors */
+  gifenc_write_bits (enc, palette ? 
+      log2n (gifenc_palette_get_num_colors (palette) - 1) - 1 : 0, 3); /* number of colors */
   gifenc_write_byte (enc, 0); /* background color */
   gifenc_write_byte (enc, 0); /* pixel aspect ratio */
 }
@@ -142,11 +141,11 @@ gifenc_write_color_table (Gifenc *enc, GifencPalette *palette)
     gifenc_write_byte (enc, BLUE (palette->colors[i]));
   }
   if (palette->alpha) {
-    gifenc_write (enc, (guint8 *) "\272\219\001", 3);
+    g_byte_array_append (enc->buffer, (guint8 *) "\272\219\001", 3);
     i++;
   }
   for (; i < table_size; i++) {
-    gifenc_write (enc, (guint8 *) "\0\0\0", 3);
+    g_byte_array_append (enc->buffer, (guint8 *) "\0\0\0", 3);
   }
 }
 
@@ -190,7 +189,7 @@ gifenc_buffer_write (Gifenc *enc, EncodeBuffer *buffer)
   if (buffer->bytes == 0)
     return;
   gifenc_write_byte (enc, buffer->bytes);
-  gifenc_write (enc, buffer->data, buffer->bytes);
+  g_byte_array_append (enc->buffer, buffer->data, buffer->bytes);
   buffer->bytes = 0;
 }
 
@@ -346,7 +345,7 @@ gifenc_write_loop (Gifenc *enc)
   gifenc_write_byte (enc, 0x21); /* extension */
   gifenc_write_byte (enc, 0xFF); /* application extension */
   gifenc_write_byte (enc, 11); /* block size */
-  gifenc_write (enc, (guint8 *) "NETSCAPE2.0", 11);
+  g_byte_array_append (enc->buffer, (guint8 *) "NETSCAPE2.0", 11);
   gifenc_write_byte (enc, 3); /* block size */
   gifenc_write_byte (enc, 1); /* ??? */
   gifenc_write_byte (enc, 0); /* ??? */
@@ -357,86 +356,98 @@ gifenc_write_loop (Gifenc *enc)
 /*** PUBLIC API ***/
 
 Gifenc *
-gifenc_open (const char *filename, guint width, guint height)
-{
-  int fd;
-
-  g_return_val_if_fail (width <= G_MAXUINT16, NULL);
-  g_return_val_if_fail (height <= G_MAXUINT16, NULL);
-
-  fd = g_open (filename, O_WRONLY | O_CREAT | O_TRUNC, 0666);
-  if (fd < 0)
-    return NULL;
-
-  return gifenc_open_fd (fd, width, height);
-}
-
-Gifenc *
-gifenc_open_fd (gint fd, guint width, guint height)
+gifenc_new (guint width, guint height, GifencWriteFunc write_func, 
+    gpointer write_data, GDestroyNotify write_destroy)
 {
   Gifenc *enc;
 
   g_return_val_if_fail (width <= G_MAXUINT16, NULL);
   g_return_val_if_fail (height <= G_MAXUINT16, NULL);
-
-  enc = g_new0 (Gifenc, 1);
-  enc->fd = fd;
+  g_return_val_if_fail (write_func, NULL);
+  
+  enc = g_slice_new0 (Gifenc);
   enc->width = width;
   enc->height = height;
-  //g_print ("created new image with size %ux%u\n", width, height);
-  gifenc_write_header (enc);
-  
+  enc->buffer = g_byte_array_new ();
+  enc->write_func = write_func;
+  enc->write_data = write_data;
+  enc->write_destroy = write_destroy;
+
   return enc;
 }
 
-void
-gifenc_set_palette (Gifenc *enc, GifencPalette *palette)
+gboolean
+gifenc_initialize (Gifenc *enc, GifencPalette *palette, gboolean loop, GError **error)
 {
-  g_return_if_fail (enc->palette == NULL);
-  g_return_if_fail (palette != NULL);
+  g_return_val_if_fail (enc != NULL, FALSE);
+  g_return_val_if_fail (enc->state == GIFENC_STATE_NEW, FALSE);
+  g_return_val_if_fail (palette != NULL, FALSE);
+
+  gifenc_write_header (enc);
+  gifenc_write_lsd (enc, palette);
+  gifenc_write_color_table (enc, palette);
+  if (loop)
+    gifenc_write_loop (enc);
+  if (!gifenc_flush (enc, error))
+    return FALSE;
 
   enc->palette = palette;
-  gifenc_write_lsd (enc);
-  gifenc_write_color_table (enc, enc->palette);
+  enc->state = GIFENC_STATE_INITIALIZED;
+  return TRUE;
 }
 
-void
+gboolean
 gifenc_add_image (Gifenc *enc, guint x, guint y, guint width, guint height, 
-    guint display_millis, guint8 *data, guint rowstride)
+    guint display_millis, guint8 *data, guint rowstride, GError **error)
 {
   GifencImage image = { x, y, width, height, NULL, data, rowstride };
 
-  g_return_if_fail (x + width <= enc->width);
-  g_return_if_fail (width > 0);
-  g_return_if_fail (y + height <= enc->height);
-  g_return_if_fail (height > 0);
+  g_return_val_if_fail (enc != NULL, FALSE);
+  g_return_val_if_fail (enc->state == GIFENC_STATE_INITIALIZED, FALSE);
+  g_return_val_if_fail (width > 0, FALSE);
+  g_return_val_if_fail (x + width <= enc->width, FALSE);
+  g_return_val_if_fail (height > 0, FALSE);
+  g_return_val_if_fail (y + height <= enc->height, FALSE);
 
   //g_print ("adding image (display time %u)\n", display_millis);
   gifenc_write_graphic_control (enc, image.palette ? image.palette : enc->palette, 
       display_millis);
   gifenc_write_image_description (enc, &image);
   gifenc_write_image_data (enc, &image);
+  return gifenc_flush (enc, error);
 }
 
 gboolean
-gifenc_close (Gifenc *enc)
+gifenc_close (Gifenc *enc, GError **error)
 {
+  g_return_val_if_fail (enc != NULL, FALSE);
+  g_return_val_if_fail (enc->state == GIFENC_STATE_INITIALIZED, FALSE);
+
   gifenc_write_byte (enc, 0x3B);
-  close (enc->fd);
+  if (!gifenc_flush (enc, error))
+    return FALSE;
 
-  if (enc->palette)
-    gifenc_palette_free (enc->palette);
-  g_free (enc);
-
+  enc->state = GIFENC_STATE_CLOSED;
   return TRUE;
 }
 
-void
-gifenc_set_looping (Gifenc *enc)
+gboolean
+gifenc_free (Gifenc *enc)
 {
-  g_return_if_fail (enc != NULL);
+  gboolean success;
 
-  gifenc_write_loop (enc);
+  g_return_val_if_fail (enc != NULL, FALSE);
+
+  success = enc->state == GIFENC_STATE_CLOSED;
+
+  if (enc->write_destroy)
+    enc->write_destroy (enc->write_data);
+  if (enc->palette)
+    gifenc_palette_free (enc->palette);
+  g_byte_array_unref (enc->buffer);
+  g_slice_free (Gifenc, enc);
+
+  return success;
 }
 
 /* Floyd-Steinman factors */

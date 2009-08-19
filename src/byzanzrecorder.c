@@ -22,11 +22,13 @@
 #endif
 
 #include "byzanzrecorder.h"
+
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <errno.h>
 #include <cairo.h>
 #include <glib/gstdio.h>
 #include <gtk/gtk.h>
@@ -307,7 +309,7 @@ byzanz_recorder_add_image (ByzanzRecorder *rec, const GTimeVal *tv)
     gifenc_add_image (rec->gifenc, rec->relevant_data.x, rec->relevant_data.y, 
 	rec->relevant_data.width, rec->relevant_data.height, msecs,
 	rec->data + rec->area.width * rec->relevant_data.y + rec->relevant_data.x,
-	rec->area.width);
+	rec->area.width, NULL);
     rec->current = *tv;
   }
 }
@@ -461,9 +463,7 @@ byzanz_recorder_quantize (ByzanzRecorder *rec, cairo_surface_t *image)
   palette = gifenc_quantize_image (cairo_image_surface_get_data (image),
       rec->area.width, rec->area.height, cairo_image_surface_get_stride (image), TRUE, 255);
   
-  gifenc_set_palette (rec->gifenc, palette);
-  if (rec->loop)
-    gifenc_set_looping (rec->gifenc);
+  gifenc_initialize (rec->gifenc, palette, rec->loop, NULL);
 }
 
 static gboolean 
@@ -562,6 +562,7 @@ loop:
   }
   
   byzanz_recorder_add_image (rec, &quit_tv);
+  gifenc_close (rec->gifenc, NULL);
 
   g_free (rec->data);
   rec->data = NULL;
@@ -794,6 +795,38 @@ byzanz_recorder_new (const gchar *filename, GdkWindow *window, GdkRectangle *are
   return byzanz_recorder_new_fd (fd, window, area, loop, record_cursor);
 }
 
+static gboolean
+recorder_gifenc_write (gpointer closure, const guchar *data, gsize len, GError **error)
+{
+  gssize written;
+  int fd = GPOINTER_TO_INT (closure);
+  
+  do {
+    written = write (fd, data, len);
+    if (written < 0) {
+      int err = errno;
+
+      if (err == EINTR)
+	continue;
+	  
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (err),
+          _("Error writing: %s"), g_strerror (err));
+      return FALSE;
+    } else {
+      len -= written;
+      data += written;
+    }
+  } while (len > 0);
+
+  return TRUE;
+}
+
+static void
+recorder_gifenc_close (gpointer closure)
+{
+  close (GPOINTER_TO_INT (closure));
+}
+
 ByzanzRecorder *
 byzanz_recorder_new_fd (gint fd, GdkWindow *window, GdkRectangle *area,
     gboolean loop, gboolean record_cursor)
@@ -835,7 +868,8 @@ byzanz_recorder_new_fd (gint fd, GdkWindow *window, GdkRectangle *area,
   gdk_drawable_get_size (recorder->window,
       &root_rect.width, &root_rect.height);
   gdk_rectangle_intersect (&recorder->area, &root_rect, &recorder->area);
-  recorder->gifenc = gifenc_open_fd (fd, recorder->area.width, recorder->area.height);
+  recorder->gifenc = gifenc_new (recorder->area.width, recorder->area.height, 
+      recorder_gifenc_write, GINT_TO_POINTER (fd), recorder_gifenc_close);
   if (!recorder->gifenc) {
     g_free (recorder);
     return NULL;
@@ -846,7 +880,7 @@ byzanz_recorder_new_fd (gint fd, GdkWindow *window, GdkRectangle *area,
   recorder->encoder = g_thread_create (byzanz_recorder_run_encoder, recorder, 
       TRUE, NULL);
   if (!recorder->encoder) {
-    gifenc_close (recorder->gifenc);
+    gifenc_free (recorder->gifenc);
     g_async_queue_unref (recorder->jobs);
     g_free (recorder);
     return NULL;
@@ -965,7 +999,7 @@ byzanz_recorder_destroy (ByzanzRecorder *rec)
   if (IS_RECORDING_CURSOR (rec))
     g_hash_table_destroy (rec->cursors);
 
-  gifenc_close (rec->gifenc);
+  gifenc_free (rec->gifenc);
   g_object_unref (rec->window);
 
   g_assert (g_async_queue_length (rec->jobs) == 0);

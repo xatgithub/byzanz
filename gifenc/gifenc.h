@@ -27,6 +27,14 @@ typedef struct _GifencPalette GifencPalette;
 typedef struct _GifencColor GifencColor;
 typedef struct _Gifenc Gifenc;
 
+typedef gboolean (* GifencWriteFunc) (gpointer closure, const guchar *data, gsize len, GError **error);
+
+typedef enum {
+  GIFENC_STATE_NEW = 0,
+  GIFENC_STATE_INITIALIZED,
+  GIFENC_STATE_CLOSED,
+} GifencState;
+
 struct _GifencPalette {
   gboolean	alpha;
   guint32 *	colors;
@@ -40,8 +48,14 @@ struct _GifencPalette {
 };
 
 struct _Gifenc {
+  /* error checking */
+  GifencState           state;
+
   /* output */
-  int			fd;
+  GifencWriteFunc       write_func;
+  gpointer              write_data;
+  GDestroyNotify        write_destroy;
+  GByteArray *          buffer;
   guint			bits;
   guint			n_bits;
   
@@ -52,60 +66,63 @@ struct _Gifenc {
   GifencPalette *	palette;
 };
 
-Gifenc *	gifenc_open		(const char *	filename,
-					 guint		width,
-					 guint		height);
-Gifenc *	gifenc_open_fd		(int		fd,
-					 guint		width,
-					 guint		height);
+Gifenc *        gifenc_new              (guint                  width,
+                                         guint                  height,
+                                         GifencWriteFunc        write_func,
+                                         gpointer               write_data,
+                                         GDestroyNotify         write_destroy);
+gboolean        gifenc_free             (Gifenc *		enc);
 					 
-void		gifenc_set_palette	(Gifenc *	enc,
-					 GifencPalette *palette);
-void		gifenc_set_looping	(Gifenc *	enc);
-void		gifenc_add_image	(Gifenc *	enc,
-					 guint		x,
-					 guint		y,
-					 guint		width,
-					 guint		height,
-					 guint		display_millis,
-					 guint8 *	data,
-					 guint		rowstride);
-gboolean	gifenc_close		(Gifenc *	enc);
+gboolean        gifenc_initialize	(Gifenc *		enc,
+					 GifencPalette *	palette,
+                                         gboolean       	loop,
+                                         GError **      	error);
+gboolean        gifenc_add_image	(Gifenc *		enc,
+					 guint			x,
+					 guint			y,
+					 guint			width,
+					 guint			height,
+					 guint			display_millis,
+					 guint8 *		data,
+					 guint			rowstride,
+                                         GError **		error);
+gboolean        gifenc_close            (Gifenc *       	gifenc,
+                                         GError **      	error);
 
-void		gifenc_dither_rgb	(guint8 *	target,
-					 guint		target_rowstride,
+void		gifenc_dither_rgb	(guint8 *		target,
+					 guint			target_rowstride,
 					 const GifencPalette *	palette,
-					 const guint8 *	data,
-					 guint		width,
-					 guint		height,
-					 guint		rowstride);
+					 const guint8 *		data,
+					 guint			width,
+					 guint			height,
+					 guint			rowstride);
 gboolean	gifenc_dither_rgb_with_full_image
-					(guint8 *	target,
-					 guint		target_rowstride,
-					 guint8 *	full,
-					 guint		full_rowstride,
+					(guint8 *		target,
+					 guint			target_rowstride,
+					 guint8 *		full,
+					 guint			full_rowstride,
 					 const GifencPalette *	palette,
-					 const guint8 *	data,
-					 guint		width,
-					 guint		height,
-					 guint		rowstride,
-					 GdkRectangle *	rect_out);
+					 const guint8 *		data,
+					 guint			width,
+					 guint			height,
+					 guint			rowstride,
+					 GdkRectangle *		rect_out);
 
 /* from quantize.c */
-void		gifenc_palette_free	(GifencPalette *palette);
-GifencPalette *	gifenc_palette_get_simple (gboolean	alpha);
-GifencPalette *	gifenc_quantize_image	(const guint8 *	data,
-					 guint		width, 
-					 guint		height,
-					 guint		rowstride, 
-					 gboolean	alpha,
-					 guint		max_colors);
+void		gifenc_palette_free	(GifencPalette *	palette);
+GifencPalette *	gifenc_palette_get_simple (gboolean		alpha);
+GifencPalette *	gifenc_quantize_image	(const guint8 *		data,
+					 guint			width, 
+					 guint			height,
+					 guint			rowstride, 
+					 gboolean		alpha,
+					 guint			max_colors);
 guint		gifenc_palette_get_alpha_index
-					(const GifencPalette *palette);
+					(const GifencPalette *	palette);
 guint		gifenc_palette_get_num_colors
-					(const GifencPalette *palette);
-guint32		gifenc_palette_get_color(const GifencPalette *palette,
-					 guint		id);
+					(const GifencPalette *	palette);
+guint32		gifenc_palette_get_color(const GifencPalette *	palette,
+					 guint			id);
 					
 
 #endif /* __HAVE_GIFENC_H__ */
