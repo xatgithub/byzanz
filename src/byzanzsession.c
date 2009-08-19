@@ -50,10 +50,6 @@ typedef enum {
   SESSION_JOB_ENCODE,
 } SessionJobType;
 
-typedef gboolean (* DitherRegionGetDataFunc) (ByzanzSession *rec, 
-    gpointer data, GdkRectangle *rect,
-    gpointer *data_out, guint *bpl_out);
-
 typedef struct {
   SessionJobType	type;		/* type of job */
   GTimeVal		tv;		/* time this job was enqueued */
@@ -167,14 +163,13 @@ session_job_new (ByzanzSession *rec, SessionJobType type,
 /*** THREAD FUNCTIONS ***/
 
 static gboolean
-byzanz_session_dither_region (ByzanzSession *rec, GdkRegion *region,
-    DitherRegionGetDataFunc func, gpointer data)
+byzanz_session_dither_region (ByzanzSession *rec, GdkRegion *region, cairo_surface_t *surface)
 {
   GdkRectangle *rects;
   GdkRegion *rev;
   int i, line, nrects;
   guint8 transparent;
-  guint bpl;
+  guint stride;
   gpointer mem;
   GdkRectangle area;
   
@@ -183,13 +178,14 @@ byzanz_session_dither_region (ByzanzSession *rec, GdkRegion *region,
   /* dither changed pixels */
   gdk_region_get_rectangles (region, &rects, &nrects);
   rev = gdk_region_new ();
+  stride = cairo_image_surface_get_stride (surface);
   for (i = 0; i < nrects; i++) {
-    if (!(*func) (rec, data, rects + i, &mem, &bpl))
-      return FALSE;
+    mem = cairo_image_surface_get_data (surface) + rects[i].x * 4
+      + rects[i].y * stride;
     if (gifenc_dither_rgb_with_full_image (
 	rec->data + rec->area.width * rects[i].y + rects[i].x, rec->area.width, 
 	rec->data_full + rec->area.width * rects[i].y + rects[i].x, rec->area.width, 
-	rec->gifenc->palette, mem, rects[i].width, rects[i].height, bpl, &area)) {
+	rec->gifenc->palette, mem, rects[i].width, rects[i].height, stride, &area)) {
       area.x += rects[i].x;
       area.y += rects[i].y;
       gdk_region_union_with_rect (rev, &area);
@@ -255,26 +251,12 @@ byzanz_session_quantize (ByzanzSession *rec, cairo_surface_t *image)
   gifenc_initialize (rec->gifenc, palette, rec->loop, NULL);
 }
 
-static gboolean 
-byzanz_session_encode_get_data (ByzanzSession *rec, gpointer data, GdkRectangle *rect,
-    gpointer *data_out, guint *bpl_out)
-{
-  cairo_surface_t *image = data;
-
-  *data_out = cairo_image_surface_get_data (image)
-      + rect->y * cairo_image_surface_get_stride (image)
-      + rect->x * 4;
-  *bpl_out = cairo_image_surface_get_stride (image);
-  return TRUE;
-}
-
 static void
 byzanz_session_encode (ByzanzSession *rec, cairo_surface_t *image, GdkRegion *region)
 {
   g_assert (!gdk_region_empty (region));
   
-  byzanz_session_dither_region (rec, region, byzanz_session_encode_get_data,
-      image);
+  byzanz_session_dither_region (rec, region, image);
 }
 
 static gpointer
