@@ -87,16 +87,6 @@ start_recording (gpointer session)
   return FALSE;
 }
 
-static gboolean
-prepare_recording (gpointer session)
-{
-  verbose_print (_("Preparing recording. Will start in 1 second...\n"));
-  byzanz_session_prepare (session);
-  g_timeout_add (1000, start_recording, session);
-  
-  return FALSE;
-}
-
 int
 main (int argc, char **argv)
 {
@@ -141,7 +131,7 @@ main (int argc, char **argv)
   delay = (delay - 1) * 1000;
   duration = MAX (duration, 0);
   duration *= 1000;
-  g_timeout_add (delay, prepare_recording, rec);
+  g_timeout_add (delay, start_recording, rec);
   
   gtk_main ();
 

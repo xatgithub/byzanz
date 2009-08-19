@@ -49,7 +49,6 @@
 typedef enum {
   RECORDER_STATE_ERROR,
   RECORDER_STATE_CREATED,
-  RECORDER_STATE_PREPARED,
   RECORDER_STATE_RECORDING,
   RECORDER_STATE_STOPPED
 } SessionState;
@@ -746,9 +745,6 @@ byzanz_session_state_advance (ByzanzSession *session)
 {
   switch (session->state) {
     case RECORDER_STATE_CREATED:
-      byzanz_session_prepare (session);
-      break;
-    case RECORDER_STATE_PREPARED:
       byzanz_session_start (session);
       break;
     case RECORDER_STATE_RECORDING:
@@ -898,30 +894,20 @@ byzanz_session_new_fd (gint fd, GdkWindow *window, GdkRectangle *area,
 }
 
 void
-byzanz_session_prepare (ByzanzSession *rec)
-{
-  SessionJob *job;
-  GdkRegion *region;
-  GTimeVal tv;
-  
-  g_return_if_fail (BYZANZ_IS_RECORDER (rec));
-  g_return_if_fail (rec->state == RECORDER_STATE_CREATED);
-
-  region = gdk_region_rectangle (&rec->area);
-  g_get_current_time (&tv);
-  job = session_job_new (rec, RECORDER_JOB_QUANTIZE, &tv, region);
-  g_async_queue_push (rec->jobs, job);
-  //g_print ("pushing QUANTIZE\n");
-  rec->state = RECORDER_STATE_PREPARED;
-}
-
-void
 byzanz_session_start (ByzanzSession *rec)
 {
   Display *dpy;
+  SessionJob *job;
+  GTimeVal tv;
 
   g_return_if_fail (BYZANZ_IS_RECORDER (rec));
-  g_return_if_fail (rec->state == RECORDER_STATE_PREPARED);
+  g_return_if_fail (rec->state == RECORDER_STATE_CREATED);
+
+  rec->region = gdk_region_rectangle (&rec->area);
+  g_get_current_time (&tv);
+  job = session_job_new (rec, RECORDER_JOB_QUANTIZE, &tv, rec->region);
+  g_async_queue_push (rec->jobs, job);
+  rec->region = NULL;
 
   g_assert (rec->region == NULL);
 

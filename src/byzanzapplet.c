@@ -259,7 +259,6 @@ byzanz_applet_start_recording (AppletPrivate *priv)
     g_object_unref (window);
   }
   if (priv->rec) {
-    byzanz_session_prepare (priv->rec);
     byzanz_session_start (priv->rec);
     g_get_current_time (&priv->start);
   }

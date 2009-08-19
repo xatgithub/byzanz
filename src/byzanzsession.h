@@ -36,7 +36,6 @@ ByzanzSession * 	byzanz_session_new_fd		(gint			fd,
 							 GdkRectangle *		area,
 							 gboolean		loop,
 							 gboolean		record_cursor);
-void			byzanz_session_prepare		(ByzanzSession *	session);
 void			byzanz_session_start		(ByzanzSession *	session);
 void			byzanz_session_stop		(ByzanzSession *	session);
 void			byzanz_session_destroy		(ByzanzSession *	session);
