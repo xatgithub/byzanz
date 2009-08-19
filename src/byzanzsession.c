@@ -39,26 +39,26 @@
 #include "i18n.h"
 
 /* use a maximum of 50 Mbytes to cache images */
-#define BYZANZ_RECORDER_MAX_CACHE (50*1024*1024)
+#define BYZANZ_SESSION_MAX_CACHE (50*1024*1024)
 /* as big as possible for 32bit ints without risking overflow
  * The current values gets overflows with pictures >= 2048x2048 */
-#define BYZANZ_RECORDER_MAX_FILE_CACHE (0xFF000000)
+#define BYZANZ_SESSION_MAX_FILE_CACHE (0xFF000000)
 /* split that into ~ 16 files please */
-#define BYZANZ_RECORDER_MAX_FILE_SIZE (BYZANZ_RECORDER_MAX_FILE_CACHE / 16)
+#define BYZANZ_SESSION_MAX_FILE_SIZE (BYZANZ_SESSION_MAX_FILE_CACHE / 16)
 
 typedef enum {
-  RECORDER_STATE_ERROR,
-  RECORDER_STATE_CREATED,
-  RECORDER_STATE_RECORDING,
-  RECORDER_STATE_STOPPED
+  SESSION_STATE_ERROR,
+  SESSION_STATE_CREATED,
+  SESSION_STATE_RECORDING,
+  SESSION_STATE_STOPPED
 } SessionState;
 
 typedef enum {
-  RECORDER_JOB_QUIT,
-  RECORDER_JOB_QUIT_NOW,
-  RECORDER_JOB_QUANTIZE,
-  RECORDER_JOB_ENCODE,
-  RECORDER_JOB_USE_FILE_CACHE,
+  SESSION_JOB_QUIT,
+  SESSION_JOB_QUIT_NOW,
+  SESSION_JOB_QUANTIZE,
+  SESSION_JOB_ENCODE,
+  SESSION_JOB_USE_FILE_CACHE,
 } SessionJobType;
 
 typedef gboolean (* DitherRegionGetDataFunc) (ByzanzSession *rec, 
@@ -199,7 +199,7 @@ session_job_new (ByzanzSession *rec, SessionJobType type,
 	  SessionJob *tmp;
 	  guint count;
 	  rec->use_file_cache = TRUE;
-	  tmp = session_job_new (rec, RECORDER_JOB_USE_FILE_CACHE, NULL, NULL);
+	  tmp = session_job_new (rec, SESSION_JOB_USE_FILE_CACHE, NULL, NULL);
 	  /* push job to the front */
 	  g_async_queue_lock (rec->jobs);
 	  count = g_async_queue_length_unlocked (rec->jobs);
@@ -218,7 +218,7 @@ session_job_new (ByzanzSession *rec, SessionJobType type,
 	return NULL;
       }
     } 
-    if (type == RECORDER_JOB_ENCODE) {
+    if (type == SESSION_JOB_ENCODE) {
       Display *dpy = gdk_x11_drawable_get_xdisplay (rec->window);
       XDamageSubtract (dpy, rec->damage, rec->damaged, rec->damaged);
       XFixesSubtractRegion (dpy, rec->damaged, rec->damaged, rec->damaged);
@@ -519,10 +519,10 @@ loop:
       job = g_async_queue_pop (rec->jobs);
     }
     switch (job->type) {
-      case RECORDER_JOB_QUANTIZE:
+      case SESSION_JOB_QUANTIZE:
 	byzanz_session_quantize (rec, job->image);
 	break;
-      case RECORDER_JOB_ENCODE:
+      case SESSION_JOB_ENCODE:
 	if (USING_FILE_CACHE (rec)) {
 	  while (!stored_image_store (rec, job->image, job->region, &job->tv)) {
 	    if (!stored_image_process (rec))
@@ -535,17 +535,17 @@ loop:
 	  byzanz_session_encode (rec, job->image, job->region);
 	}
 	break;
-      case RECORDER_JOB_USE_FILE_CACHE:
+      case SESSION_JOB_USE_FILE_CACHE:
 	if (!USING_FILE_CACHE (rec)) {
 	  rec->file_cache_data_size = 4 * 64 * 64;
 	  rec->file_cache_data = g_malloc (rec->file_cache_data_size);
 	}
 	break;
-      case RECORDER_JOB_QUIT_NOW:
+      case SESSION_JOB_QUIT_NOW:
 	/* clean up cache files and exit */
 	g_assert_not_reached ();
 	break;
-      case RECORDER_JOB_QUIT:
+      case SESSION_JOB_QUIT:
 	quit_tv = job->tv;
 	quit = TRUE;
 	break;
@@ -640,7 +640,7 @@ byzanz_session_queue_image (ByzanzSession *rec)
   }
   
   if (!gdk_region_empty (rec->region)) {
-    job = session_job_new (rec, RECORDER_JOB_ENCODE, &tv, rec->region);
+    job = session_job_new (rec, SESSION_JOB_ENCODE, &tv, rec->region);
     if (job) {
       if (render_cursor) 
 	render_cursor_to_image (job->image, rec->cursor, 
@@ -744,14 +744,14 @@ static void
 byzanz_session_state_advance (ByzanzSession *session)
 {
   switch (session->state) {
-    case RECORDER_STATE_CREATED:
+    case SESSION_STATE_CREATED:
       byzanz_session_start (session);
       break;
-    case RECORDER_STATE_RECORDING:
+    case SESSION_STATE_RECORDING:
       byzanz_session_stop (session);
       break;
-    case RECORDER_STATE_STOPPED:
-    case RECORDER_STATE_ERROR:
+    case SESSION_STATE_STOPPED:
+    case SESSION_STATE_ERROR:
     default:
       break;
   }
@@ -853,9 +853,9 @@ byzanz_session_new_fd (gint fd, GdkWindow *window, GdkRectangle *area,
   session->area = *area;
   session->loop = loop;
   session->frame_duration = 1000 / 25;
-  session->max_cache_size = BYZANZ_RECORDER_MAX_CACHE;
-  session->max_file_size = BYZANZ_RECORDER_MAX_FILE_SIZE;
-  session->max_file_cache = BYZANZ_RECORDER_MAX_FILE_CACHE;
+  session->max_cache_size = BYZANZ_SESSION_MAX_CACHE;
+  session->max_file_size = BYZANZ_SESSION_MAX_FILE_SIZE;
+  session->max_file_cache = BYZANZ_SESSION_MAX_FILE_CACHE;
   
   /* prepare thread first, so we can easily error out on failure */
   session->window = window;
@@ -889,7 +889,7 @@ byzanz_session_new_fd (gint fd, GdkWindow *window, GdkRectangle *area,
     session->cursors = g_hash_table_new_full (cursor_hash, cursor_equal, 
       NULL, (GDestroyNotify) XFree);
 
-  session->state = RECORDER_STATE_CREATED;
+  session->state = SESSION_STATE_CREATED;
   return session;
 }
 
@@ -900,12 +900,12 @@ byzanz_session_start (ByzanzSession *rec)
   SessionJob *job;
   GTimeVal tv;
 
-  g_return_if_fail (BYZANZ_IS_RECORDER (rec));
-  g_return_if_fail (rec->state == RECORDER_STATE_CREATED);
+  g_return_if_fail (BYZANZ_IS_SESSION (rec));
+  g_return_if_fail (rec->state == SESSION_STATE_CREATED);
 
   rec->region = gdk_region_rectangle (&rec->area);
   g_get_current_time (&tv);
-  job = session_job_new (rec, RECORDER_JOB_QUANTIZE, &tv, rec->region);
+  job = session_job_new (rec, SESSION_JOB_QUANTIZE, &tv, rec->region);
   g_async_queue_push (rec->jobs, job);
   rec->region = NULL;
 
@@ -927,7 +927,7 @@ byzanz_session_start (ByzanzSession *rec)
   }
   /* byzanz_session_queue_image (rec); - we'll get a damage event anyway */
   
-  rec->state = RECORDER_STATE_RECORDING;
+  rec->state = SESSION_STATE_RECORDING;
 }
 
 void
@@ -937,12 +937,12 @@ byzanz_session_stop (ByzanzSession *rec)
   SessionJob *job;
   Display *dpy;
 
-  g_return_if_fail (BYZANZ_IS_RECORDER (rec));
-  g_return_if_fail (rec->state == RECORDER_STATE_RECORDING);
+  g_return_if_fail (BYZANZ_IS_SESSION (rec));
+  g_return_if_fail (rec->state == SESSION_STATE_RECORDING);
 
   /* byzanz_session_queue_image (rec); - useless because last image would have a 0 time */
   g_get_current_time (&tv);
-  job = session_job_new (rec, RECORDER_JOB_QUIT, &tv, NULL);
+  job = session_job_new (rec, SESSION_JOB_QUIT, &tv, NULL);
   g_async_queue_push (rec->jobs, job);
   //g_print ("pushing QUIT\n");
   gdk_window_remove_filter (rec->window, 
@@ -958,7 +958,7 @@ byzanz_session_stop (ByzanzSession *rec)
     XFixesSelectCursorInput (dpy, GDK_DRAWABLE_XID (rec->window),
 	0);
   
-  rec->state = RECORDER_STATE_STOPPED;
+  rec->state = SESSION_STATE_STOPPED;
 }
 
 void
@@ -967,10 +967,10 @@ byzanz_session_destroy (ByzanzSession *rec)
   Display *dpy;
   SessionJob *job;
 
-  g_return_if_fail (BYZANZ_IS_RECORDER (rec));
+  g_return_if_fail (BYZANZ_IS_SESSION (rec));
 
-  while (rec->state != RECORDER_STATE_ERROR &&
-         rec->state != RECORDER_STATE_STOPPED)
+  while (rec->state != SESSION_STATE_ERROR &&
+         rec->state != SESSION_STATE_STOPPED)
     byzanz_session_state_advance (rec);
 
   if (g_thread_join (rec->encoder) != rec)
@@ -1010,7 +1010,7 @@ void
 byzanz_session_set_max_cache (ByzanzSession *rec,
     guint max_cache_bytes)
 {
-  g_return_if_fail (BYZANZ_IS_RECORDER (rec));
+  g_return_if_fail (BYZANZ_IS_SESSION (rec));
   g_return_if_fail (max_cache_bytes > G_MAXINT);
 
   rec->max_cache_size = max_cache_bytes;
@@ -1034,7 +1034,7 @@ byzanz_session_set_max_cache (ByzanzSession *rec,
 guint
 byzanz_session_get_max_cache (ByzanzSession *rec)
 {
-  g_return_val_if_fail (BYZANZ_IS_RECORDER (rec), 0);
+  g_return_val_if_fail (BYZANZ_IS_SESSION (rec), 0);
 
   return rec->max_cache_size;
 }
@@ -1050,7 +1050,7 @@ byzanz_session_get_max_cache (ByzanzSession *rec)
 guint
 byzanz_session_get_cache (ByzanzSession *rec)
 {
-  g_return_val_if_fail (BYZANZ_IS_RECORDER (rec), 0);
+  g_return_val_if_fail (BYZANZ_IS_SESSION (rec), 0);
   
   return rec->cache_size;
 }
@@ -1069,7 +1069,7 @@ byzanz_session_get_cache (ByzanzSession *rec)
 gboolean
 byzanz_session_is_active (ByzanzSession *session)
 {
-  g_return_val_if_fail (BYZANZ_IS_RECORDER (session), 0);
+  g_return_val_if_fail (BYZANZ_IS_SESSION (session), 0);
   
   return g_atomic_int_get (&session->encoder_running) > 0;
 }

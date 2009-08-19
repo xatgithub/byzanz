@@ -20,11 +20,11 @@
 #include <glib.h>
 #include <gtk/gtk.h>
 
-#ifndef __HAVE_BYZANZ_RECORDER_H__
-#define __HAVE_BYZANZ_RECORDER_H__
+#ifndef __HAVE_BYZANZ_SESSION_H__
+#define __HAVE_BYZANZ_SESSION_H__
 
 typedef struct _ByzanzSession ByzanzSession;
-#define BYZANZ_IS_RECORDER(obj) ((obj) != NULL)
+#define BYZANZ_IS_SESSION(obj) ((obj) != NULL)
 
 ByzanzSession * 	byzanz_session_new		(const gchar *		filename,
 							 GdkWindow *		window,
@@ -47,4 +47,4 @@ guint			byzanz_session_get_max_cache	(ByzanzSession *       session);
 guint			byzanz_session_get_cache	(ByzanzSession *       session);
 					
 
-#endif /* __HAVE_BYZANZ_RECORDER_H__ */
+#endif /* __HAVE_BYZANZ_SESSION_H__ */
