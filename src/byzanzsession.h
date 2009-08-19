@@ -40,11 +40,6 @@ void			byzanz_session_start		(ByzanzSession *	session);
 void			byzanz_session_stop		(ByzanzSession *	session);
 void			byzanz_session_destroy		(ByzanzSession *	session);
 gboolean		byzanz_session_is_active	(ByzanzSession *	session);
-/* property functions */
-void			byzanz_session_set_max_cache	(ByzanzSession *	session,
-							 guint			max_cache_bytes);
-guint			byzanz_session_get_max_cache	(ByzanzSession *       session);
-guint			byzanz_session_get_cache	(ByzanzSession *       session);
 					
 
 #endif /* __HAVE_BYZANZ_SESSION_H__ */

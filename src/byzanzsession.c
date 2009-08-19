@@ -38,14 +38,6 @@
 #include "gifenc.h"
 #include "i18n.h"
 
-/* use a maximum of 50 Mbytes to cache images */
-#define BYZANZ_SESSION_MAX_CACHE (50*1024*1024)
-/* as big as possible for 32bit ints without risking overflow
- * The current values gets overflows with pictures >= 2048x2048 */
-#define BYZANZ_SESSION_MAX_FILE_CACHE (0xFF000000)
-/* split that into ~ 16 files please */
-#define BYZANZ_SESSION_MAX_FILE_SIZE (BYZANZ_SESSION_MAX_FILE_CACHE / 16)
-
 typedef enum {
   SESSION_STATE_ERROR,
   SESSION_STATE_CREATED,
@@ -56,7 +48,6 @@ typedef enum {
 typedef enum {
   SESSION_JOB_QUIT,
   SESSION_JOB_ENCODE,
-  SESSION_JOB_USE_FILE_CACHE,
 } SessionJobType;
 
 typedef gboolean (* DitherRegionGetDataFunc) (ByzanzSession *rec, 
@@ -84,11 +75,7 @@ struct _ByzanzSession {
   GdkRectangle		area;		/* area of the screen we record */
   gboolean		loop;		/* wether the resulting gif should loop */
   guint			frame_duration;	/* minimum frame duration in msecs */
-  guint			max_cache_size;	/* maximum allowed size of cache */
-  gint			max_file_size;	/* maximum allowed size of one cache file - ATOMIC */
-  gint			max_file_cache;	/* maximum allowed size of all cache files together - ATOMIC */
   /* state */
-  guint			cache_size;	/* current cache size */
   SessionState		state;		/* state the session is in */
   guint			timeout;	/* signal id for timeout */
   GdkWindow *		window;		/* root window we record */
@@ -102,23 +89,15 @@ struct _ByzanzSession {
   GdkRectangle		cursor_area;	/* area occupied by cursor */
   GdkRegion *		region;		/* the region we need to record next time */
   GThread *		encoder;	/* encoding thread */
-  gint			use_file_cache :1; /* set whenever we signal using the file cache */
   /* accessed ALSO by thread */
   gint			encoder_running;/* TRUE while the encoder is running */
   GAsyncQueue *		jobs;		/* jobs the encoding thread has to do */
-  GAsyncQueue *		finished;	/* store for leftover images */
-  gint			cur_file_cache;	/* current amount of data cached in files */
   /* accessed ONLY by thread */
   Gifenc *		gifenc;		/* encoder used to encode the image */
   GTimeVal		current;	/* timestamp of last encoded picture */
   guint8 *		data;		/* data used to hold palettized data */
   guint8 *		data_full;    	/* palettized data of full image to compare additions to */
   GdkRectangle		relevant_data;	/* relevant area to encode */
-  GQueue *		file_cache;	/* queue of sorted images */
-  int			cur_cache_fd;	/* current cache file */
-  char *		cur_cache_file;	/* name of current cache file */
-  guint8 *		file_cache_data;	/* data read in from file */
-  guint			file_cache_data_size;	/* data read in from file */
 };
 #define IS_RECORDING_CURSOR(rec) ((rec)->cursors != NULL)
 
@@ -142,23 +121,15 @@ byzanz_cairo_set_source_window (cairo_t *cr, GdkWindow *window, double x, double
   cairo_destroy (tmp);
 }
 
-static guint
-compute_image_size (cairo_surface_t *image)
-{
-  return cairo_image_surface_get_stride (image) * cairo_image_surface_get_height (image);
-}
-
 static void
-session_job_free (ByzanzSession *rec, SessionJob *job)
+session_job_free (SessionJob *job)
 {
-  if (job->image) {
-    rec->cache_size -= compute_image_size (job->image);
+  if (job->image)
     cairo_surface_destroy (job->image);
-  }
   if (job->region)
     gdk_region_destroy (job->region);
 
-  g_free (job);
+  g_slice_free (SessionJob, job);
 }
 
 /* UGH: This function takes ownership of region, but only if a job could be created */
@@ -168,18 +139,7 @@ session_job_new (ByzanzSession *rec, SessionJobType type,
 {
   SessionJob *job;
 
-  for (;;) {
-    job = g_async_queue_try_pop (rec->finished);
-    if (!job || !job->image)
-      break;
-    if (rec->cache_size - compute_image_size (job->image) <= rec->max_cache_size)
-      break;
-    session_job_free (rec, job);
-  }
-  if (!job) 
-    job = g_new0 (SessionJob, 1);
-  
-  g_assert (job->region == NULL);
+  job = g_slice_new0 (SessionJob);
   
   if (tv)
     job->tv = *tv;
@@ -187,35 +147,8 @@ session_job_new (ByzanzSession *rec, SessionJobType type,
   job->region = region;
   if (region != NULL) {
     cairo_t *cr;
-    if (!job->image) {
-      if (rec->cache_size <= rec->max_cache_size) {
-	job->image = cairo_image_surface_create (CAIRO_FORMAT_RGB24,
-	    rec->area.width, rec->area.height);
-	rec->cache_size += compute_image_size (job->image);
-	if (!rec->use_file_cache &&
-	    rec->cache_size >= rec->max_cache_size / 2) {
-	  SessionJob *tmp;
-	  guint count;
-	  rec->use_file_cache = TRUE;
-	  tmp = session_job_new (rec, SESSION_JOB_USE_FILE_CACHE, NULL, NULL);
-	  /* push job to the front */
-	  g_async_queue_lock (rec->jobs);
-	  count = g_async_queue_length_unlocked (rec->jobs);
-	  //g_print ("pushing USE_FILE_CACHE\n");
-	  g_async_queue_push_unlocked (rec->jobs, tmp);
-	  while (count > 0) {
-	    tmp = g_async_queue_pop_unlocked (rec->jobs);
-	    g_async_queue_push_unlocked (rec->jobs, tmp);
-	    count--;
-	  }
-	  g_async_queue_unlock (rec->jobs);
-	}
-      }
-      if (!job->image) {
-	g_free (job);
-	return NULL;
-      }
-    } 
+    job->image = cairo_image_surface_create (CAIRO_FORMAT_RGB24,
+        rec->area.width, rec->area.height);
     if (type == SESSION_JOB_ENCODE) {
       Display *dpy = gdk_x11_drawable_get_xdisplay (rec->window);
       XDamageSubtract (dpy, rec->damage, rec->damaged, rec->damaged);
@@ -312,147 +245,6 @@ byzanz_session_add_image (ByzanzSession *rec, const GTimeVal *tv)
 }
 
 static void
-stored_image_remove_file (ByzanzSession *rec, int fd, char *filename)
-{
-  guint size;
-
-  size = (guint) lseek (fd, 0, SEEK_END);
-  g_atomic_int_add (&rec->cur_file_cache, - (gint) size);
-  close (fd);
-  g_unlink (filename);
-  g_free (filename);
-}
-
-/* returns FALSE if no more images can be cached */
-static gboolean
-stored_image_store (ByzanzSession *rec, cairo_surface_t *image, GdkRegion *region, const GTimeVal *tv)
-{
-  off_t offset;
-  StoredImage *store;
-  GdkRectangle *rects;
-  gint i, line, nrects;
-  gboolean ret = FALSE;
-  guint cache, val;
-  guint stride;
-  guchar *data;
-  
-  val = g_atomic_int_get (&rec->max_file_cache);
-  cache = g_atomic_int_get (&rec->cur_file_cache);
-  if (cache >= val) {
-    g_print ("cache full %u/%u bytes\n", cache, val);
-    return FALSE;
-  }
-
-  if (rec->cur_cache_fd < 0) {
-    rec->cur_cache_fd =	g_file_open_tmp ("byzanzcacheXXXXXX", &rec->cur_cache_file, NULL);
-    if (rec->cur_cache_fd < 0) {
-      g_print ("no temp file: %d\n", rec->cur_cache_fd);
-      return FALSE;
-    }
-    offset = 0;
-  } else {
-    offset = lseek (rec->cur_cache_fd, 0, SEEK_END);
-  }
-  store = g_new (StoredImage, 1);
-  store->region = region;
-  store->tv = *tv;
-  store->fd = rec->cur_cache_fd;
-  store->filename = NULL;
-  store->offset = offset;
-  gdk_region_get_rectangles (store->region, &rects, &nrects);
-  stride = cairo_image_surface_get_stride (image);
-  data = cairo_image_surface_get_data (image);
-  for (i = 0; i < nrects; i++) {
-    guchar *mem;
-    mem = data + rects[i].x * 4 + rects[i].y * stride;
-    for (line = 0; line < rects[i].height; line++) {
-      int amount = rects[i].width * 4;
-      /* This can be made smarter, like retrying and catching EINTR and stuff */
-      if (write (store->fd, mem, amount) != amount) {
-	g_print ("couldn't write %d bytes\n", amount);	
-	goto out_err;
-      }
-      mem += stride;
-    }
-  }
-
-  g_queue_push_tail (rec->file_cache, store);
-  ret = TRUE;
-out_err:
-  offset = lseek (store->fd, 0, SEEK_CUR);
-  g_assert (offset > 0); /* FIXME */
-  val = g_atomic_int_get (&rec->max_file_size);
-  if ((guint) offset >= val) {
-    rec->cur_cache_fd = -1;
-    if (!ret)
-      store = g_queue_peek_tail (rec->file_cache);
-    if (store->filename)
-      stored_image_remove_file (rec, rec->cur_cache_fd, rec->cur_cache_file);
-    else
-      store->filename = rec->cur_cache_file;
-    rec->cur_cache_file = NULL;
-  }
-  //g_print ("current file is stored from %u to %u\n", (guint) store->offset, (guint) offset);
-  offset -= store->offset;
-  g_atomic_int_add (&rec->cur_file_cache, offset);
-  //g_print ("cache size is now %u\n", g_atomic_int_get (&rec->cur_file_cache));
-
-  return ret;
-}
-
-static gboolean
-stored_image_dither_get_data (ByzanzSession *rec, gpointer data, GdkRectangle *rect,
-    gpointer *data_out, guint *bpl_out)
-{
-  StoredImage *store = data;
-  guint required_size = rect->width * rect->height * 4;
-  guint8 *ptr;
-
-  if (required_size > rec->file_cache_data_size) {
-    rec->file_cache_data = g_realloc (rec->file_cache_data, required_size);
-    rec->file_cache_data_size = required_size;
-  }
-
-  ptr = rec->file_cache_data;
-  while (required_size > 0) {
-    int ret = read (store->fd, ptr, required_size);
-    if (ret < 0)
-      return FALSE;
-    ptr += ret;
-    required_size -= ret;
-  }
-  *bpl_out = 4 * rect->width;
-  *data_out = rec->file_cache_data;
-  return TRUE;
-}
-
-static gboolean
-stored_image_process (ByzanzSession *rec)
-{
-  StoredImage *store;
-  gboolean ret;
-
-  store = g_queue_pop_head (rec->file_cache);
-  if (!store)
-    return FALSE;
-
-  /* FIXME: can that assertion trigger? */
-  if (store->offset != lseek (store->fd, store->offset, SEEK_SET)) {
-    g_printerr ("Couldn't seek to %d\n", (int) store->offset);
-    g_assert_not_reached ();
-  }
-  byzanz_session_add_image (rec, &store->tv);
-  lseek (store->fd, store->offset, SEEK_SET);
-  ret = byzanz_session_dither_region (rec, store->region, stored_image_dither_get_data, store);
-
-  if (store->filename)
-    stored_image_remove_file (rec, store->fd, store->filename);
-  gdk_region_destroy (store->region);
-  g_free (store);
-  return ret;
-}
-
-static void
 byzanz_session_quantize (ByzanzSession *rec, cairo_surface_t *image)
 {
   GifencPalette *palette;
@@ -493,53 +285,18 @@ byzanz_session_run_encoder (gpointer data)
   GTimeVal quit_tv;
   gboolean quit = FALSE;
   gboolean has_quantized = FALSE;
-#define USING_FILE_CACHE(rec) ((rec)->file_cache_data_size > 0)
 
-  rec->cur_cache_fd = -1;
-  rec->file_cache = g_queue_new ();
+  while (!quit) {
+    job = g_async_queue_pop (rec->jobs);
 
-  while (TRUE) {
-    if (USING_FILE_CACHE (rec)) {
-loop:
-      job = g_async_queue_try_pop (rec->jobs);
-      if (!job) {
-	if (!stored_image_process (rec)) {
-	  if (quit)
-	    break;
-	  goto loop;
-	}
-	if (quit)
-	  goto loop;
-	job = g_async_queue_pop (rec->jobs);
-      }
-    } else {
-      if (quit)
-	break;
-      job = g_async_queue_pop (rec->jobs);
-    }
     switch (job->type) {
       case SESSION_JOB_ENCODE:
         if (!has_quantized) {
 	  byzanz_session_quantize (rec, job->image);
           has_quantized = TRUE;
         }
-	if (USING_FILE_CACHE (rec)) {
-	  while (!stored_image_store (rec, job->image, job->region, &job->tv)) {
-	    if (!stored_image_process (rec))
-	      /* fix this (bad error handling here) */
-	      g_assert_not_reached ();
-	  }
-	  job->region = NULL;
-	} else {
-	  byzanz_session_add_image (rec, &job->tv);
-	  byzanz_session_encode (rec, job->image, job->region);
-	}
-	break;
-      case SESSION_JOB_USE_FILE_CACHE:
-	if (!USING_FILE_CACHE (rec)) {
-	  rec->file_cache_data_size = 4 * 64 * 64;
-	  rec->file_cache_data = g_malloc (rec->file_cache_data_size);
-	}
+        byzanz_session_add_image (rec, &job->tv);
+        byzanz_session_encode (rec, job->image, job->region);
 	break;
       case SESSION_JOB_QUIT:
 	quit_tv = job->tv;
@@ -549,11 +306,7 @@ loop:
 	g_assert_not_reached ();
 	return rec;
     }
-    if (job->region) {
-      gdk_region_destroy (job->region);
-      job->region = NULL;
-    }
-    g_async_queue_push (rec->finished, job);
+    session_job_free (job);
   }
   
   byzanz_session_add_image (rec, &quit_tv);
@@ -563,21 +316,9 @@ loop:
   rec->data = NULL;
   g_free (rec->data_full);
   rec->data_full = NULL;
-  if (USING_FILE_CACHE (rec)) {
-    if (rec->cur_cache_fd) {
-      stored_image_remove_file (rec, rec->cur_cache_fd, rec->cur_cache_file);
-      rec->cur_cache_file = NULL;
-      rec->cur_cache_fd = -1;
-    }
-    g_free (rec->file_cache_data);
-    rec->file_cache_data = NULL;
-    rec->file_cache_data_size = 0;
-  }
-  g_queue_free (rec->file_cache);
   g_atomic_int_add (&rec->encoder_running, -1);
 
   return rec;
-#undef USING_FILE_CACHE
 }
 
 /*** MAIN FUNCTIONS ***/
@@ -849,9 +590,6 @@ byzanz_session_new_fd (gint fd, GdkWindow *window, GdkRectangle *area,
   session->area = *area;
   session->loop = loop;
   session->frame_duration = 1000 / 25;
-  session->max_cache_size = BYZANZ_SESSION_MAX_CACHE;
-  session->max_file_size = BYZANZ_SESSION_MAX_FILE_SIZE;
-  session->max_file_cache = BYZANZ_SESSION_MAX_FILE_CACHE;
   
   /* prepare thread first, so we can easily error out on failure */
   session->window = window;
@@ -867,7 +605,6 @@ byzanz_session_new_fd (gint fd, GdkWindow *window, GdkRectangle *area,
     return NULL;
   }
   session->jobs = g_async_queue_new ();
-  session->finished = g_async_queue_new ();
   session->encoder_running = 1;
   session->encoder = g_thread_create (byzanz_session_run_encoder, session, 
       TRUE, NULL);
@@ -951,7 +688,6 @@ void
 byzanz_session_destroy (ByzanzSession *rec)
 {
   Display *dpy;
-  SessionJob *job;
 
   g_return_if_fail (BYZANZ_IS_SESSION (rec));
 
@@ -962,8 +698,6 @@ byzanz_session_destroy (ByzanzSession *rec)
   if (g_thread_join (rec->encoder) != rec)
     g_assert_not_reached ();
 
-  while ((job = g_async_queue_try_pop (rec->finished)) != NULL)
-    session_job_free (rec, job);
   dpy = gdk_x11_display_get_xdisplay (gdk_display_get_default ());
   XFixesDestroyRegion (dpy, rec->damaged);
   XFixesDestroyRegion (dpy, rec->tmp_region);
@@ -975,70 +709,9 @@ byzanz_session_destroy (ByzanzSession *rec)
   g_object_unref (rec->window);
 
   g_assert (g_async_queue_length (rec->jobs) == 0);
-  g_assert (rec->cache_size == 0);
+  g_async_queue_unref (rec->jobs);
   
   g_free (rec);
-}
-
-/**
- * byzanz_session_set_max_cache:
- * @rec: a recording session
- * @max_cache_bytes: maximum allowed cache size in bytes
- *
- * Sets the maximum allowed cache size. Since the session uses two threads -
- * one for taking screenshots and one for encoding these screenshots into the
- * final file, on heavy screen changes a big number of screenshot images can 
- * build up waiting to be encoded. This value is used to determine the maximum
- * allowed amount of memory these images may take. You can adapt this value 
- * during a recording session.
- **/
-void
-byzanz_session_set_max_cache (ByzanzSession *rec,
-    guint max_cache_bytes)
-{
-  g_return_if_fail (BYZANZ_IS_SESSION (rec));
-  g_return_if_fail (max_cache_bytes > G_MAXINT);
-
-  rec->max_cache_size = max_cache_bytes;
-  while (rec->cache_size > max_cache_bytes) {
-    SessionJob *job = g_async_queue_try_pop (rec->finished);
-    if (!job)
-      break;
-    session_job_free (rec, job);
-  }
-}
-
-/**
- * byzanz_session_get_max_cache:
- * @rec: a recording session
- *
- * Gets the maximum allowed cache size. See byzanz_session_set_max_cache()
- * for details.
- *
- * Returns: the maximum allowed cache size in bytes
- **/
-guint
-byzanz_session_get_max_cache (ByzanzSession *rec)
-{
-  g_return_val_if_fail (BYZANZ_IS_SESSION (rec), 0);
-
-  return rec->max_cache_size;
-}
-
-/**
- * byzanz_session_get_cache:
- * @rec: a recording session
- *
- * Determines the current amount of image cache used.
- *
- * Returns: current cache used in bytes
- **/
-guint
-byzanz_session_get_cache (ByzanzSession *rec)
-{
-  g_return_val_if_fail (BYZANZ_IS_SESSION (rec), 0);
-  
-  return rec->cache_size;
 }
 
 /**
