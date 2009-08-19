@@ -36,6 +36,7 @@ AC_DEFINE_UNQUOTED([LOCALEDIR], "$LOCALEDIR",
 
 
 AC_PROG_CC
+AM_PROG_CC_C_O
 dnl For interactive UNIX (a Sun thing)
 AC_ISC_POSIX
 
