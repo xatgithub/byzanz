@@ -21,8 +21,9 @@
 #  include "config.h"
 #endif
 
+#include <glib/gi18n.h>
+
 #include "byzanzsession.h"
-#include "i18n.h"
 
 static int duration = 10;
 static int delay = 1;

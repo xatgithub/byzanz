@@ -31,7 +31,7 @@
 #include "byzanzselect.h"
 #include "paneltogglebutton.h"
 #include "paneldropdown.h"
-#include "i18n.h"
+#include <glib/gi18n.h>
 
 static GQuark index_quark = 0;
 

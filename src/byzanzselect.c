@@ -22,7 +22,9 @@
 #endif
 
 #include "byzanzselect.h"
-#include "i18n.h"
+
+#include <glib/gi18n.h>
+
 #include "screenshot-utils.h"
 
 /*** SELECT AREA ***/

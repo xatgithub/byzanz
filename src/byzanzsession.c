@@ -31,12 +31,12 @@
 #include <errno.h>
 #include <cairo.h>
 #include <glib/gstdio.h>
+#include <glib/gi18n.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkx.h>
 #include <X11/extensions/Xdamage.h>
 #include <X11/extensions/Xfixes.h>
 #include "gifenc.h"
-#include "i18n.h"
 
 typedef enum {
   SESSION_STATE_ERROR,

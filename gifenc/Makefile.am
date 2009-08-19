@@ -6,8 +6,7 @@ libgifenc_la_SOURCES = \
 
 noinst_HEADERS = \
 	gifenc.h \
-	gifenc-readbits.h \
-	i18n.h
+	gifenc-readbits.h
 
 # we could use just glib instead of gtk here
 # if we removed the gdk-pixbuf support routines
