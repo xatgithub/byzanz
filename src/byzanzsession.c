@@ -36,6 +36,8 @@
 #include <gdk/gdkx.h>
 #include <X11/extensions/Xdamage.h>
 #include <X11/extensions/Xfixes.h>
+
+#include "byzanzrecorder.h"
 #include "gifenc.h"
 
 typedef enum {
@@ -60,22 +62,11 @@ typedef struct {
 struct _ByzanzSession {
   /*< private >*/
   /* set by user - accessed ALSO by thread */
-  GdkRectangle		area;		/* area of the screen we record */
   gboolean		loop;		/* wether the resulting gif should loop */
   guint			frame_duration;	/* minimum frame duration in msecs */
   /* state */
   SessionState		state;		/* state the session is in */
-  guint			timeout;	/* signal id for timeout */
-  GdkWindow *		window;		/* root window we record */
-  Damage		damage;		/* the Damage object */
-  XserverRegion		damaged;	/* the damaged region */
-  XserverRegion		tmp_region;	/* temporary region to construct the damaged region */
-  GHashTable *		cursors;	/* all the cursors */
-  XFixesCursorImage * 	cursor;		/* current cursor */
-  gint			cursor_x;	/* last rendered x position of cursor */
-  gint			cursor_y;	/* last rendered y position of cursor */
-  GdkRectangle		cursor_area;	/* area occupied by cursor */
-  GdkRegion *		region;		/* the region we need to record next time */
+  ByzanzRecorder *      recorder;       /* the recorder in use */
   GThread *		encoder;	/* encoding thread */
   /* accessed ALSO by thread */
   gint			encoder_running;/* TRUE while the encoder is running */
@@ -87,27 +78,8 @@ struct _ByzanzSession {
   guint8 *		data_full;    	/* palettized data of full image to compare additions to */
   GdkRectangle		relevant_data;	/* relevant area to encode */
 };
-#define IS_RECORDING_CURSOR(rec) ((rec)->cursors != NULL)
-
-/* XDamage needs these */
-static int dmg_event_base = 0;
-static int dmg_error_base = 0;
-/* XFixes needs these */
-static int fixes_event_base = 0;
-static int fixes_error_base = 0;
-    
 
 /*** JOB FUNCTIONS ***/
-
-static void
-byzanz_cairo_set_source_window (cairo_t *cr, GdkWindow *window, double x, double y)
-{
-  cairo_t *tmp;
-
-  tmp = gdk_cairo_create (window);
-  cairo_set_source_surface (cr, cairo_get_target (tmp), x, y);
-  cairo_destroy (tmp);
-}
 
 static void
 session_job_free (SessionJob *job)
@@ -122,8 +94,8 @@ session_job_free (SessionJob *job)
 
 /* UGH: This function takes ownership of region, but only if a job could be created */
 static SessionJob *
-session_job_new (ByzanzSession *rec, SessionJobType type, 
-    const GTimeVal *tv, GdkRegion *region)
+session_job_new (ByzanzSession *rec, SessionJobType type, cairo_surface_t *surface,
+    const GTimeVal *tv, const GdkRegion *region)
 {
   SessionJob *job;
 
@@ -132,23 +104,11 @@ session_job_new (ByzanzSession *rec, SessionJobType type,
   if (tv)
     job->tv = *tv;
   job->type = type;
-  job->region = region;
-  if (region != NULL) {
-    cairo_t *cr;
-    job->image = cairo_image_surface_create (CAIRO_FORMAT_RGB24,
-        rec->area.width, rec->area.height);
-    if (type == SESSION_JOB_ENCODE) {
-      Display *dpy = gdk_x11_drawable_get_xdisplay (rec->window);
-      XDamageSubtract (dpy, rec->damage, rec->damaged, rec->damaged);
-      XFixesSubtractRegion (dpy, rec->damaged, rec->damaged, rec->damaged);
-    }
-    cr = cairo_create (job->image);
-    byzanz_cairo_set_source_window (cr, rec->window, -rec->area.x, -rec->area.y);
-    gdk_region_offset (region, -rec->area.x, -rec->area.y);
-    gdk_cairo_region (cr, region);
-    cairo_paint (cr);
-    cairo_destroy (cr);
-  }
+  if (region)
+    job->region = gdk_region_copy (region);
+  if (surface)
+    job->image = cairo_surface_reference (surface);
+
   return job;
 }
 
@@ -159,24 +119,29 @@ byzanz_session_dither_region (ByzanzSession *rec, GdkRegion *region, cairo_surfa
 {
   GdkRectangle *rects;
   GdkRegion *rev;
-  int i, line, nrects;
+  int i, line, nrects, xoffset, yoffset;
   guint8 transparent;
-  guint stride;
-  gpointer mem;
+  guint width, stride;
+  guint8 *mem;
   GdkRectangle area;
+  double xod, yod;
   
+  width = gifenc_get_width (rec->gifenc);
   transparent = gifenc_palette_get_alpha_index (rec->gifenc->palette);
   gdk_region_get_clipbox (region, &rec->relevant_data);
   /* dither changed pixels */
   gdk_region_get_rectangles (region, &rects, &nrects);
   rev = gdk_region_new ();
   stride = cairo_image_surface_get_stride (surface);
+  cairo_surface_get_device_offset (surface, &xod, &yod);
+  xoffset = xod;
+  yoffset = yod;
   for (i = 0; i < nrects; i++) {
-    mem = cairo_image_surface_get_data (surface) + rects[i].x * 4
-      + rects[i].y * stride;
+    mem = cairo_image_surface_get_data (surface) + (rects[i].x + xoffset) * 4
+      + (rects[i].y + yoffset) * stride;
     if (gifenc_dither_rgb_with_full_image (
-	rec->data + rec->area.width * rects[i].y + rects[i].x, rec->area.width, 
-	rec->data_full + rec->area.width * rects[i].y + rects[i].x, rec->area.width, 
+	rec->data + width * rects[i].y + rects[i].x, width, 
+	rec->data_full + width * rects[i].y + rects[i].x, width, 
 	rec->gifenc->palette, mem, rects[i].width, rects[i].height, stride, &area)) {
       area.x += rects[i].x;
       area.y += rects[i].y;
@@ -195,7 +160,7 @@ byzanz_session_dither_region (ByzanzSession *rec, GdkRegion *region, cairo_surfa
   gdk_region_get_rectangles (rev, &rects, &nrects);
   for (i = 0; i < nrects; i++) {
     for (line = 0; line < rects[i].height; line++) {
-      memset (rec->data + rects[i].x + rec->area.width * (rects[i].y + line), 
+      memset (rec->data + rects[i].x + width * (rects[i].y + line), 
 	  transparent, rects[i].width);
     }
   }
@@ -208,8 +173,11 @@ static void
 byzanz_session_add_image (ByzanzSession *rec, const GTimeVal *tv)
 {
   glong msecs;
+  guint width;
+
+  width = gifenc_get_width (rec->gifenc);
   if (rec->data == NULL) {
-    guint count = rec->area.width * rec->area.height;
+    guint count = width * gifenc_get_height (rec->gifenc);
     rec->data = g_malloc (count);
     rec->data_full = g_malloc (count);
     memset (rec->data_full, 
@@ -226,8 +194,8 @@ byzanz_session_add_image (ByzanzSession *rec, const GTimeVal *tv)
   if (rec->relevant_data.width > 0 && rec->relevant_data.height > 0) {
     gifenc_add_image (rec->gifenc, rec->relevant_data.x, rec->relevant_data.y, 
 	rec->relevant_data.width, rec->relevant_data.height, msecs,
-	rec->data + rec->area.width * rec->relevant_data.y + rec->relevant_data.x,
-	rec->area.width, NULL);
+	rec->data + width * rec->relevant_data.y + rec->relevant_data.x,
+	width, NULL);
     rec->current = *tv;
   }
 }
@@ -238,7 +206,8 @@ byzanz_session_quantize (ByzanzSession *rec, cairo_surface_t *image)
   GifencPalette *palette;
 
   palette = gifenc_quantize_image (cairo_image_surface_get_data (image),
-      rec->area.width, rec->area.height, cairo_image_surface_get_stride (image), TRUE, 255);
+      cairo_image_surface_get_width (image), cairo_image_surface_get_height (image),
+      cairo_image_surface_get_stride (image), TRUE, 255);
   
   gifenc_initialize (rec->gifenc, palette, rec->loop, NULL);
 }
@@ -298,160 +267,6 @@ byzanz_session_run_encoder (gpointer data)
 /*** MAIN FUNCTIONS ***/
 
 static void
-render_cursor_to_image (cairo_surface_t *image, XFixesCursorImage *cursor, gint x, gint y)
-{
-  cairo_surface_t *cursor_surface;
-  cairo_t *cr;
-
-  cursor_surface = cairo_image_surface_create_for_data ((guchar *) cursor->pixels,
-      CAIRO_FORMAT_ARGB32, cursor->width, cursor->height, cursor->width * 4);
-  cr = cairo_create (image);
-  
-  cairo_translate (cr, x, y);
-  cairo_set_source_surface (cr, cursor_surface, -(double) cursor->xhot, -(double) cursor->yhot);
-  cairo_paint (cr);
-
-  cairo_destroy (cr);
-  cairo_surface_destroy (cursor_surface);
-}
-    
-static guint
-cursor_hash (gconstpointer key)
-{
-  return (guint) ((const XFixesCursorImage *) key)->cursor_serial;
-}
-
-static gboolean
-cursor_equal (gconstpointer c1, gconstpointer c2)
-{
-  return ((const XFixesCursorImage *) c1)->cursor_serial == 
-    ((const XFixesCursorImage *) c2)->cursor_serial;
-}
-
-static gboolean byzanz_session_timeout_cb (gpointer session);
-static void
-byzanz_session_queue_image (ByzanzSession *rec)
-{
-  SessionJob *job;
-  GTimeVal tv;
-  gboolean render_cursor = FALSE;
-  
-  g_get_current_time (&tv);
-  if (IS_RECORDING_CURSOR (rec)) {
-    GdkRectangle cursor_rect;
-    gdk_region_union_with_rect (rec->region, &rec->cursor_area);
-    cursor_rect.x = rec->cursor_x - rec->cursor->xhot;
-    cursor_rect.y = rec->cursor_y - rec->cursor->yhot;
-    cursor_rect.width = rec->cursor->width;
-    cursor_rect.height = rec->cursor->height;
-    render_cursor = gdk_rectangle_intersect (&cursor_rect, &rec->area, &rec->cursor_area);
-    gdk_region_union_with_rect (rec->region, &rec->cursor_area);
-  } else {
-    g_assert (!gdk_region_empty (rec->region));
-  }
-  
-  if (!gdk_region_empty (rec->region)) {
-    job = session_job_new (rec, SESSION_JOB_ENCODE, &tv, rec->region);
-    if (job) {
-      if (render_cursor) 
-	render_cursor_to_image (job->image, rec->cursor, 
-	    rec->cursor_x - rec->area.x, rec->cursor_y - rec->area.y);
-      g_async_queue_push (rec->jobs, job);
-      //g_print ("pushing ENCODE\n");
-      rec->region = gdk_region_new ();
-    }
-  }
-  
-  if (rec->timeout == 0) {
-    rec->timeout = g_timeout_add (rec->frame_duration, 
-	byzanz_session_timeout_cb, rec);
-  }
-}
-
-static gboolean
-byzanz_session_timeout_cb (gpointer session)
-{
-  ByzanzSession *rec = session;
-
-  if (IS_RECORDING_CURSOR (rec)) {
-    gint x, y;
-    gdk_window_get_pointer (rec->window, &x, &y, NULL);
-    if (x == rec->cursor_x && y == rec->cursor_y && gdk_region_empty (rec->region))
-      return TRUE;
-    rec->cursor_x = x;
-    rec->cursor_y = y;
-  } else {
-    if (gdk_region_empty (rec->region)) {
-      rec->timeout = 0;
-      return FALSE;
-    }
-  }
-  byzanz_session_queue_image (rec);
-  return TRUE;
-}
-
-static gboolean
-byzanz_session_idle_cb (gpointer session)
-{
-  ByzanzSession *rec = session;
-
-  g_assert (!gdk_region_empty (rec->region));
-
-  rec->timeout = 0;
-  byzanz_session_queue_image (rec);
-  return FALSE;
-}
-
-static GdkFilterReturn
-byzanz_session_filter_events (GdkXEvent *xevent, GdkEvent *event, gpointer data)
-{
-  ByzanzSession *rec = data;
-  XDamageNotifyEvent *dev = (XDamageNotifyEvent *) xevent;
-  Display *dpy;
-
-  if (event->any.window != rec->window)
-    return GDK_FILTER_CONTINUE;
-
-  dev = (XDamageNotifyEvent *) xevent;
-  dpy = gdk_x11_display_get_xdisplay (gdk_display_get_default ());
-
-  if (dev->type == dmg_event_base + XDamageNotify && 
-      dev->damage == rec->damage) {
-    GdkRectangle rect;
-
-    rect.x = dev->area.x;
-    rect.y = dev->area.y;
-    rect.width = dev->area.width;
-    rect.height = dev->area.height;
-    XFixesSetRegion (dpy, rec->tmp_region, &dev->area, 1);
-    XFixesUnionRegion (dpy, rec->damaged, rec->damaged, rec->tmp_region);
-    //XDamageSubtract (dpy, rec->damage, rec->damaged, None);
-    //g_print ("-> %d %d %d %d\n", rect.x, rect.y, rect.width, rect.height);
-    if (gdk_rectangle_intersect (&rect, &rec->area, &rect)) {
-      gdk_region_union_with_rect (rec->region, &rect);
-      if (rec->timeout == 0) 
-	rec->timeout = g_idle_add_full (G_PRIORITY_DEFAULT,
-	    byzanz_session_idle_cb, rec, NULL);
-    }
-    return GDK_FILTER_REMOVE;
-  } else if (dev->type == fixes_event_base + XFixesCursorNotify) {
-    XFixesCursorNotifyEvent *cevent = xevent;
-    XFixesCursorImage hack;
-
-    g_assert (IS_RECORDING_CURSOR (rec));
-    hack.cursor_serial = cevent->cursor_serial;
-    rec->cursor = g_hash_table_lookup (rec->cursors, &hack);
-    if (rec->cursor == NULL) {
-      rec->cursor = XFixesGetCursorImage (dpy);
-      if (rec->cursor)
-	g_hash_table_insert (rec->cursors, rec->cursor, rec->cursor);
-    }
-    return GDK_FILTER_REMOVE;
-  }
-  return GDK_FILTER_CONTINUE;
-}
-
-static void
 byzanz_session_state_advance (ByzanzSession *session)
 {
   switch (session->state) {
@@ -502,6 +317,17 @@ byzanz_session_new (const gchar *filename, GdkWindow *window, GdkRectangle *area
   return byzanz_session_new_fd (fd, window, area, loop, record_cursor);
 }
 
+static void
+byzanz_session_recorder_image_cb (ByzanzRecorder *  recorder,
+                                  cairo_surface_t * surface,
+                                  const GdkRegion * region,
+                                  const GTimeVal *  tv,
+                                  ByzanzSession *   session)
+{
+  SessionJob *job = session_job_new (session, SESSION_JOB_ENCODE, surface, tv, region);
+  g_async_queue_push (session->jobs, job);
+}
+
 static gboolean
 session_gifenc_write (gpointer closure, const guchar *data, gsize len, GError **error)
 {
@@ -539,7 +365,6 @@ byzanz_session_new_fd (gint fd, GdkWindow *window, GdkRectangle *area,
     gboolean loop, gboolean record_cursor)
 {
   ByzanzSession *session;
-  Display *dpy;
   GdkRectangle root_rect;
 
   g_return_val_if_fail (area->x >= 0, NULL);
@@ -547,32 +372,18 @@ byzanz_session_new_fd (gint fd, GdkWindow *window, GdkRectangle *area,
   g_return_val_if_fail (area->width > 0, NULL);
   g_return_val_if_fail (area->height > 0, NULL);
   
-  dpy = gdk_x11_display_get_xdisplay (gdk_display_get_default ());
-  if (dmg_event_base == 0) {
-    if (!XDamageQueryExtension (dpy, &dmg_event_base, &dmg_error_base) ||
-	!XFixesQueryExtension (dpy, &fixes_event_base, &fixes_error_base))
-      return NULL;
-    gdk_x11_register_standard_event_type (gdk_display_get_default (), 
-	dmg_event_base + XDamageNotify, 1);
-    gdk_x11_register_standard_event_type (gdk_display_get_default (), 
-	fixes_event_base + XFixesCursorNotify, 1);
-  }
-  
   session = g_new0 (ByzanzSession, 1);
 
   /* set user properties */
-  session->area = *area;
   session->loop = loop;
   session->frame_duration = 1000 / 25;
   
   /* prepare thread first, so we can easily error out on failure */
-  session->window = window;
-  g_object_ref (window);
   root_rect.x = root_rect.y = 0;
-  gdk_drawable_get_size (session->window,
+  gdk_drawable_get_size (window,
       &root_rect.width, &root_rect.height);
-  gdk_rectangle_intersect (&session->area, &root_rect, &session->area);
-  session->gifenc = gifenc_new (session->area.width, session->area.height, 
+  gdk_rectangle_intersect (area, &root_rect, &root_rect);
+  session->gifenc = gifenc_new (root_rect.width, root_rect.height, 
       session_gifenc_write, GINT_TO_POINTER (fd), session_gifenc_close);
   if (!session->gifenc) {
     g_free (session);
@@ -589,12 +400,9 @@ byzanz_session_new_fd (gint fd, GdkWindow *window, GdkRectangle *area,
     return NULL;
   }
 
-  /* do setup work */
-  session->damaged = XFixesCreateRegion (dpy, 0, 0);
-  session->tmp_region = XFixesCreateRegion (dpy, 0, 0);
-  if (record_cursor)
-    session->cursors = g_hash_table_new_full (cursor_hash, cursor_equal, 
-      NULL, (GDestroyNotify) XFree);
+  session->recorder = byzanz_recorder_new (window, &root_rect);
+  g_signal_connect (session->recorder, "image", 
+      G_CALLBACK (byzanz_session_recorder_image_cb), session);
 
   session->state = SESSION_STATE_CREATED;
   return session;
@@ -603,26 +411,10 @@ byzanz_session_new_fd (gint fd, GdkWindow *window, GdkRectangle *area,
 void
 byzanz_session_start (ByzanzSession *rec)
 {
-  Display *dpy;
-
   g_return_if_fail (BYZANZ_IS_SESSION (rec));
   g_return_if_fail (rec->state == SESSION_STATE_CREATED);
 
-  dpy = gdk_x11_display_get_xdisplay (gdk_display_get_default ());
-  rec->region = gdk_region_rectangle (&rec->area);
-  gdk_window_add_filter (rec->window, 
-      byzanz_session_filter_events, rec);
-  rec->damage = XDamageCreate (dpy, GDK_DRAWABLE_XID (rec->window), 
-      XDamageReportDeltaRectangles);
-  if (rec->cursors) {
-    XFixesSelectCursorInput (dpy, GDK_DRAWABLE_XID (rec->window),
-	XFixesDisplayCursorNotifyMask);
-    rec->cursor = XFixesGetCursorImage (dpy);
-    if (rec->cursor)
-      g_hash_table_insert (rec->cursors, rec->cursor, rec->cursor);
-    gdk_window_get_pointer (rec->window, &rec->cursor_x, &rec->cursor_y, NULL);
-  }
-  /* byzanz_session_queue_image (rec); - we'll get a damage event anyway */
+  byzanz_recorder_set_recording (rec->recorder, TRUE);
   
   rec->state = SESSION_STATE_RECORDING;
 }
@@ -632,37 +424,23 @@ byzanz_session_stop (ByzanzSession *rec)
 {
   GTimeVal tv;
   SessionJob *job;
-  Display *dpy;
 
   g_return_if_fail (BYZANZ_IS_SESSION (rec));
   g_return_if_fail (rec->state == SESSION_STATE_RECORDING);
 
   /* byzanz_session_queue_image (rec); - useless because last image would have a 0 time */
   g_get_current_time (&tv);
-  job = session_job_new (rec, SESSION_JOB_QUIT, &tv, NULL);
+  job = session_job_new (rec, SESSION_JOB_QUIT, NULL, &tv, NULL);
   g_async_queue_push (rec->jobs, job);
-  //g_print ("pushing QUIT\n");
-  gdk_window_remove_filter (rec->window, 
-      byzanz_session_filter_events, rec);
-  if (rec->timeout != 0) {
-    if (!g_source_remove (rec->timeout))
-      g_assert_not_reached ();
-    rec->timeout = 0;
-  }
-  dpy = gdk_x11_display_get_xdisplay (gdk_display_get_default ());
-  XDamageDestroy (dpy, rec->damage);
-  if (IS_RECORDING_CURSOR (rec))
-    XFixesSelectCursorInput (dpy, GDK_DRAWABLE_XID (rec->window),
-	0);
   
+  byzanz_recorder_set_recording (rec->recorder, FALSE);
+
   rec->state = SESSION_STATE_STOPPED;
 }
 
 void
 byzanz_session_destroy (ByzanzSession *rec)
 {
-  Display *dpy;
-
   g_return_if_fail (BYZANZ_IS_SESSION (rec));
 
   while (rec->state != SESSION_STATE_ERROR &&
@@ -672,15 +450,8 @@ byzanz_session_destroy (ByzanzSession *rec)
   if (g_thread_join (rec->encoder) != rec)
     g_assert_not_reached ();
 
-  dpy = gdk_x11_display_get_xdisplay (gdk_display_get_default ());
-  XFixesDestroyRegion (dpy, rec->damaged);
-  XFixesDestroyRegion (dpy, rec->tmp_region);
-  gdk_region_destroy (rec->region);
-  if (IS_RECORDING_CURSOR (rec))
-    g_hash_table_destroy (rec->cursors);
-
   gifenc_free (rec->gifenc);
-  g_object_unref (rec->window);
+  g_object_unref (rec->recorder);
 
   g_assert (g_async_queue_length (rec->jobs) == 0);
   g_async_queue_unref (rec->jobs);

@@ -449,6 +449,22 @@ gifenc_free (Gifenc *enc)
   return success;
 }
 
+guint
+gifenc_get_width (Gifenc *gifenc)
+{
+  g_return_val_if_fail (gifenc != NULL, 0);
+
+  return gifenc->width;
+}
+
+guint
+gifenc_get_height (Gifenc *gifenc)
+{
+  g_return_val_if_fail (gifenc != NULL, 0);
+
+  return gifenc->height;
+}
+
 /* Floyd-Steinman factors */
 #define FACTOR0 (23)
 #define FACTOR1 (79)

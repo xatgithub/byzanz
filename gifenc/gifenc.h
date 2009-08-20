@@ -88,6 +88,8 @@ gboolean        gifenc_add_image	(Gifenc *		enc,
                                          GError **		error);
 gboolean        gifenc_close            (Gifenc *       	gifenc,
                                          GError **      	error);
+guint           gifenc_get_width        (Gifenc *               gifenc);
+guint           gifenc_get_height       (Gifenc *               gifenc);
 
 void		gifenc_dither_rgb	(guint8 *		target,
 					 guint			target_rowstride,

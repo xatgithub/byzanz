@@ -107,10 +107,8 @@ PKG_CHECK_MODULES(GTHREAD, xdamage >= $XDAMAGE_REQ gthread-2.0 >= $GTHREAD_REQ)
 
 PKG_CHECK_MODULES(APPLET, libpanelapplet-2.0 >= $APPLET_REQ)
 
-AC_PATH_PROG(GCONFTOOL, gconftool-2, no)
-if test x"$GCONFTOOL" = xno; then
-  AC_MSG_ERROR([gconftool-2 executable not found in your path - should be installed with GConf])
-fi
+AC_PATH_PROG(GLIB_GENMARSHAL, glib-genmarshal)
+AC_PATH_PROG(GCONFTOOL, gconftool-2)
 
 AM_GCONF_SOURCE_2
 

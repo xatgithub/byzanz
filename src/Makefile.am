@@ -3,7 +3,15 @@ bin_PROGRAMS = byzanz-record
 libexec_PROGRAMS = byzanz-applet
 man_MANS = byzanz-record.1
 
+BUILT_SOURCES = \
+	byzanzmarshal.h \
+	byzanzmarshal.c
+
 noinst_HEADERS = \
+	byzanzlayer.h \
+	byzanzlayercursor.h \
+	byzanzlayerwindow.h \
+	byzanzrecorder.h \
 	byzanzsession.h \
 	byzanzselect.h \
 	paneldropdown.h \
@@ -11,6 +19,11 @@ noinst_HEADERS = \
 	screenshot-utils.h
 
 libbyzanz_la_SOURCES = \
+	byzanzlayer.c \
+	byzanzlayercursor.c \
+	byzanzlayerwindow.c \
+	byzanzmarshal.c \
+	byzanzrecorder.c \
 	byzanzsession.c \
 	byzanzselect.c
 
@@ -32,6 +45,13 @@ byzanz_applet_SOURCES = \
 
 byzanz_applet_CFLAGS = $(APPLET_CFLAGS) -I$(top_srcdir)/gifenc
 byzanz_applet_LDADD = $(APPLET_LIBS) ./libbyzanz.la
+
+byzanzmarshal.h: byzanzmarshal.list
+	$(GLIB_GENMARSHAL) --prefix=byzanz_marshal $(srcdir)/byzanzmarshal.list --header > byzanzmarshal.h
+
+byzanzmarshal.c: byzanzmarshal.list
+	(echo "#include \"byzanzmarshal.h\""; \
+	 $(GLIB_GENMARSHAL) --prefix=byzanz_marshal $(srcdir)/byzanzmarshal.list --body) > byzanzmarshal.c
 
 
 schemasdir   = @GCONF_SCHEMA_FILE_DIR@
@@ -58,6 +78,7 @@ ui_DATA = byzanzapplet.xml
 CLEANFILES = $(server_in_files) $(server_DATA) $(schemas_DATA)
 
 EXTRA_DIST = \
+	byzanzmarshal.list \
 	ByzanzApplet.server.in.in \
 	$(man_MANS) \
 	$(ui_DATA) \

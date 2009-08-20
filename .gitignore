@@ -44,4 +44,6 @@ src/ByzanzApplet.server.in
 src/byzanz-applet
 src/byzanz-record
 src/byzanz.schemas
+src/byzanzmarshal.c
+src/byzanzmarshal.h
 
