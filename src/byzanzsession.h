@@ -26,12 +26,7 @@
 typedef struct _ByzanzSession ByzanzSession;
 #define BYZANZ_IS_SESSION(obj) ((obj) != NULL)
 
-ByzanzSession * 	byzanz_session_new		(const gchar *		filename,
-							 GdkWindow *		window,
-							 GdkRectangle *		area,
-							 gboolean		loop,
-							 gboolean		record_cursor);
-ByzanzSession * 	byzanz_session_new_fd		(gint			fd,
+ByzanzSession * 	byzanz_session_new		(GFile *                destination,
 							 GdkWindow *		window,
 							 GdkRectangle *		area,
 							 gboolean		loop,

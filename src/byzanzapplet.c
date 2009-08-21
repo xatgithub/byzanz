@@ -43,11 +43,11 @@ typedef struct {
   GtkWidget *		dropdown;	/* dropdown button */
   GtkWidget *		menu;		/* the menu that's dropped down */
   GtkWidget *		record_cursor;	/* checkmenuitem for cursor recording */
+  GtkWidget *           dialog;         /* file chooser */
   GtkTooltips *		tooltips;	/* our tooltips */
   
   ByzanzSession *	rec;		/* the session (if recording) */
-  char *		tmp_file;	/* filename that's recorded to */
-  GTimeVal		start;		/* time the recording started */
+  GFile *               destination;    /* file we are recording to */
 
   /* config */
   int			method;		/* recording method that was set */
@@ -56,18 +56,10 @@ typedef struct {
 
 /*** PENDING RECORDING ***/
 
-typedef struct {
-  AppletPrivate *	priv;
-  ByzanzSession *	rec;
-  GFile *		source;
-  GFile *		destination;
-  GCancellable *	cancellable;
-} PendingRecording;
-
-static void
-byzanz_applet_show_error (GtkWindow *parent, const char *error, const char *details, ...)
+static void G_GNUC_UNUSED
+byzanz_applet_show_error (AppletPrivate *priv, const char *error, const char *details, ...)
 {
-  GtkWidget *dialog;
+  GtkWidget *dialog, *parent;
   gchar *msg;
   va_list args;
 
@@ -76,7 +68,11 @@ byzanz_applet_show_error (GtkWindow *parent, const char *error, const char *deta
   va_start (args, details);
   msg = g_strdup_vprintf (details, args);
   va_end (args);
-  dialog = gtk_message_dialog_new (parent, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR,
+  if (priv)
+    parent = gtk_widget_get_toplevel (GTK_WIDGET (priv->applet));
+  else
+    parent = NULL;
+  dialog = gtk_message_dialog_new (GTK_WINDOW (parent), GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR,
       GTK_BUTTONS_CLOSE, "%s", error ? error : msg);
   if (parent == NULL)
     gtk_window_set_icon_name (GTK_WINDOW (dialog), "byzanz-record-desktop");
@@ -87,113 +83,12 @@ byzanz_applet_show_error (GtkWindow *parent, const char *error, const char *deta
   gtk_widget_show_all (dialog);
 }
 
-static void
-pending_recording_destroy (PendingRecording *pending)
-{
-  g_assert (pending->rec == NULL);
-
-  if (pending->source) {
-    g_file_delete (pending->source, NULL, NULL);
-    g_object_unref (pending->source);
-  }
-  if (pending->destination)
-    g_object_unref (pending->destination);
-  g_free (pending);
-}
-
-static void
-done_saving_cb (GObject *file, GAsyncResult *res, gpointer data)
-{
-  PendingRecording *pending = data;
-  GError *error = NULL;
-
-  if (!g_file_copy_finish (G_FILE (file), res, &error)) {
-    byzanz_applet_show_error (NULL, _("Failed to save file."), error->message);
-    g_error_free (error);
-  }
-
-  pending_recording_destroy (pending);
-}
-
-static gboolean
-check_done_saving_cb (gpointer data)
-{
-  PendingRecording *pending = data;
-
-  if (byzanz_session_is_active (pending->rec))
-    return TRUE;
-  byzanz_session_destroy (pending->rec);
-  pending->rec = NULL;
-
-  if (pending->destination == NULL) {
-    pending_recording_destroy (pending);
-    return FALSE;
-  }
-  /* There's no g_file_move_async(), so use copy + delete */
-  g_file_copy_async (pending->source, pending->destination,
-      G_FILE_COPY_OVERWRITE | G_FILE_COPY_TARGET_DEFAULT_PERMS,
-      G_PRIORITY_DEFAULT_IDLE, NULL, NULL, NULL, done_saving_cb, pending);
-
-  return FALSE;
-}
-
-static void
-pending_recording_response (GtkWidget *dialog, int response, PendingRecording *pending)
-{
-  if (response == GTK_RESPONSE_ACCEPT) {
-    pending->destination = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
-    if (pending->destination) {
-      char *uri = g_file_get_uri (pending->destination);
-      panel_applet_gconf_set_string (pending->priv->applet, "save_filename", uri, NULL);
-      g_free (uri);
-    }
-  }
-  gtk_widget_destroy (dialog);
-  gdk_threads_add_timeout_seconds (1, check_done_saving_cb, pending);
-}
-
-static void
-pending_recording_launch (AppletPrivate *priv, ByzanzSession *rec, const char *tmp_file)
-{
-  PendingRecording *pending;
-  GtkWidget *dialog;
-  char *uri;
-  
-  pending = g_new0 (PendingRecording, 1);
-  pending->priv = priv;
-  pending->rec = rec;
-  pending->source = g_file_new_for_path (tmp_file);
-  
-  dialog = gtk_file_chooser_dialog_new (_("Save Recorded File"),
-      NULL, GTK_FILE_CHOOSER_ACTION_SAVE,
-      GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-      GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
-      NULL);
-  gtk_file_chooser_set_local_only (GTK_FILE_CHOOSER (dialog), FALSE);
-  uri = panel_applet_gconf_get_string (priv->applet, "save_filename", NULL);
-  if (!uri || uri[0] == '\0' ||
-      !gtk_file_chooser_set_uri (GTK_FILE_CHOOSER (dialog), uri)) {
-    g_free (uri);
-    /* Try the key used by old versions. Maybe it's still set. */
-    uri = panel_applet_gconf_get_string (priv->applet, "save_directory", NULL);
-    if (!uri || uri[0] == '\0' ||
-	!gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (dialog), uri)) {
-      gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), g_get_home_dir ());
-    }
-  }
-  g_free (uri);
-  gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (dialog), TRUE);
-  gtk_dialog_set_default_response (GTK_DIALOG (dialog), GTK_RESPONSE_ACCEPT);
-  g_signal_connect (dialog, "response", G_CALLBACK (pending_recording_response), pending);
-  gtk_widget_show_all (dialog);
-}
-
 /*** APPLET ***/
 
 static gboolean
 byzanz_applet_is_recording (AppletPrivate *priv)
 {
-  return priv->tmp_file != NULL;
+  return priv->destination != NULL;
 }
 
 static gboolean
@@ -212,9 +107,9 @@ byzanz_applet_update (gpointer data)
   } else {
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (priv->button), FALSE);
     gtk_image_set_from_icon_name (GTK_IMAGE (priv->image), 
-	byzanz_select_method_get_icon_name (priv->method), GTK_ICON_SIZE_LARGE_TOOLBAR);
+	GTK_STOCK_MEDIA_RECORD, GTK_ICON_SIZE_LARGE_TOOLBAR);
     gtk_tooltips_set_tip (priv->tooltips, priv->button,
-	byzanz_select_method_describe (priv->method),
+	_("Start a new recording"),
 	NULL);
   }
   
@@ -222,11 +117,80 @@ byzanz_applet_update (gpointer data)
 }
 
 static void
-byzanz_applet_start_recording (AppletPrivate *priv)
+byzanz_applet_set_default_method (AppletPrivate *priv, int id)
 {
+  if (priv->method == id)
+    return;
+  if (id >= (gint) byzanz_select_get_method_count ())
+    return;
+
+  priv->method = id;
+  byzanz_applet_update (priv);
+
+  panel_applet_gconf_set_string (priv->applet, "method", 
+      byzanz_select_method_get_name (id), NULL);
+}
+
+static int method_response_codes[] = { GTK_RESPONSE_ACCEPT, GTK_RESPONSE_APPLY, GTK_RESPONSE_OK, GTK_RESPONSE_YES };
+
+static void
+panel_applet_start_response (GtkWidget *dialog, int response, AppletPrivate *priv)
+{
+  GFile *file;
+  guint i;
   GdkWindow *window;
   GdkRectangle area;
+
+  g_assert (priv->destination == NULL);
+  file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
+  if (file == NULL)
+    goto out;
+
+  for (i = 0; i < byzanz_select_get_method_count (); i++) {
+    if (response == method_response_codes[i]) {
+      char *uri = g_file_get_uri (file);
+      panel_applet_gconf_set_string (priv->applet, "save_filename", uri, NULL);
+      g_free (uri);
+      byzanz_applet_set_default_method (priv, i);
+      priv->destination = file;
+      file = NULL;
+      break;
+    }
+  }
+  if (priv->destination == NULL)
+    goto out;
+
+  gtk_widget_destroy (dialog);
+  priv->dialog = NULL;
+  byzanz_applet_update (priv);
+
+  window = byzanz_select_method_select (priv->method, &area); 
+  if (window == NULL)
+    goto out2;
+
+  priv->rec = byzanz_session_new (priv->destination, window, &area, TRUE, TRUE);
+  if (!priv->rec) {
+    g_file_delete (priv->destination, NULL, NULL);
+    goto out2;
+  }
   
+  byzanz_session_start (priv->rec);
+  return;
+
+out:
+  gtk_widget_destroy (dialog);
+  priv->dialog = NULL;
+out2:
+  if (priv->destination) {
+    g_object_unref (priv->destination);
+    priv->destination = NULL;
+  }
+  byzanz_applet_update (priv);
+}
+
+static void
+byzanz_applet_start_recording (AppletPrivate *priv)
+{
   g_assert (!byzanz_applet_is_recording (priv));
   
   if (byzanz_applet_is_recording (priv))
@@ -237,52 +201,73 @@ byzanz_applet_start_recording (AppletPrivate *priv)
     byzanz_session_destroy (priv->rec);
     priv->rec = NULL;
   }
-  /* check for correct bpp */
-  window = gdk_get_default_root_window ();
   
-  priv->tmp_file = (char *) "SELECTING"; /* so the rest of the world thinks we're recording */
-  byzanz_applet_update (priv);
-  window = byzanz_select_method_select (priv->method, &area); 
-  priv->tmp_file = NULL;
-  if (window) {
-    int fd = g_file_open_tmp ("byzanzXXXXXX", &priv->tmp_file, NULL);
-    if (fd > 0) 
-      priv->rec = byzanz_session_new_fd (fd, window, &area, TRUE, 
-	  gtk_check_menu_item_get_active (
-	    GTK_CHECK_MENU_ITEM (priv->record_cursor)));
-    if (!priv->rec) {
-      close (fd);
-      g_unlink (priv->tmp_file);
-      g_free (priv->tmp_file);
-      priv->tmp_file = NULL;
+  if (priv->dialog == NULL) {
+    char *uri;
+    guint i;
+
+    priv->dialog = gtk_file_chooser_dialog_new (_("Record your desktop"),
+        GTK_WINDOW (gtk_widget_get_toplevel (GTK_WIDGET (priv->applet))),
+        GTK_FILE_CHOOSER_ACTION_SAVE, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+        NULL);
+    g_assert (G_N_ELEMENTS (method_response_codes) >= byzanz_select_get_method_count ());
+    for (i = 0; i < byzanz_select_get_method_count (); i++) {
+      gtk_dialog_add_button (GTK_DIALOG (priv->dialog),
+          byzanz_select_method_get_mnemonic (i), method_response_codes[i]);
     }
-    g_object_unref (window);
+    gtk_file_chooser_set_local_only (GTK_FILE_CHOOSER (priv->dialog), FALSE);
+    uri = panel_applet_gconf_get_string (priv->applet, "save_filename", NULL);
+    if (!uri || uri[0] == '\0' ||
+        !gtk_file_chooser_set_uri (GTK_FILE_CHOOSER (priv->dialog), uri)) {
+      g_free (uri);
+      /* Try the key used by old versions. Maybe it's still set. */
+      uri = panel_applet_gconf_get_string (priv->applet, "save_directory", NULL);
+      if (!uri || uri[0] == '\0' ||
+	  !gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (priv->dialog), uri)) {
+        gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (priv->dialog), g_get_home_dir ());
+      }
+    }
+    g_free (uri);
+    gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (priv->dialog), TRUE);
+    g_signal_connect (priv->dialog, "response", G_CALLBACK (panel_applet_start_response), priv);
+
+    gtk_widget_show_all (priv->dialog);
+
+    /* need to show before setting the default response, otherwise the filechooser reshuffles it */
+    gtk_dialog_set_default_response (GTK_DIALOG (priv->dialog), method_response_codes[priv->method]);
   }
-  if (priv->rec) {
-    byzanz_session_start (priv->rec);
-    g_get_current_time (&priv->start);
-  }
+  gtk_window_present (GTK_WINDOW (priv->dialog));
 
 out:
   byzanz_applet_update (priv);
 }
 
+static gboolean
+check_done_saving_cb (gpointer data)
+{
+  AppletPrivate *priv = data;
+
+  if (byzanz_session_is_active (priv->rec))
+    return TRUE;
+  byzanz_session_destroy (priv->rec);
+  priv->rec = NULL;
+
+  g_object_unref (priv->destination);
+  priv->destination = NULL;
+
+  byzanz_applet_update (priv);
+
+  return FALSE;
+}
+
 static void
 byzanz_applet_stop_recording (AppletPrivate *priv)
 {
-  char *tmp_file;
-  ByzanzSession *rec;
-  
   g_assert (byzanz_applet_is_recording (priv));
   
   byzanz_session_stop (priv->rec);
-  tmp_file = priv->tmp_file;
-  priv->tmp_file = NULL;
-  rec = priv->rec;
-  priv->rec = NULL;
   byzanz_applet_update (priv);
-  pending_recording_launch (priv, rec, tmp_file);
-  g_free (tmp_file);
+  gdk_threads_add_timeout_seconds (1, check_done_saving_cb, priv);
 }
 
 static void
@@ -304,36 +289,6 @@ destroy_applet (GtkWidget *widget, AppletPrivate *priv)
     byzanz_applet_stop_recording (priv);
   g_assert (!priv->rec); 
   g_free (priv);
-}
-
-static void
-byzanz_applet_set_default_method (AppletPrivate *priv, int id, gboolean update_gconf)
-{
-  if (priv->method == id)
-    return;
-  if (id >= (gint) byzanz_select_get_method_count ())
-    return;
-
-  priv->method = id;
-  byzanz_applet_update (priv);
-
-  if (update_gconf)
-    panel_applet_gconf_set_string (priv->applet, "method", 
-	byzanz_select_method_get_name (id), NULL);
-}
-
-static void
-byzanz_applet_method_selected_cb (GtkMenuItem *item, AppletPrivate *priv)
-{
-  gpointer tmp;
-  int id;
-
-  tmp = g_object_get_qdata (G_OBJECT (item), index_quark);
-  id = GPOINTER_TO_INT (tmp);
-  byzanz_applet_set_default_method (priv, id, TRUE);
-
-  if (!byzanz_applet_is_recording (priv))
-    byzanz_applet_start_recording (priv);
 }
 
 static void 
@@ -372,9 +327,7 @@ static gboolean
 byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
 {
   AppletPrivate *priv;
-  guint i;
   char *method;
-  GtkWidget *tmp;
   
   if (!index_quark)
     index_quark = g_quark_from_static_string ("Byzanz-Index");
@@ -396,23 +349,7 @@ byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
   priv->tooltips = gtk_tooltips_new ();
   /* build menu */
   priv->menu = gtk_menu_new ();
-  for (i = 0; i < byzanz_select_get_method_count (); i++) {
-    GtkWidget *menuitem, *image;
 
-    menuitem = gtk_image_menu_item_new_with_mnemonic (
-	byzanz_select_method_get_mnemonic (i));
-    image = gtk_image_new_from_icon_name (
-	byzanz_select_method_get_icon_name (i), GTK_ICON_SIZE_MENU);
-    gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (menuitem), image);
-    g_object_set_qdata (G_OBJECT (menuitem), index_quark, GINT_TO_POINTER (i));
-    g_signal_connect (menuitem, "activate", 
-	G_CALLBACK (byzanz_applet_method_selected_cb), priv);
-    gtk_menu_shell_append (GTK_MENU_SHELL (priv->menu), menuitem);
-    gtk_widget_show (menuitem);
-  }
-  tmp = gtk_separator_menu_item_new ();
-  gtk_widget_show (tmp);
-  gtk_menu_shell_append (GTK_MENU_SHELL (priv->menu), tmp);
   /* translators: keep the mnemonic here different from the selection methods */
   priv->record_cursor = gtk_check_menu_item_new_with_mnemonic (
       _("Record _Mouse Cursor"));

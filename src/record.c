@@ -94,6 +94,7 @@ main (int argc, char **argv)
   ByzanzSession *rec;
   GOptionContext* context;
   GError *error = NULL;
+  GFile *file;
   
   g_set_prgname (argv[0]);
 #ifdef GETTEXT_PACKAGE
@@ -119,8 +120,10 @@ main (int argc, char **argv)
     usage ();
     return 0;
   }
-  rec = byzanz_session_new (argv[1], gdk_get_default_root_window (),
+  file = g_file_new_for_commandline_arg (argv[1]);
+  rec = byzanz_session_new (file, gdk_get_default_root_window (),
       &area, loop, cursor);
+  g_object_unref (file);
   if (rec == NULL) {
     g_print (_("Could not prepare recording.\n"
 	  "Most likely the Damage extension is not available on the X server "

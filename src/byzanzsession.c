@@ -72,6 +72,7 @@ struct _ByzanzSession {
   gint			encoder_running;/* TRUE while the encoder is running */
   GAsyncQueue *		jobs;		/* jobs the encoding thread has to do */
   /* accessed ONLY by thread */
+  GOutputStream *       stream;         /* stream we write to */
   Gifenc *		gifenc;		/* encoder used to encode the image */
   GTimeVal		current;	/* timestamp of last encoded picture */
   guint8 *		data;		/* data used to hold palettized data */
@@ -283,6 +284,25 @@ byzanz_session_state_advance (ByzanzSession *session)
   }
 }
 
+static void
+byzanz_session_recorder_image_cb (ByzanzRecorder *  recorder,
+                                  cairo_surface_t * surface,
+                                  const GdkRegion * region,
+                                  const GTimeVal *  tv,
+                                  ByzanzSession *   session)
+{
+  SessionJob *job = session_job_new (session, SESSION_JOB_ENCODE, surface, tv, region);
+  g_async_queue_push (session->jobs, job);
+}
+
+static gboolean
+session_gifenc_write (gpointer closure, const guchar *data, gsize len, GError **error)
+{
+  ByzanzSession *session = closure;
+
+  return g_output_stream_write_all (session->stream, data, len, NULL, NULL, error);
+}
+
 /**
  * byzanz_session_new:
  * @filename: filename to record to
@@ -299,74 +319,15 @@ byzanz_session_state_advance (ByzanzSession *session)
  *          then. Another reason would be a thread creation failure.
  **/
 ByzanzSession *
-byzanz_session_new (const gchar *filename, GdkWindow *window, GdkRectangle *area,
-    gboolean loop, gboolean record_cursor)
-{
-  gint fd;
-
-  g_return_val_if_fail (filename != NULL, NULL);
-  g_return_val_if_fail (area->x >= 0, NULL);
-  g_return_val_if_fail (area->y >= 0, NULL);
-  g_return_val_if_fail (area->width > 0, NULL);
-  g_return_val_if_fail (area->height > 0, NULL);
-  
-  fd = g_open (filename, O_WRONLY | O_CREAT | O_TRUNC, 0666);
-  if (fd < 0)
-    return NULL;
-
-  return byzanz_session_new_fd (fd, window, area, loop, record_cursor);
-}
-
-static void
-byzanz_session_recorder_image_cb (ByzanzRecorder *  recorder,
-                                  cairo_surface_t * surface,
-                                  const GdkRegion * region,
-                                  const GTimeVal *  tv,
-                                  ByzanzSession *   session)
-{
-  SessionJob *job = session_job_new (session, SESSION_JOB_ENCODE, surface, tv, region);
-  g_async_queue_push (session->jobs, job);
-}
-
-static gboolean
-session_gifenc_write (gpointer closure, const guchar *data, gsize len, GError **error)
-{
-  gssize written;
-  int fd = GPOINTER_TO_INT (closure);
-  
-  do {
-    written = write (fd, data, len);
-    if (written < 0) {
-      int err = errno;
-
-      if (err == EINTR)
-	continue;
-	  
-      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (err),
-          _("Error writing: %s"), g_strerror (err));
-      return FALSE;
-    } else {
-      len -= written;
-      data += written;
-    }
-  } while (len > 0);
-
-  return TRUE;
-}
-
-static void
-session_gifenc_close (gpointer closure)
-{
-  close (GPOINTER_TO_INT (closure));
-}
-
-ByzanzSession *
-byzanz_session_new_fd (gint fd, GdkWindow *window, GdkRectangle *area,
+byzanz_session_new (GFile *destination, GdkWindow *window, GdkRectangle *area,
     gboolean loop, gboolean record_cursor)
 {
   ByzanzSession *session;
   GdkRectangle root_rect;
 
+  g_return_val_if_fail (G_IS_FILE (destination), NULL);
+  g_return_val_if_fail (GDK_IS_WINDOW (window), NULL);
+  g_return_val_if_fail (area != NULL, NULL);
   g_return_val_if_fail (area->x >= 0, NULL);
   g_return_val_if_fail (area->y >= 0, NULL);
   g_return_val_if_fail (area->width > 0, NULL);
@@ -378,14 +339,23 @@ byzanz_session_new_fd (gint fd, GdkWindow *window, GdkRectangle *area,
   session->loop = loop;
   session->frame_duration = 1000 / 25;
   
+  /* open file for writing */
+  session->stream = G_OUTPUT_STREAM (g_file_replace (destination, NULL, 
+        FALSE, G_FILE_CREATE_REPLACE_DESTINATION, NULL, NULL));
+  if (session->stream == NULL) {
+    g_free (session);
+    return NULL;
+  }
+
   /* prepare thread first, so we can easily error out on failure */
   root_rect.x = root_rect.y = 0;
   gdk_drawable_get_size (window,
       &root_rect.width, &root_rect.height);
   gdk_rectangle_intersect (area, &root_rect, &root_rect);
   session->gifenc = gifenc_new (root_rect.width, root_rect.height, 
-      session_gifenc_write, GINT_TO_POINTER (fd), session_gifenc_close);
+      session_gifenc_write, session, NULL);
   if (!session->gifenc) {
+    g_object_unref (session->stream);
     g_free (session);
     return NULL;
   }
@@ -452,6 +422,7 @@ byzanz_session_destroy (ByzanzSession *rec)
 
   gifenc_free (rec->gifenc);
   g_object_unref (rec->recorder);
+  g_object_unref (rec->stream);
 
   g_assert (g_async_queue_length (rec->jobs) == 0);
   g_async_queue_unref (rec->jobs);
