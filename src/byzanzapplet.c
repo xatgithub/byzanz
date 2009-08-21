@@ -56,7 +56,7 @@ typedef struct {
 
 /*** PENDING RECORDING ***/
 
-static void G_GNUC_UNUSED
+static void
 byzanz_applet_show_error (AppletPrivate *priv, const char *error, const char *details, ...)
 {
   GtkWidget *dialog, *parent;
@@ -86,31 +86,31 @@ byzanz_applet_show_error (AppletPrivate *priv, const char *error, const char *de
 /*** APPLET ***/
 
 static gboolean
-byzanz_applet_is_recording (AppletPrivate *priv)
-{
-  return priv->destination != NULL;
-}
-
-static gboolean
 byzanz_applet_update (gpointer data)
 {
   AppletPrivate *priv = data;
 
-  if (byzanz_applet_is_recording (priv)) {
-    /* applet is still actively recording the screen */
-    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (priv->button), TRUE);
-    gtk_image_set_from_icon_name (GTK_IMAGE (priv->image), 
-	GTK_STOCK_MEDIA_RECORD, GTK_ICON_SIZE_LARGE_TOOLBAR);
-    gtk_tooltips_set_tip (priv->tooltips, priv->button,
-	_("Stop current recording"),
-	NULL);
-  } else {
+  if (priv->rec == NULL) {
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (priv->button), FALSE);
     gtk_image_set_from_icon_name (GTK_IMAGE (priv->image), 
 	GTK_STOCK_MEDIA_RECORD, GTK_ICON_SIZE_LARGE_TOOLBAR);
     gtk_tooltips_set_tip (priv->tooltips, priv->button,
-	_("Start a new recording"),
-	NULL);
+	_("Start a new recording"), NULL);
+  } else {
+    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (priv->button), TRUE);
+    if (byzanz_session_is_recording (priv->rec)) {
+      gtk_image_set_from_icon_name (GTK_IMAGE (priv->image), 
+          GTK_STOCK_MEDIA_STOP, GTK_ICON_SIZE_LARGE_TOOLBAR);
+      gtk_tooltips_set_tip (priv->tooltips, priv->button,
+          _("End current recording"), NULL);
+    } else if (byzanz_session_is_encoding (priv->rec)) {
+      gtk_image_set_from_icon_name (GTK_IMAGE (priv->image), 
+          GTK_STOCK_CANCEL, GTK_ICON_SIZE_LARGE_TOOLBAR);
+      gtk_tooltips_set_tip (priv->tooltips, priv->button,
+          _("Abort encoding process"), NULL);
+    } else {
+      g_assert_not_reached ();
+    }
   }
   
   return TRUE;
@@ -125,10 +125,29 @@ byzanz_applet_set_default_method (AppletPrivate *priv, int id)
     return;
 
   priv->method = id;
-  byzanz_applet_update (priv);
 
   panel_applet_gconf_set_string (priv->applet, "method", 
       byzanz_select_method_get_name (id), NULL);
+}
+
+static void
+byzanz_applet_session_notify (AppletPrivate *priv)
+{
+  const GError *error;
+
+  g_assert (priv->rec != NULL);
+
+  error = byzanz_session_get_error (priv->rec);
+  if (error) {
+    byzanz_applet_show_error (priv, error->message, NULL);
+    g_object_unref (priv->rec);
+    priv->rec = NULL;
+  } else if (!byzanz_session_is_encoding (priv->rec)) {
+    g_object_unref (priv->rec);
+    priv->rec = NULL;
+  }
+
+  byzanz_applet_update (priv);
 }
 
 static int method_response_codes[] = { GTK_RESPONSE_ACCEPT, GTK_RESPONSE_APPLY, GTK_RESPONSE_OK, GTK_RESPONSE_YES };
@@ -169,10 +188,7 @@ panel_applet_start_response (GtkWidget *dialog, int response, AppletPrivate *pri
     goto out2;
 
   priv->rec = byzanz_session_new (priv->destination, window, &area, TRUE, TRUE);
-  if (!priv->rec) {
-    g_file_delete (priv->destination, NULL, NULL);
-    goto out2;
-  }
+  g_signal_connect_swapped (priv->rec, "notify", G_CALLBACK (byzanz_applet_session_notify), priv);
   
   byzanz_session_start (priv->rec);
   return;
@@ -185,22 +201,17 @@ out2:
     g_object_unref (priv->destination);
     priv->destination = NULL;
   }
-  byzanz_applet_update (priv);
+  if (priv->rec)
+    byzanz_applet_session_notify (priv);
+  else
+    byzanz_applet_update (priv);
 }
 
 static void
 byzanz_applet_start_recording (AppletPrivate *priv)
 {
-  g_assert (!byzanz_applet_is_recording (priv));
-  
-  if (byzanz_applet_is_recording (priv))
+  if (priv->rec)
     goto out;
-  if (priv->rec) {
-    if (byzanz_session_is_active (priv->rec))
-      goto out;
-    byzanz_session_destroy (priv->rec);
-    priv->rec = NULL;
-  }
   
   if (priv->dialog == NULL) {
     char *uri;
@@ -242,42 +253,17 @@ out:
   byzanz_applet_update (priv);
 }
 
-static gboolean
-check_done_saving_cb (gpointer data)
-{
-  AppletPrivate *priv = data;
-
-  if (byzanz_session_is_active (priv->rec))
-    return TRUE;
-  byzanz_session_destroy (priv->rec);
-  priv->rec = NULL;
-
-  g_object_unref (priv->destination);
-  priv->destination = NULL;
-
-  byzanz_applet_update (priv);
-
-  return FALSE;
-}
-
-static void
-byzanz_applet_stop_recording (AppletPrivate *priv)
-{
-  g_assert (byzanz_applet_is_recording (priv));
-  
-  byzanz_session_stop (priv->rec);
-  byzanz_applet_update (priv);
-  gdk_threads_add_timeout_seconds (1, check_done_saving_cb, priv);
-}
-
 static void
 button_clicked_cb (GtkToggleButton *button, AppletPrivate *priv)
 {
   gboolean active = gtk_toggle_button_get_active (button);
   
-  if (byzanz_applet_is_recording (priv) && !active) {
-    byzanz_applet_stop_recording (priv);
-  } else if (!byzanz_applet_is_recording (priv) && active) {
+  if (priv->rec && !active) {
+    if (byzanz_session_is_recording (priv->rec))
+      byzanz_session_stop (priv->rec);
+    else
+      byzanz_session_abort (priv->rec);
+  } else if (priv->rec == NULL && active) {
     byzanz_applet_start_recording (priv);
   }
 }
@@ -285,9 +271,8 @@ button_clicked_cb (GtkToggleButton *button, AppletPrivate *priv)
 static void
 destroy_applet (GtkWidget *widget, AppletPrivate *priv)
 {
-  if (byzanz_applet_is_recording (priv))
-    byzanz_applet_stop_recording (priv);
-  g_assert (!priv->rec); 
+  if (priv->rec)
+    g_object_unref (priv->rec);
   g_free (priv);
 }
 

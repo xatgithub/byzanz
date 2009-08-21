@@ -41,13 +41,6 @@
 #include "gifenc.h"
 
 typedef enum {
-  SESSION_STATE_ERROR,
-  SESSION_STATE_CREATED,
-  SESSION_STATE_RECORDING,
-  SESSION_STATE_STOPPED
-} SessionState;
-
-typedef enum {
   SESSION_JOB_QUIT,
   SESSION_JOB_ENCODE,
 } SessionJobType;
@@ -58,27 +51,6 @@ typedef struct {
   cairo_surface_t *	image;		/* image to process */
   GdkRegion *		region;		/* relevant region of image */
 } SessionJob;
-
-struct _ByzanzSession {
-  /*< private >*/
-  /* set by user - accessed ALSO by thread */
-  gboolean		loop;		/* wether the resulting gif should loop */
-  guint			frame_duration;	/* minimum frame duration in msecs */
-  /* state */
-  SessionState		state;		/* state the session is in */
-  ByzanzRecorder *      recorder;       /* the recorder in use */
-  GThread *		encoder;	/* encoding thread */
-  /* accessed ALSO by thread */
-  gint			encoder_running;/* TRUE while the encoder is running */
-  GAsyncQueue *		jobs;		/* jobs the encoding thread has to do */
-  /* accessed ONLY by thread */
-  GOutputStream *       stream;         /* stream we write to */
-  Gifenc *		gifenc;		/* encoder used to encode the image */
-  GTimeVal		current;	/* timestamp of last encoded picture */
-  guint8 *		data;		/* data used to hold palettized data */
-  guint8 *		data_full;    	/* palettized data of full image to compare additions to */
-  GdkRectangle		relevant_data;	/* relevant area to encode */
-};
 
 /*** JOB FUNCTIONS ***/
 
@@ -221,6 +193,21 @@ byzanz_session_encode (ByzanzSession *rec, cairo_surface_t *image, GdkRegion *re
   byzanz_session_dither_region (rec, region, image);
 }
 
+static gboolean
+encoding_finished (gpointer data)
+{
+  ByzanzSession *session = data;
+
+  if (g_thread_join (session->encoder) != session)
+    g_assert_not_reached ();
+  session->encoder = NULL;
+  g_object_unref (session);
+
+  g_object_notify (data, "encoding");
+
+  return FALSE;
+}
+
 static gpointer
 byzanz_session_run_encoder (gpointer data)
 {
@@ -253,35 +240,154 @@ byzanz_session_run_encoder (gpointer data)
     session_job_free (job);
   }
   
-  byzanz_session_add_image (rec, &quit_tv);
-  gifenc_close (rec->gifenc, NULL);
+  if (has_quantized) {
+    byzanz_session_add_image (rec, &quit_tv);
+    gifenc_close (rec->gifenc, NULL);
+  }
 
   g_free (rec->data);
   rec->data = NULL;
   g_free (rec->data_full);
   rec->data_full = NULL;
-  g_atomic_int_add (&rec->encoder_running, -1);
 
+  g_idle_add (encoding_finished, rec);
   return rec;
 }
 
 /*** MAIN FUNCTIONS ***/
 
+enum {
+  PROP_0,
+  PROP_RECORDING,
+  PROP_ENCODING,
+  PROP_ERROR
+};
+
+G_DEFINE_TYPE (ByzanzSession, byzanz_session, G_TYPE_OBJECT)
+
 static void
-byzanz_session_state_advance (ByzanzSession *session)
+byzanz_session_get_property (GObject *object, guint param_id, GValue *value, 
+    GParamSpec * pspec)
 {
-  switch (session->state) {
-    case SESSION_STATE_CREATED:
-      byzanz_session_start (session);
+  ByzanzSession *session = BYZANZ_SESSION (object);
+
+  switch (param_id) {
+    case PROP_ERROR:
+      g_value_set_pointer (value, session->error);
       break;
-    case SESSION_STATE_RECORDING:
-      byzanz_session_stop (session);
+    case PROP_RECORDING:
+      g_value_set_boolean (value, byzanz_session_is_recording (session));
       break;
-    case SESSION_STATE_STOPPED:
-    case SESSION_STATE_ERROR:
+    case PROP_ENCODING:
+      g_value_set_boolean (value, byzanz_session_is_encoding (session));
+      break;
     default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, param_id, pspec);
       break;
   }
+}
+
+static void
+byzanz_session_set_property (GObject *object, guint param_id, const GValue *value, 
+    GParamSpec * pspec)
+{
+  //ByzanzSession *session = BYZANZ_SESSION (object);
+
+  switch (param_id) {
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, param_id, pspec);
+      break;
+  }
+}
+
+static void
+byzanz_session_dispose (GObject *object)
+{
+  ByzanzSession *session = BYZANZ_SESSION (object);
+
+  if (byzanz_recorder_get_recording (session->recorder)) {
+    byzanz_session_stop (session);
+    return;
+  }
+
+  G_OBJECT_CLASS (byzanz_session_parent_class)->dispose (object);
+}
+
+static void
+byzanz_session_finalize (GObject *object)
+{
+  ByzanzSession *session = BYZANZ_SESSION (object);
+
+  g_assert (session->encoder == NULL);
+
+  gifenc_free (session->gifenc);
+  g_object_unref (session->recorder);
+  g_object_unref (session->stream);
+
+  g_assert (g_async_queue_length (session->jobs) == 0);
+  g_async_queue_unref (session->jobs);
+
+  if (session->error)
+    g_error_free (session->error);
+
+  G_OBJECT_CLASS (byzanz_session_parent_class)->finalize (object);
+}
+
+#if 0
+static void
+byzanz_session_set_error (ByzanzSession *session, const GError *error)
+{
+  GObject *object = G_OBJECT (session);
+
+  if (session->error != NULL)
+    return;
+
+  session->error = g_error_copy (error);
+  g_object_freeze_notify (object);
+  g_object_notify (object, "error");
+  if (session->encoder != NULL)
+    g_object_notify (object, "encoding");
+  if (byzanz_recorder_get_recording (session->recorder))
+    byzanz_session_stop (session);
+  g_object_thaw_notify (object);
+}
+#endif
+
+static void
+byzanz_session_constructed (GObject *object)
+{
+  //ByzanzSession *session = BYZANZ_SESSION (object);
+
+  if (G_OBJECT_CLASS (byzanz_session_parent_class)->constructed)
+    G_OBJECT_CLASS (byzanz_session_parent_class)->constructed (object);
+}
+
+static void
+byzanz_session_class_init (ByzanzSessionClass *klass)
+{
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->get_property = byzanz_session_get_property;
+  object_class->set_property = byzanz_session_set_property;
+  object_class->dispose = byzanz_session_dispose;
+  object_class->finalize = byzanz_session_finalize;
+  object_class->constructed = byzanz_session_constructed;
+
+  g_object_class_install_property (object_class, PROP_ERROR,
+      g_param_spec_pointer ("error", "error", "error that happened on the thread",
+	  G_PARAM_READABLE));
+  g_object_class_install_property (object_class, PROP_RECORDING,
+      g_param_spec_boolean ("recording", "recording", "TRUE while the recorder is running",
+	  FALSE, G_PARAM_READABLE));
+  g_object_class_install_property (object_class, PROP_ENCODING,
+      g_param_spec_boolean ("encoding", "encoding", "TRUE while the encoder is running",
+	  TRUE, G_PARAM_READABLE));
+}
+
+static void
+byzanz_session_init (ByzanzSession *session)
+{
+  session->jobs = g_async_queue_new ();
 }
 
 static void
@@ -300,7 +406,7 @@ session_gifenc_write (gpointer closure, const guchar *data, gsize len, GError **
 {
   ByzanzSession *session = closure;
 
-  return g_output_stream_write_all (session->stream, data, len, NULL, NULL, error);
+  return g_output_stream_write_all (session->stream, data, len, NULL, session->cancellable, error);
 }
 
 /**
@@ -333,19 +439,16 @@ byzanz_session_new (GFile *destination, GdkWindow *window, GdkRectangle *area,
   g_return_val_if_fail (area->width > 0, NULL);
   g_return_val_if_fail (area->height > 0, NULL);
   
-  session = g_new0 (ByzanzSession, 1);
+  session = g_object_new (BYZANZ_TYPE_SESSION, NULL);
 
   /* set user properties */
   session->loop = loop;
-  session->frame_duration = 1000 / 25;
   
   /* open file for writing */
   session->stream = G_OUTPUT_STREAM (g_file_replace (destination, NULL, 
-        FALSE, G_FILE_CREATE_REPLACE_DESTINATION, NULL, NULL));
-  if (session->stream == NULL) {
-    g_free (session);
-    return NULL;
-  }
+        FALSE, G_FILE_CREATE_REPLACE_DESTINATION, session->cancellable, &session->error));
+  if (session->stream == NULL)
+    return session;
 
   /* prepare thread first, so we can easily error out on failure */
   root_rect.x = root_rect.y = 0;
@@ -354,97 +457,78 @@ byzanz_session_new (GFile *destination, GdkWindow *window, GdkRectangle *area,
   gdk_rectangle_intersect (area, &root_rect, &root_rect);
   session->gifenc = gifenc_new (root_rect.width, root_rect.height, 
       session_gifenc_write, session, NULL);
-  if (!session->gifenc) {
-    g_object_unref (session->stream);
-    g_free (session);
-    return NULL;
-  }
-  session->jobs = g_async_queue_new ();
-  session->encoder_running = 1;
+
   session->encoder = g_thread_create (byzanz_session_run_encoder, session, 
-      TRUE, NULL);
-  if (!session->encoder) {
-    gifenc_free (session->gifenc);
-    g_async_queue_unref (session->jobs);
-    g_free (session);
-    return NULL;
-  }
+      TRUE, &session->error);
+  if (!session->encoder)
+    return session;
 
   session->recorder = byzanz_recorder_new (window, &root_rect);
   g_signal_connect (session->recorder, "image", 
       G_CALLBACK (byzanz_session_recorder_image_cb), session);
 
-  session->state = SESSION_STATE_CREATED;
   return session;
 }
 
 void
-byzanz_session_start (ByzanzSession *rec)
+byzanz_session_start (ByzanzSession *session)
 {
-  g_return_if_fail (BYZANZ_IS_SESSION (rec));
-  g_return_if_fail (rec->state == SESSION_STATE_CREATED);
+  g_return_if_fail (BYZANZ_IS_SESSION (session));
 
-  byzanz_recorder_set_recording (rec->recorder, TRUE);
-  
-  rec->state = SESSION_STATE_RECORDING;
+  byzanz_recorder_set_recording (session->recorder, TRUE);
+  g_object_notify (G_OBJECT (session), "recording");
 }
 
 void
-byzanz_session_stop (ByzanzSession *rec)
+byzanz_session_stop (ByzanzSession *session)
 {
   GTimeVal tv;
   SessionJob *job;
 
-  g_return_if_fail (BYZANZ_IS_SESSION (rec));
-  g_return_if_fail (rec->state == SESSION_STATE_RECORDING);
+  g_return_if_fail (BYZANZ_IS_SESSION (session));
 
-  /* byzanz_session_queue_image (rec); - useless because last image would have a 0 time */
+  g_object_ref (session);
+
+  /* byzanz_session_queue_image (session); - useless because last image would have a 0 time */
   g_get_current_time (&tv);
-  job = session_job_new (rec, SESSION_JOB_QUIT, NULL, &tv, NULL);
-  g_async_queue_push (rec->jobs, job);
+  job = session_job_new (session, SESSION_JOB_QUIT, NULL, &tv, NULL);
+  g_async_queue_push (session->jobs, job);
   
-  byzanz_recorder_set_recording (rec->recorder, FALSE);
-
-  rec->state = SESSION_STATE_STOPPED;
+  byzanz_recorder_set_recording (session->recorder, FALSE);
+  g_object_notify (G_OBJECT (session), "recording");
 }
 
 void
-byzanz_session_destroy (ByzanzSession *rec)
+byzanz_session_abort (ByzanzSession *session)
 {
-  g_return_if_fail (BYZANZ_IS_SESSION (rec));
+  g_return_if_fail (BYZANZ_IS_SESSION (session));
 
-  while (rec->state != SESSION_STATE_ERROR &&
-         rec->state != SESSION_STATE_STOPPED)
-    byzanz_session_state_advance (rec);
-
-  if (g_thread_join (rec->encoder) != rec)
-    g_assert_not_reached ();
-
-  gifenc_free (rec->gifenc);
-  g_object_unref (rec->recorder);
-  g_object_unref (rec->stream);
-
-  g_assert (g_async_queue_length (rec->jobs) == 0);
-  g_async_queue_unref (rec->jobs);
-  
-  g_free (rec);
+  g_cancellable_cancel (session->cancellable);
 }
 
-/**
- * byzanz_session_is_active:
- * @session: ia recording session
- *
- * Checks if the session is currently running or - after being stopped - if 
- * the encoder is still actively processing cached data.
- * Note that byzanz_session_destroy() will block until all cached data has been 
- * processed, so it might take a long time.
- *
- * Returns: TRUE if the recording session is still active.
- **/
 gboolean
-byzanz_session_is_active (ByzanzSession *session)
+byzanz_session_is_recording (ByzanzSession *session)
 {
-  g_return_val_if_fail (BYZANZ_IS_SESSION (session), 0);
-  
-  return g_atomic_int_get (&session->encoder_running) > 0;
+  g_return_val_if_fail (BYZANZ_IS_SESSION (session), FALSE);
+
+  return session->error == NULL &&
+    byzanz_recorder_get_recording (session->recorder);
 }
+
+gboolean
+byzanz_session_is_encoding (ByzanzSession *session)
+{
+  g_return_val_if_fail (BYZANZ_IS_SESSION (session), FALSE);
+
+  return session->error == NULL &&
+    session->encoder != NULL;
+}
+
+const GError *
+byzanz_session_get_error (ByzanzSession *session)
+{
+  g_return_val_if_fail (BYZANZ_IS_SESSION (session), NULL);
+  
+  return session->error;
+}
+

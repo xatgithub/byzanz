@@ -139,6 +139,6 @@ main (int argc, char **argv)
   
   gtk_main ();
 
-  byzanz_session_destroy (rec);
+  g_object_unref (rec);
   return 0;
 }
