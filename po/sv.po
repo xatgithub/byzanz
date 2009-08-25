@@ -1,12 +1,12 @@
 # Swedish translation of byzanz.
-# Daniel Nylander <po@danielnylander.se>, 2006.
+# Daniel Nylander <po@danielnylander.se>, 2006, 2009.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: Byzanz\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2006-05-12 18:37+0200\n"
-"PO-Revision-Date: 2006-10-03 15:25-0700\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/\n"
+"POT-Creation-Date: 2009-08-25 07:39+0200\n"
+"PO-Revision-Date: 2009-08-25 07:40+0100\n"
 "Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
 "MIME-Version: 1.0\n"
@@ -15,72 +15,53 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ../src/byzanz.schemas.in.h:1
-msgid "Directory to save in"
-msgstr "Katalog att spara i"
-
-#: ../src/byzanz.schemas.in.h:2
 msgid "If set, Byzanz will record the mouse cursor. While useful, recording the mouse cursor results in bigger files and should therefore be used with care."
 msgstr "Om inställd kommer Byzanz att spela in muspekaren. Användbar funktion men inspelning av muspekaren resulterar i större filer och bör därför användas med försiktighet."
 
-#: ../src/byzanz.schemas.in.h:3
+#: ../src/byzanz.schemas.in.h:2
 #: ../src/record.c:39
 msgid "Record mouse cursor"
 msgstr "Spela in muspekare"
 
-#: ../src/byzanz.schemas.in.h:4
+#: ../src/byzanz.schemas.in.h:3
 msgid "Recording method"
 msgstr "Inspelningsmetod"
 
+#: ../src/byzanz.schemas.in.h:4
+msgid "Save filename"
+msgstr "Filnamn för sparning"
+
 #: ../src/byzanz.schemas.in.h:5
-msgid "This is the directory that Byzanz will default to when saving a file."
-msgstr "Det här är katalogen som Byzanz som standard kommer att spara en fil i."
+msgid "URI for the filename Byzanz will suggest when starting a recording."
+msgstr "URI för filnamnet som Byzanz ska föreslå när en inspelning påbörjas."
 
 #: ../src/byzanz.schemas.in.h:6
 msgid "Use this method as the default method for recording. Must be one of \"screen\" for recording the whole screen, \"area\" for selecting an area or \"window\" to select a window."
 msgstr "Använd den här metoden som standardmetoden för inspelning. Måste vara en av \"screen\" för inspelning av hela skärmen, \"area\" för markering av ett område eller \"window\" för att välja ett fönster."
 
-#: ../src/byzanzapplet.c:110
-msgid "A file could not be saved."
-msgstr "En fil kunde inte sparas."
-
 #: ../src/byzanzapplet.c:111
-#, c-format
-msgid ""
-"\"%s\" could not be saved.\n"
-"The error that occured was: %s"
-msgstr ""
-"\"%s\" kunde inte sparas.\n"
-"Felet som inträffade var: %s"
+msgid "Failed to save file."
+msgstr "Misslyckades med att spara filen."
 
-#: ../src/byzanzapplet.c:175
+#: ../src/byzanzapplet.c:167
 msgid "Save Recorded File"
 msgstr "Spara inspelad fil"
 
-#: ../src/byzanzapplet.c:224
+#: ../src/byzanzapplet.c:210
 msgid "Stop current recording"
 msgstr "Stoppa aktuell inspelning"
 
-#: ../src/byzanzapplet.c:258
-msgid "Cannot start recording."
-msgstr "Kan inte starta inspelning."
-
-#: ../src/byzanzapplet.c:259
-#: ../src/record.c:131
-#, c-format
-msgid "Byzanz requires a 24bpp or 32bpp depth for recording. The current resolution is set to %dbpp."
-msgstr "Byzanz kräver ett färgdjup på 24 eller 32 bitar för inspelning. Den aktuella upplösningen är inställd till %d bitar."
-
-#: ../src/byzanzapplet.c:369
+#: ../src/byzanzapplet.c:349
 #: ../src/ByzanzApplet.server.in.in.h:2
 msgid "Desktop Recorder"
 msgstr "Skrivbordsinspelare"
 
-#: ../src/byzanzapplet.c:372
+#: ../src/byzanzapplet.c:352
 #: ../src/ByzanzApplet.server.in.in.h:3
 msgid "Record what's happening on your desktop"
 msgstr "Spela in vad som hände på ditt skrivbord"
 
-#: ../src/byzanzapplet.c:374
+#: ../src/byzanzapplet.c:354
 msgid "translator-credits"
 msgstr ""
 "Daniel Nylander <po@danielnylander.se>\n"
@@ -88,7 +69,7 @@ msgstr ""
 "Skicka synpunkter på översättningen till\n"
 "tp-sv@listor.tp-sv.se"
 
-#: ../src/byzanzapplet.c:441
+#: ../src/byzanzapplet.c:419
 msgid "Record _Mouse Cursor"
 msgstr "Spela in _muspekare"
 
@@ -96,27 +77,27 @@ msgstr "Spela in _muspekare"
 msgid "_About"
 msgstr "_Om"
 
-#: ../src/byzanzselect.c:312
+#: ../src/byzanzselect.c:320
 msgid "Record _Desktop"
 msgstr "Spela in _skrivbord"
 
-#: ../src/byzanzselect.c:312
+#: ../src/byzanzselect.c:320
 msgid "Record the entire desktop"
 msgstr "Spela in hela skrivbordet"
 
-#: ../src/byzanzselect.c:314
+#: ../src/byzanzselect.c:322
 msgid "Record _Area"
 msgstr "Spela in _område"
 
-#: ../src/byzanzselect.c:314
+#: ../src/byzanzselect.c:322
 msgid "Record a selected area of the desktop"
 msgstr "Spela in ett markerat område av skrivbordet"
 
-#: ../src/byzanzselect.c:316
+#: ../src/byzanzselect.c:324
 msgid "Record _Window"
 msgstr "Spela in _fönster"
 
-#: ../src/byzanzselect.c:316
+#: ../src/byzanzselect.c:324
 msgid "Record a selected window"
 msgstr "Spela in markerat fönster"
 
@@ -191,16 +172,16 @@ msgstr "Inspelningen startar. Kommer att spela in %d sekunder...\n"
 msgid "Preparing recording. Will start in 1 second...\n"
 msgstr "Förbereder inspelning. Kommer att starta om 1 sekund...\n"
 
-#: ../src/record.c:116
+#: ../src/record.c:115
 msgid "record your current desktop session"
 msgstr "spela in din aktuella skrivbordssession"
 
-#: ../src/record.c:120
+#: ../src/record.c:123
 #, c-format
 msgid "Wrong option: %s\n"
 msgstr "Felaktig flagga: %s\n"
 
-#: ../src/record.c:138
+#: ../src/record.c:134
 #, c-format
 msgid ""
 "Could not prepare recording.\n"
@@ -209,6 +190,26 @@ msgstr ""
 "Kunde inte förbereda inspelningen.\n"
 "Antagligen är inte Damage-tillägget tillgängligt på X-servern eller att filen \"%s\" inte är skrivbar.\n"
 
+#~ msgid ""
+#~ "This is the directory that Byzanz will default to when saving a file."
+#~ msgstr ""
+#~ "Det här är katalogen som Byzanz som standard kommer att spara en fil i."
+#~ msgid "A file could not be saved."
+#~ msgstr "En fil kunde inte sparas."
+#~ msgid ""
+#~ "\"%s\" could not be saved.\n"
+#~ "The error that occured was: %s"
+#~ msgstr ""
+#~ "\"%s\" kunde inte sparas.\n"
+#~ "Felet som inträffade var: %s"
+#~ msgid "Cannot start recording."
+#~ msgstr "Kan inte starta inspelning."
+#~ msgid ""
+#~ "Byzanz requires a 24bpp or 32bpp depth for recording. The current "
+#~ "resolution is set to %dbpp."
+#~ msgstr ""
+#~ "Byzanz kräver ett färgdjup på 24 eller 32 bitar för inspelning. Den "
+#~ "aktuella upplösningen är inställd till %d bitar."
 #~ msgid "SAVE"
 #~ msgstr "GUARDAR"
 
