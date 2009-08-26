@@ -72,6 +72,30 @@ byzanz_recorder_get_invalid_region (ByzanzRecorder *recorder)
 }
 
 static cairo_surface_t *
+ensure_image_surface (cairo_surface_t * surface, GdkRectangle *extents)
+{
+  cairo_surface_t *image;
+  cairo_t *cr;
+
+  if (cairo_surface_get_type (surface) == CAIRO_SURFACE_TYPE_IMAGE) {
+    cairo_surface_reference (surface);
+    return surface;
+  }
+
+  image = cairo_image_surface_create (CAIRO_FORMAT_RGB24, extents->width, extents->height);
+  cairo_surface_set_device_offset (surface, -extents->x, -extents->y);
+
+  cr = cairo_create (image);
+  cairo_set_source_surface (cr, surface, 0, 0);
+  cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
+  cairo_paint (cr);
+  cairo_destroy (cr);
+
+  cairo_surface_destroy (surface);
+  return image;
+}
+
+static cairo_surface_t *
 byzanz_recorder_create_snapshot (ByzanzRecorder *recorder, const GdkRegion *invalid)
 {
   GdkRectangle extents;
@@ -80,7 +104,10 @@ byzanz_recorder_create_snapshot (ByzanzRecorder *recorder, const GdkRegion *inva
   GSequenceIter *iter;
   
   gdk_region_get_clipbox (invalid, &extents);
-  surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, extents.width, extents.height);
+  cr = gdk_cairo_create (recorder->window);
+  surface = cairo_surface_create_similar (cairo_get_target (cr), CAIRO_CONTENT_COLOR,
+      extents.width, extents.height);
+  cairo_destroy (cr);
   cairo_surface_set_device_offset (surface, -extents.x, -extents.y);
 
   cr = cairo_create (surface);
@@ -104,7 +131,8 @@ byzanz_recorder_create_snapshot (ByzanzRecorder *recorder, const GdkRegion *inva
    * of the code works in coordinates realtive to the passed in area. */
   cairo_surface_set_device_offset (surface,
       recorder->area.x - extents.x, recorder->area.y - extents.y);
-  return surface;
+
+  return ensure_image_surface (surface, &extents);
 }
 
 static gboolean byzanz_recorder_snapshot (ByzanzRecorder *recorder);
