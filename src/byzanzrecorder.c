@@ -77,13 +77,11 @@ ensure_image_surface (cairo_surface_t * surface, GdkRectangle *extents)
   cairo_surface_t *image;
   cairo_t *cr;
 
-  if (cairo_surface_get_type (surface) == CAIRO_SURFACE_TYPE_IMAGE) {
-    cairo_surface_reference (surface);
+  if (cairo_surface_get_type (surface) == CAIRO_SURFACE_TYPE_IMAGE)
     return surface;
-  }
 
   image = cairo_image_surface_create (CAIRO_FORMAT_RGB24, extents->width, extents->height);
-  cairo_surface_set_device_offset (surface, -extents->x, -extents->y);
+  cairo_surface_set_device_offset (image, -extents->x, -extents->y);
 
   cr = cairo_create (image);
   cairo_set_source_surface (cr, surface, 0, 0);
@@ -125,14 +123,18 @@ byzanz_recorder_create_snapshot (ByzanzRecorder *recorder, const GdkRegion *inva
     cairo_restore (cr);
   }
 
+  if (cairo_status (cr))
+    g_print ("error capturing image: %s\n", cairo_status_to_string (cairo_status (cr)));
   cairo_destroy (cr);
+
+  surface = ensure_image_surface (surface, &extents);
 
   /* adjust device offset here - the layers work in GdkScreen coordinates, the rest
    * of the code works in coordinates realtive to the passed in area. */
   cairo_surface_set_device_offset (surface,
       recorder->area.x - extents.x, recorder->area.y - extents.y);
 
-  return ensure_image_surface (surface, &extents);
+  return surface;
 }
 
 static gboolean byzanz_recorder_snapshot (ByzanzRecorder *recorder);
