@@ -183,7 +183,7 @@ panel_applet_start_response (GtkWidget *dialog, int response, AppletPrivate *pri
   if (window == NULL)
     goto out2;
 
-  priv->rec = byzanz_session_new (file, window, &area, TRUE, TRUE);
+  priv->rec = byzanz_session_new (file, window, &area, TRUE);
   g_signal_connect_swapped (priv->rec, "notify", G_CALLBACK (byzanz_applet_session_notify), priv);
   
   byzanz_session_start (priv->rec);

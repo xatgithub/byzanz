@@ -41,7 +41,6 @@ struct _ByzanzSession {
   
   /*< private >*/
   /* properties */
-  gboolean		loop;		/* wether the resulting gif should loop */
   GFile *               file;           /* file we're saving to */
   GdkRectangle          area;           /* area of window to record */
   GdkWindow *           window;         /* window to record */
@@ -63,7 +62,6 @@ GType		        byzanz_session_get_type		(void) G_GNUC_CONST;
 ByzanzSession * 	byzanz_session_new		(GFile *                file,
 							 GdkWindow *		window,
 							 GdkRectangle *		area,
-							 gboolean		loop,
 							 gboolean		record_cursor);
 void			byzanz_session_start		(ByzanzSession *	session);
 void			byzanz_session_stop		(ByzanzSession *	session);

@@ -256,7 +256,6 @@ byzanz_session_init (ByzanzSession *session)
  * @file: file to record to. Any existing file will be overwritten.
  * @window: window to record
  * @area: area of window that should be recorded
- * @loop: if the resulting animation should loop
  * @record_cursor: if the cursor image should be recorded
  *
  * Creates a new #ByzanzSession and initializes all basic variables. 
@@ -268,7 +267,7 @@ byzanz_session_init (ByzanzSession *session)
  **/
 ByzanzSession *
 byzanz_session_new (GFile *file, GdkWindow *window, GdkRectangle *area,
-    gboolean loop, gboolean record_cursor)
+    gboolean record_cursor)
 {
   g_return_val_if_fail (G_IS_FILE (file), NULL);
   g_return_val_if_fail (GDK_IS_WINDOW (window), NULL);
@@ -278,7 +277,7 @@ byzanz_session_new (GFile *file, GdkWindow *window, GdkRectangle *area,
   g_return_val_if_fail (area->width > 0, NULL);
   g_return_val_if_fail (area->height > 0, NULL);
   
-  /* FIXME: handle looping and mouse cursor */
+  /* FIXME: handle mouse cursor */
 
   return g_object_new (BYZANZ_TYPE_SESSION, "file", file, "window", window, "area", area, NULL);
 }
