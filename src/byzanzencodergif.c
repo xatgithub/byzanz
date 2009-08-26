@@ -59,9 +59,10 @@ byzanz_encoder_gif_setup (ByzanzEncoder * encoder,
   return TRUE;
 }
 
-static void
+static gboolean
 byzanz_encoder_gif_quantize (ByzanzEncoderGif * gif,
-                             cairo_surface_t *  surface)
+                             cairo_surface_t *  surface,
+                             GError **          error)
 {
   GifencPalette *palette;
 
@@ -71,16 +72,19 @@ byzanz_encoder_gif_quantize (ByzanzEncoderGif * gif,
       cairo_image_surface_get_width (surface), cairo_image_surface_get_height (surface),
       cairo_image_surface_get_stride (surface), TRUE, 255);
   
-  gifenc_initialize (gif->gifenc, palette, TRUE, NULL);
+  if (!gifenc_initialize (gif->gifenc, palette, TRUE, error))
+    return FALSE;
+
   memset (gif->image_data,
       gifenc_palette_get_alpha_index (palette),
       gifenc_get_width (gif->gifenc) * gifenc_get_height (gif->gifenc));
 
   gif->has_quantized = TRUE;
+  return TRUE;
 }
 
-static void
-byzanz_encoder_write_image (ByzanzEncoderGif *gif, const GTimeVal *tv)
+static gboolean
+byzanz_encoder_write_image (ByzanzEncoderGif *gif, const GTimeVal *tv, GError **error)
 {
   glong msecs;
   guint width;
@@ -96,12 +100,14 @@ byzanz_encoder_write_image (ByzanzEncoderGif *gif, const GTimeVal *tv)
     g_printerr ("<10 msecs for a frame, can this be?\n");
   msecs = MAX (msecs, 10);
 
-  gifenc_add_image (gif->gifenc, gif->cached_area.x, gif->cached_area.y, 
-	gif->cached_area.width, gif->cached_area.height, msecs,
-	gif->cached_data + width * gif->cached_area.y + gif->cached_area.x,
-        width, NULL);
+  if (!gifenc_add_image (gif->gifenc, gif->cached_area.x, gif->cached_area.y, 
+            gif->cached_area.width, gif->cached_area.height, msecs,
+            gif->cached_data + width * gif->cached_area.y + gif->cached_area.x,
+            width, error))
+    return FALSE;
 
   gif->cached_time = *tv;
+  return TRUE;
 }
 
 static gboolean
@@ -174,7 +180,8 @@ byzanz_encoder_gif_process (ByzanzEncoder *   encoder,
   GdkRectangle area;
 
   if (!gif->has_quantized) {
-    byzanz_encoder_gif_quantize (gif, surface);
+    if (!byzanz_encoder_gif_quantize (gif, surface, error))
+      return FALSE;
     gif->cached_time = *total_elapsed;
     if (!byzanz_encoder_gif_encode_image (gif, surface, region, &area)) {
       g_assert_not_reached ();
@@ -182,7 +189,8 @@ byzanz_encoder_gif_process (ByzanzEncoder *   encoder,
     byzanz_encoder_swap_image (gif, &area);
   } else {
     if (byzanz_encoder_gif_encode_image (gif, surface, region, &area)) {
-      byzanz_encoder_write_image (gif, total_elapsed);
+      if (!byzanz_encoder_write_image (gif, total_elapsed, error))
+        return FALSE;
       byzanz_encoder_swap_image (gif, &area);
     }
   }
@@ -204,8 +212,10 @@ byzanz_encoder_gif_close (ByzanzEncoder *  encoder,
     return FALSE;
   }
 
-  byzanz_encoder_write_image (gif, total_elapsed);
-  gifenc_close (gif->gifenc, NULL);
+  if (!byzanz_encoder_write_image (gif, total_elapsed, error) ||
+      !gifenc_close (gif->gifenc, error))
+    return FALSE;
+
   return TRUE;
 }
 
