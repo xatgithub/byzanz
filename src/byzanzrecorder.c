@@ -103,7 +103,7 @@ byzanz_recorder_create_snapshot (ByzanzRecorder *recorder, const GdkRegion *inva
   
   gdk_region_get_clipbox (invalid, &extents);
   cr = gdk_cairo_create (recorder->window);
-  surface = cairo_surface_create_similar (cairo_get_target (cr), CAIRO_CONTENT_COLOR,
+  surface = cairo_surface_create_similar (cairo_get_target (cr), CAIRO_CONTENT_COLOR_ALPHA,
       extents.width, extents.height);
   cairo_destroy (cr);
   cairo_surface_set_device_offset (surface, -extents.x, -extents.y);
