@@ -47,7 +47,6 @@ typedef struct {
   GtkTooltips *		tooltips;	/* our tooltips */
   
   ByzanzSession *	rec;		/* the session (if recording) */
-  GFile *               destination;    /* file we are recording to */
 
   /* config */
   int			method;		/* recording method that was set */
@@ -160,7 +159,6 @@ panel_applet_start_response (GtkWidget *dialog, int response, AppletPrivate *pri
   GdkWindow *window;
   GdkRectangle area;
 
-  g_assert (priv->destination == NULL);
   file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
   if (file == NULL)
     goto out;
@@ -171,12 +169,10 @@ panel_applet_start_response (GtkWidget *dialog, int response, AppletPrivate *pri
       panel_applet_gconf_set_string (priv->applet, "save_filename", uri, NULL);
       g_free (uri);
       byzanz_applet_set_default_method (priv, i);
-      priv->destination = file;
-      file = NULL;
       break;
     }
   }
-  if (priv->destination == NULL)
+  if (i >= byzanz_select_get_method_count ())
     goto out;
 
   gtk_widget_destroy (dialog);
@@ -187,20 +183,20 @@ panel_applet_start_response (GtkWidget *dialog, int response, AppletPrivate *pri
   if (window == NULL)
     goto out2;
 
-  priv->rec = byzanz_session_new (priv->destination, window, &area, TRUE, TRUE);
+  priv->rec = byzanz_session_new (file, window, &area, TRUE, TRUE);
   g_signal_connect_swapped (priv->rec, "notify", G_CALLBACK (byzanz_applet_session_notify), priv);
   
   byzanz_session_start (priv->rec);
+  byzanz_applet_session_notify (priv);
+  g_object_unref (file);
   return;
 
 out:
   gtk_widget_destroy (dialog);
   priv->dialog = NULL;
 out2:
-  if (priv->destination) {
-    g_object_unref (priv->destination);
-    priv->destination = NULL;
-  }
+  if (file)
+    g_object_unref (file);
   if (priv->rec)
     byzanz_applet_session_notify (priv);
   else

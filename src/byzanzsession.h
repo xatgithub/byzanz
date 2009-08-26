@@ -20,8 +20,8 @@
 #include <glib.h>
 #include <gtk/gtk.h>
 
+#include "byzanzencoder.h"
 #include "byzanzrecorder.h"
-#include "gifenc.h"
 
 #ifndef __HAVE_BYZANZ_SESSION_H__
 #define __HAVE_BYZANZ_SESSION_H__
@@ -39,21 +39,18 @@ typedef struct _ByzanzSessionClass ByzanzSessionClass;
 struct _ByzanzSession {
   GObject		object;
   
-  /* set by user - accessed ALSO by thread */
+  /*< private >*/
+  /* properties */
   gboolean		loop;		/* wether the resulting gif should loop */
-  ByzanzRecorder *      recorder;       /* the recorder in use */
-  GThread *		encoder;	/* encoding thread */
-  GError *              error;          /* NULL or the recording error */
+  GFile *               file;           /* file we're saving to */
+  GdkRectangle          area;           /* area of window to record */
+  GdkWindow *           window;         /* window to record */
+
+  /* internal objects */
   GCancellable *        cancellable;    /* cancellable to use for aborting the session */
-  /* accessed ALSO by thread */
-  GAsyncQueue *		jobs;		/* jobs the encoding thread has to do */
-  /* accessed ONLY by thread */
-  GOutputStream *       stream;         /* stream we write to */
-  Gifenc *		gifenc;		/* encoder used to encode the image */
-  GTimeVal		current;	/* timestamp of last encoded picture */
-  guint8 *		data;		/* data used to hold palettized data */
-  guint8 *		data_full;    	/* palettized data of full image to compare additions to */
-  GdkRectangle		relevant_data;	/* relevant area to encode */
+  ByzanzRecorder *      recorder;       /* the recorder in use */
+  ByzanzEncoder *	encoder;	/* encoding thread */
+  GError *              error;          /* NULL or the error we're in */
 };
 
 struct _ByzanzSessionClass {
@@ -63,7 +60,7 @@ struct _ByzanzSessionClass {
 GType		        byzanz_session_get_type		(void) G_GNUC_CONST;
 
 
-ByzanzSession * 	byzanz_session_new		(GFile *                destination,
+ByzanzSession * 	byzanz_session_new		(GFile *                file,
 							 GdkWindow *		window,
 							 GdkRectangle *		area,
 							 gboolean		loop,

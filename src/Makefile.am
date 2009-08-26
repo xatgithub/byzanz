@@ -8,6 +8,8 @@ BUILT_SOURCES = \
 	byzanzmarshal.c
 
 noinst_HEADERS = \
+	byzanzencoder.h \
+	byzanzencodergif.h \
 	byzanzlayer.h \
 	byzanzlayercursor.h \
 	byzanzlayerwindow.h \
@@ -19,6 +21,8 @@ noinst_HEADERS = \
 	screenshot-utils.h
 
 libbyzanz_la_SOURCES = \
+	byzanzencoder.c \
+	byzanzencodergif.c \
 	byzanzlayer.c \
 	byzanzlayercursor.c \
 	byzanzlayerwindow.c \
