@@ -28,7 +28,6 @@
 #include <glib/gstdio.h>
 #include <panel-applet-gconf.h>
 #include "paneltogglebutton.h"
-#include "paneldropdown.h"
 #include <glib/gi18n.h>
 
 #include "byzanzencoder.h"
@@ -42,11 +41,8 @@ typedef struct {
 
   GtkWidget *		button;		/* recording button */
   GtkWidget *		image;		/* image displayed in button */
-  GtkWidget *		dropdown;	/* dropdown button */
-  GtkWidget *		menu;		/* the menu that's dropped down */
-  GtkWidget *		record_cursor;	/* checkmenuitem for cursor recording */
-  GtkWidget *           dialog;         /* file chooser */
   GtkTooltips *		tooltips;	/* our tooltips */
+  GtkWidget *           dialog;         /* file chooser */
   
   ByzanzSession *	rec;		/* the session (if recording) */
 
@@ -318,15 +314,6 @@ byzanz_about_cb (BonoboUIComponent *uic, AppletPrivate *priv, const char *verb)
     NULL );
 }
 
-static void
-record_cursor_toggled_cb (GtkWidget *menuitem, AppletPrivate *priv)
-{
-  gboolean active = gtk_check_menu_item_get_active (
-      GTK_CHECK_MENU_ITEM (priv->record_cursor));
-
-  panel_applet_gconf_set_bool (priv->applet, "record_cursor", active, NULL);
-}
-
 static const BonoboUIVerb byzanz_menu_verbs [] = {
 	BONOBO_UI_UNSAFE_VERB ("ByzanzAbout",      byzanz_about_cb),
         BONOBO_UI_VERB_END
@@ -356,24 +343,6 @@ byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
       DATADIR, "byzanzapplet.xml", NULL, byzanz_menu_verbs, priv);
 
   priv->tooltips = gtk_tooltips_new ();
-  /* build menu */
-  priv->menu = gtk_menu_new ();
-
-  /* translators: keep the mnemonic here different from the selection methods */
-  priv->record_cursor = gtk_check_menu_item_new_with_mnemonic (
-      _("Record _Mouse Cursor"));
-  gtk_menu_shell_append (GTK_MENU_SHELL (priv->menu), priv->record_cursor);
-  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (priv->record_cursor),
-      panel_applet_gconf_get_bool (priv->applet, "record_cursor", NULL));
-  g_signal_connect (priv->record_cursor, "toggled", 
-      G_CALLBACK (record_cursor_toggled_cb), priv);
-  gtk_widget_show (priv->record_cursor);
-  
-  /* create UI */
-  priv->dropdown = panel_dropdown_new ();
-  gtk_container_add (GTK_CONTAINER (applet), priv->dropdown);
-  panel_dropdown_set_popup_widget (PANEL_DROPDOWN (priv->dropdown), priv->menu);
-  panel_dropdown_set_applet (PANEL_DROPDOWN (priv->dropdown), priv->applet);
 
   method = panel_applet_gconf_get_string (priv->applet, "method", NULL);
   priv->method = byzanz_select_method_lookup (method);
@@ -385,7 +354,7 @@ byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
   priv->image = gtk_image_new ();
   gtk_container_add (GTK_CONTAINER (priv->button), priv->image);
   g_signal_connect (priv->button, "toggled", G_CALLBACK (button_clicked_cb), priv);
-  gtk_container_add (GTK_CONTAINER (priv->dropdown), priv->button);
+  gtk_container_add (GTK_CONTAINER (priv->applet), priv->button);
 
   byzanz_applet_update (priv);
   gtk_widget_show_all (GTK_WIDGET (applet));

@@ -16,7 +16,6 @@ noinst_HEADERS = \
 	byzanzrecorder.h \
 	byzanzsession.h \
 	byzanzselect.h \
-	paneldropdown.h \
 	paneltogglebutton.h \
 	screenshot-utils.h
 
@@ -43,7 +42,6 @@ byzanz_record_LDADD = $(BYZANZ_LIBS) ./libbyzanz.la
 
 byzanz_applet_SOURCES = \
 	byzanzapplet.c \
-	paneldropdown.c \
 	paneltogglebutton.c \
 	screenshot-utils.c
 
