@@ -97,7 +97,7 @@ dnl Check for essential libraries first:
 dnl ====================================
 
 CAIRO_REQ="1.9.3"
-GTK_REQ="2.10.0"
+GTK_REQ="2.17.10"
 GTHREAD_REQ="2.6.0"
 APPLET_REQ="2.10.0"
 XDAMAGE_REQ="1.0"
