@@ -20,6 +20,7 @@
 #include <glib-object.h>
 #include <gio/gio.h>
 #include <gdk/gdk.h>
+#include <gtk/gtk.h>
 #include <cairo.h>
 
 #ifndef __HAVE_BYZANZ_ENCODER_H__
@@ -27,6 +28,7 @@
 
 typedef struct _ByzanzEncoder ByzanzEncoder;
 typedef struct _ByzanzEncoderClass ByzanzEncoderClass;
+typedef gpointer ByzanzEncoderIter;
 
 #define BYZANZ_TYPE_ENCODER                    (byzanz_encoder_get_type())
 #define BYZANZ_IS_ENCODER(obj)                 (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BYZANZ_TYPE_ENCODER))
@@ -52,6 +54,9 @@ struct _ByzanzEncoder {
 struct _ByzanzEncoderClass {
   GObjectClass		object_class;
 
+  /*< protected >*/
+  GtkFileFilter *       filter;                 /* filter to determine if a file should be encoded by this class */
+
   gboolean		(* setup)		(ByzanzEncoder *	encoder,
 						 GOutputStream *	stream,
                                                  guint                  width,
@@ -74,7 +79,8 @@ struct _ByzanzEncoderClass {
 
 GType		byzanz_encoder_get_type		(void) G_GNUC_CONST;
 
-ByzanzEncoder *	byzanz_encoder_new		(GOutputStream *        stream,
+ByzanzEncoder *	byzanz_encoder_new		(GType                  encoder_type,
+                                                 GOutputStream *        stream,
                                                  guint                  width,
                                                  guint                  height,
                                                  GCancellable *         cancellable);
@@ -88,5 +94,12 @@ void		byzanz_encoder_close		(ByzanzEncoder *	encoder,
 gboolean        byzanz_encoder_is_running       (ByzanzEncoder *        encoder);
 const GError *  byzanz_encoder_get_error        (ByzanzEncoder *        encoder);
 
+GtkFileFilter * byzanz_encoder_type_get_filter  (GType                  encoder_type);
+GType           byzanz_encoder_get_type_from_filter 
+                                                (GtkFileFilter *        filter);
+GType           byzanz_encoder_get_type_from_file
+                                                (GFile *                file);
+GType           byzanz_encoder_type_iter_init   (ByzanzEncoderIter *    iter);
+GType           byzanz_encoder_type_iter_next   (ByzanzEncoderIter *    iter);
 
 #endif /* __HAVE_BYZANZ_ENCODER_H__ */

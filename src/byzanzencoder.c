@@ -23,9 +23,6 @@
 
 #include "byzanzencoder.h"
 
-/* all the encoders */
-#include "byzanzencodergif.h"
-
 typedef struct _ByzanzEncoderJob ByzanzEncoderJob;
 struct _ByzanzEncoderJob {
   GTimeVal		tv;		/* time this job was enqueued */
@@ -114,7 +111,60 @@ enum {
   PROP_RUNNING
 };
 
-G_DEFINE_ABSTRACT_TYPE (ByzanzEncoder, byzanz_encoder, G_TYPE_OBJECT)
+static void
+byzanz_encoder_base_init (gpointer klass)
+{
+  ByzanzEncoderClass *encoder_class = klass;
+
+  encoder_class->filter = NULL;
+}
+
+static void
+byzanz_encoder_base_finalize (gpointer klass)
+{
+  ByzanzEncoderClass *encoder_class = klass;
+
+  if (encoder_class->filter)
+    g_object_unref (encoder_class->filter);
+}
+
+/* cannot use this here, the file filter requires base_init and base_finalize
+ * G_DEFINE_ABSTRACT_TYPE (ByzanzEncoder, byzanz_encoder, G_TYPE_OBJECT)
+ */
+static void     byzanz_encoder_init       (GTypeInstance *instance, gpointer klass);
+static void     byzanz_encoder_class_init (ByzanzEncoderClass *klass);
+static gpointer byzanz_encoder_parent_class = NULL;
+static void     byzanz_encoder_class_intern_init (gpointer klass, gpointer data)
+{
+  byzanz_encoder_parent_class = g_type_class_peek_parent (klass);
+  byzanz_encoder_class_init ((ByzanzEncoderClass*) klass);
+}
+
+GType
+byzanz_encoder_get_type (void)
+{
+  static volatile gsize g_define_type_id__volatile = 0;
+  if (g_once_init_enter (&g_define_type_id__volatile)) {
+    GTypeInfo info = {
+      sizeof (ByzanzEncoderClass),
+      byzanz_encoder_base_init,
+      byzanz_encoder_base_finalize,
+      byzanz_encoder_class_intern_init,
+      NULL,
+      NULL,
+      sizeof (ByzanzEncoder),
+      0,
+      byzanz_encoder_init,
+      NULL
+    };
+    GType g_define_type_id;
+
+    g_define_type_id = g_type_register_static (G_TYPE_OBJECT, g_intern_static_string ("ByzanzEncoder"),
+      &info, G_TYPE_FLAG_ABSTRACT);
+    g_once_init_leave (&g_define_type_id__volatile, g_define_type_id);
+  }
+  return g_define_type_id__volatile;
+}
 
 static void
 byzanz_encoder_get_property (GObject *object, guint param_id, GValue *value, 
@@ -235,22 +285,29 @@ byzanz_encoder_class_init (ByzanzEncoderClass *klass)
 }
 
 static void
-byzanz_encoder_init (ByzanzEncoder *encoder)
+byzanz_encoder_init (GTypeInstance *instance, gpointer klass)
 {
+  ByzanzEncoder *encoder = BYZANZ_ENCODER (instance);
+
   encoder->jobs = g_async_queue_new ();
 }
 
 ByzanzEncoder *
-byzanz_encoder_new (GOutputStream *stream, guint width, guint height, GCancellable *cancellable)
+byzanz_encoder_new (GType           encoder_type,
+                    GOutputStream * stream,
+                    guint           width,
+                    guint           height,
+                    GCancellable *  cancellable)
 {
   ByzanzEncoder *encoder;
 
+  g_return_val_if_fail (g_type_is_a (encoder_type, BYZANZ_TYPE_ENCODER), NULL);
   g_return_val_if_fail (G_IS_OUTPUT_STREAM (stream), NULL);
   g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
   g_return_val_if_fail (width > 0, NULL);
   g_return_val_if_fail (height > 0, NULL);
 
-  encoder = g_object_new (BYZANZ_TYPE_ENCODER_GIF, "output", stream,
+  encoder = g_object_new (encoder_type, "output", stream,
       "cancellable", cancellable, "width", width, "height", height, NULL);
 
   return encoder;
@@ -315,3 +372,127 @@ byzanz_encoder_get_error (ByzanzEncoder *encoder)
 
   return encoder->error;
 }
+
+GtkFileFilter *
+byzanz_encoder_type_get_filter (GType encoder_type)
+{
+  ByzanzEncoderClass *klass;
+  GtkFileFilter *filter;
+
+  g_return_val_if_fail (g_type_is_a (encoder_type, BYZANZ_TYPE_ENCODER), NULL);
+
+  klass = g_type_class_ref (encoder_type);
+  filter = klass->filter;
+  if (filter) {
+    g_assert (!g_object_is_floating (filter));
+    g_object_ref (filter);
+    g_object_set_data (G_OBJECT (filter), "byzanz-encoder-type",
+        GSIZE_TO_POINTER (encoder_type));
+  }
+
+  g_type_class_unref (klass);
+  return filter;
+}
+
+/* all the encoders */
+#include "byzanzencodergif.h"
+
+typedef GType (* TypeFunc) (void);
+static const TypeFunc functions[] = {
+  byzanz_encoder_gif_get_type
+};
+#define BYZANZ_ENCODER_DEFAULT_TYPE (functions[0] ())
+
+GType
+byzanz_encoder_type_iter_init (ByzanzEncoderIter *iter)
+{
+  g_return_val_if_fail (iter != NULL, G_TYPE_NONE);
+
+  *iter = GSIZE_TO_POINTER (0);
+
+  return functions[0] ();
+}
+
+GType
+byzanz_encoder_type_iter_next (ByzanzEncoderIter *iter)
+{
+  guint id;
+
+  g_return_val_if_fail (iter != NULL, G_TYPE_NONE);
+
+  id = GPOINTER_TO_SIZE (*iter);
+
+  id++;
+  if (id >= G_N_ELEMENTS (functions))
+    return G_TYPE_NONE;
+
+  *iter = GSIZE_TO_POINTER (id);
+
+  return functions[id] ();
+}
+
+GType
+byzanz_encoder_get_type_from_filter (GtkFileFilter *filter)
+{
+  GType type;
+
+  g_return_val_if_fail (filter == NULL || GTK_IS_FILE_FILTER (filter), BYZANZ_ENCODER_DEFAULT_TYPE);
+
+  if (filter == NULL)
+    return BYZANZ_ENCODER_DEFAULT_TYPE;
+
+  type = GPOINTER_TO_SIZE (g_object_get_data (G_OBJECT (filter), "byzanz-encoder-type"));
+  if (type == 0)
+    return BYZANZ_ENCODER_DEFAULT_TYPE;
+
+  return type;
+}
+
+GType
+byzanz_encoder_get_type_from_file (GFile *file)
+{
+  ByzanzEncoderIter iter;
+  GtkFileFilterInfo info;
+  GType type;
+
+  g_return_val_if_fail (G_IS_FILE (file), BYZANZ_ENCODER_DEFAULT_TYPE);
+
+  info.contains = 0;
+  
+  info.filename = g_file_get_path (file);
+  if (info.filename)
+    info.contains |= GTK_FILE_FILTER_FILENAME;
+
+  info.uri = g_file_get_uri (file);
+  if (info.uri)
+    info.contains |= GTK_FILE_FILTER_URI;
+
+  /* uh oh */
+  info.display_name = g_file_get_parse_name (file);
+  if (info.display_name)
+    info.contains |= GTK_FILE_FILTER_DISPLAY_NAME;
+
+  for (type = byzanz_encoder_type_iter_init (&iter);
+       type != G_TYPE_NONE;
+       type = byzanz_encoder_type_iter_next (&iter)) {
+    GtkFileFilter *filter = byzanz_encoder_type_get_filter (type);
+    if (filter == NULL)
+      continue;
+
+    if (gtk_file_filter_filter (filter, &info)) {
+      g_object_unref (filter);
+      break;
+    }
+    
+    g_object_unref (filter);
+  }
+  if (type == G_TYPE_NONE)
+    type = BYZANZ_ENCODER_DEFAULT_TYPE;
+
+  g_free ((char *) info.filename);
+  g_free ((char *) info.uri);
+  g_free ((char *) info.display_name);
+
+  return type;
+}
+

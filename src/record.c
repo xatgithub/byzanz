@@ -119,8 +119,8 @@ main (int argc, char **argv)
     return 0;
   }
   file = g_file_new_for_commandline_arg (argv[1]);
-  rec = byzanz_session_new (file, gdk_get_default_root_window (),
-      &area, cursor);
+  rec = byzanz_session_new (file, byzanz_encoder_get_type_from_file (file),
+      gdk_get_default_root_window (), &area, cursor);
   g_object_unref (file);
   if (rec == NULL) {
     g_print (_("Could not prepare recording.\n"

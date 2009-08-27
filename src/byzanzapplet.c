@@ -27,11 +27,13 @@
 #include <gio/gio.h>
 #include <glib/gstdio.h>
 #include <panel-applet-gconf.h>
-#include "byzanzsession.h"
-#include "byzanzselect.h"
 #include "paneltogglebutton.h"
 #include "paneldropdown.h"
 #include <glib/gi18n.h>
+
+#include "byzanzencoder.h"
+#include "byzanzselect.h"
+#include "byzanzsession.h"
 
 static GQuark index_quark = 0;
 
@@ -158,6 +160,8 @@ panel_applet_start_response (GtkWidget *dialog, int response, AppletPrivate *pri
   guint i;
   GdkWindow *window;
   GdkRectangle area;
+  GType encoder_type;
+  GtkFileFilter *filter;
 
   file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
   if (file == NULL)
@@ -175,6 +179,14 @@ panel_applet_start_response (GtkWidget *dialog, int response, AppletPrivate *pri
   if (i >= byzanz_select_get_method_count ())
     goto out;
 
+  filter = gtk_file_chooser_get_filter (GTK_FILE_CHOOSER (priv->dialog));
+  if (filter && gtk_file_filter_get_needed (filter) != 0) {
+    encoder_type = byzanz_encoder_get_type_from_filter (filter);
+  } else {
+    /* It's the "All files" filter */
+    encoder_type = byzanz_encoder_get_type_from_file (file);
+  }
+
   gtk_widget_destroy (dialog);
   priv->dialog = NULL;
   byzanz_applet_update (priv);
@@ -183,7 +195,7 @@ panel_applet_start_response (GtkWidget *dialog, int response, AppletPrivate *pri
   if (window == NULL)
     goto out2;
 
-  priv->rec = byzanz_session_new (file, window, &area, TRUE);
+  priv->rec = byzanz_session_new (file, encoder_type, window, &area, TRUE);
   g_signal_connect_swapped (priv->rec, "notify", G_CALLBACK (byzanz_applet_session_notify), priv);
   
   byzanz_session_start (priv->rec);
@@ -212,6 +224,9 @@ byzanz_applet_start_recording (AppletPrivate *priv)
   if (priv->dialog == NULL) {
     char *uri;
     guint i;
+    GType type;
+    ByzanzEncoderIter iter;
+    GtkFileFilter *filter;
 
     priv->dialog = gtk_file_chooser_dialog_new (_("Record your desktop"),
         GTK_WINDOW (gtk_widget_get_toplevel (GTK_WIDGET (priv->applet))),
@@ -221,6 +236,19 @@ byzanz_applet_start_recording (AppletPrivate *priv)
     for (i = 0; i < byzanz_select_get_method_count (); i++) {
       gtk_dialog_add_button (GTK_DIALOG (priv->dialog),
           byzanz_select_method_get_mnemonic (i), method_response_codes[i]);
+    }
+    filter = gtk_file_filter_new ();
+    gtk_file_filter_set_name (filter, _("All files"));
+    gtk_file_filter_add_custom (filter, 0, (GtkFileFilterFunc) gtk_true, NULL, NULL);
+    gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (priv->dialog), filter);
+    for (type = byzanz_encoder_type_iter_init (&iter);
+         type != G_TYPE_NONE;
+         type = byzanz_encoder_type_iter_next (&iter)) {
+      filter = byzanz_encoder_type_get_filter (type);
+      if (filter) {
+        gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (priv->dialog), filter);
+        g_object_unref (filter);
+      }
     }
     gtk_file_chooser_set_local_only (GTK_FILE_CHOOSER (priv->dialog), FALSE);
     uri = panel_applet_gconf_get_string (priv->applet, "save_filename", NULL);

@@ -44,6 +44,7 @@ struct _ByzanzSession {
   GFile *               file;           /* file we're saving to */
   GdkRectangle          area;           /* area of window to record */
   GdkWindow *           window;         /* window to record */
+  GType                 encoder_type;   /* type of encoder to use */
 
   /* internal objects */
   GCancellable *        cancellable;    /* cancellable to use for aborting the session */
@@ -60,6 +61,7 @@ GType		        byzanz_session_get_type		(void) G_GNUC_CONST;
 
 
 ByzanzSession * 	byzanz_session_new		(GFile *                file,
+                                                         GType                  encoder_type,
 							 GdkWindow *		window,
 							 GdkRectangle *		area,
 							 gboolean		record_cursor);

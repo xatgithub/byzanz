@@ -49,7 +49,8 @@ enum {
   PROP_ERROR,
   PROP_FILE,
   PROP_AREA,
-  PROP_WINDOW
+  PROP_WINDOW,
+  PROP_ENCODER_TYPE
 };
 
 G_DEFINE_TYPE (ByzanzSession, byzanz_session, G_TYPE_OBJECT)
@@ -79,6 +80,9 @@ byzanz_session_get_property (GObject *object, guint param_id, GValue *value,
     case PROP_WINDOW:
       g_value_set_object (value, session->window);
       break;
+    case PROP_ENCODER_TYPE:
+      g_value_set_gtype (value, session->encoder_type);
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, param_id, pspec);
       break;
@@ -100,6 +104,9 @@ byzanz_session_set_property (GObject *object, guint param_id, const GValue *valu
       break;
     case PROP_WINDOW:
       session->window = g_value_dup_object (value);
+      break;
+    case PROP_ENCODER_TYPE:
+      session->encoder_type = g_value_get_gtype (value);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, param_id, pspec);
@@ -201,7 +208,7 @@ byzanz_session_constructed (GObject *object)
   stream = G_OUTPUT_STREAM (g_file_replace (session->file, NULL, 
         FALSE, G_FILE_CREATE_REPLACE_DESTINATION, session->cancellable, &session->error));
   if (stream != NULL) {
-    session->encoder = byzanz_encoder_new (stream,
+    session->encoder = byzanz_encoder_new (session->encoder_type, stream,
         session->area.width, session->area.height, session->cancellable);
     g_signal_connect (session->encoder, "notify", 
         G_CALLBACK (byzanz_session_encoder_notify_cb), session);
@@ -243,6 +250,9 @@ byzanz_session_class_init (ByzanzSessionClass *klass)
   g_object_class_install_property (object_class, PROP_FILE,
       g_param_spec_object ("file", "file", "file to record to",
 	  G_TYPE_FILE, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+  g_object_class_install_property (object_class, PROP_ENCODER_TYPE,
+      g_param_spec_gtype ("encoder-type", "encoder type", "type for the encoder to use",
+	  BYZANZ_TYPE_ENCODER, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 }
 
 static void
@@ -254,6 +264,7 @@ byzanz_session_init (ByzanzSession *session)
 /**
  * byzanz_session_new:
  * @file: file to record to. Any existing file will be overwritten.
+ * @encoder_type: the type of encoder to use
  * @window: window to record
  * @area: area of window that should be recorded
  * @record_cursor: if the cursor image should be recorded
@@ -266,10 +277,11 @@ byzanz_session_init (ByzanzSession *session)
  *          then. Another reason would be a thread creation failure.
  **/
 ByzanzSession *
-byzanz_session_new (GFile *file, GdkWindow *window, GdkRectangle *area,
-    gboolean record_cursor)
+byzanz_session_new (GFile *file, GType encoder_type, 
+    GdkWindow *window, GdkRectangle *area, gboolean record_cursor)
 {
   g_return_val_if_fail (G_IS_FILE (file), NULL);
+  g_return_val_if_fail (g_type_is_a (encoder_type, BYZANZ_TYPE_ENCODER), NULL);
   g_return_val_if_fail (GDK_IS_WINDOW (window), NULL);
   g_return_val_if_fail (area != NULL, NULL);
   g_return_val_if_fail (area->x >= 0, NULL);
@@ -279,7 +291,8 @@ byzanz_session_new (GFile *file, GdkWindow *window, GdkRectangle *area,
   
   /* FIXME: handle mouse cursor */
 
-  return g_object_new (BYZANZ_TYPE_SESSION, "file", file, "window", window, "area", area, NULL);
+  return g_object_new (BYZANZ_TYPE_SESSION, "file", file, "encoder-type", encoder_type,
+      "window", window, "area", area, NULL);
 }
 
 void

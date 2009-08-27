@@ -24,6 +24,7 @@
 #include "byzanzencodergif.h"
 
 #include <string.h>
+#include <glib/gi18n.h>
 
 #include "gifenc.h"
 
@@ -208,7 +209,7 @@ byzanz_encoder_gif_close (ByzanzEncoder *  encoder,
   ByzanzEncoderGif *gif = BYZANZ_ENCODER_GIF (encoder);
 
   if (!gif->has_quantized) {
-    g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_FAILED, "No image to encode.");
+    g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_FAILED, _("No image to encode."));
     return FALSE;
   }
 
@@ -244,6 +245,12 @@ byzanz_encoder_gif_class_init (ByzanzEncoderGifClass *klass)
   encoder_class->setup = byzanz_encoder_gif_setup;
   encoder_class->process = byzanz_encoder_gif_process;
   encoder_class->close = byzanz_encoder_gif_close;
+
+  encoder_class->filter = gtk_file_filter_new ();
+  g_object_ref_sink (encoder_class->filter);
+  gtk_file_filter_set_name (encoder_class->filter, _("GIF images"));
+  gtk_file_filter_add_mime_type (encoder_class->filter, "image/gif");
+  gtk_file_filter_add_pattern (encoder_class->filter, "*.gif");
 }
 
 static void
