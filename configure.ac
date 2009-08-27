@@ -96,12 +96,13 @@ AC_DEFINE_DIR(DATADIR, "${datadir}", [datadir])
 dnl Check for essential libraries first:
 dnl ====================================
 
+CAIRO_REQ="1.9.3"
 GTK_REQ="2.10.0"
 GTHREAD_REQ="2.6.0"
 APPLET_REQ="2.10.0"
 XDAMAGE_REQ="1.0"
 
-PKG_CHECK_MODULES(GTK, gtk+-2.0 >= $GTK_REQ x11, gio-2.0)
+PKG_CHECK_MODULES(GTK, cairo >= $CAIRO_REQ gtk+-2.0 >= $GTK_REQ x11, gio-2.0)
 
 PKG_CHECK_MODULES(GTHREAD, xdamage >= $XDAMAGE_REQ gthread-2.0 >= $GTHREAD_REQ)
 
