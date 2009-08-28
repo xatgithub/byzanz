@@ -9,7 +9,9 @@ BUILT_SOURCES = \
 
 noinst_HEADERS = \
 	byzanzencoder.h \
+	byzanzencoderflv.h \
 	byzanzencodergif.h \
+	byzanzencodergstreamer.h \
 	byzanzencoderogv.h \
 	byzanzlayer.h \
 	byzanzlayercursor.h \
@@ -22,7 +24,9 @@ noinst_HEADERS = \
 
 libbyzanz_la_SOURCES = \
 	byzanzencoder.c \
+	byzanzencoderflv.c \
 	byzanzencodergif.c \
+	byzanzencodergstreamer.c \
 	byzanzencoderogv.c \
 	byzanzlayer.c \
 	byzanzlayercursor.c \

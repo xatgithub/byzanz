@@ -21,32 +21,30 @@
 #include "config.h"
 #endif
 
-#include "byzanzencoderogv.h"
+#include "byzanzencoderflv.h"
 
 #include <glib/gi18n.h>
 
-G_DEFINE_TYPE (ByzanzEncoderOgv, byzanz_encoder_ogv, BYZANZ_TYPE_ENCODER_GSTREAMER)
+G_DEFINE_TYPE (ByzanzEncoderFlv, byzanz_encoder_flv, BYZANZ_TYPE_ENCODER_GSTREAMER)
 
 static void
-byzanz_encoder_ogv_class_init (ByzanzEncoderOgvClass *klass)
+byzanz_encoder_flv_class_init (ByzanzEncoderFlvClass *klass)
 {
   ByzanzEncoderClass *encoder_class = BYZANZ_ENCODER_CLASS (klass);
   ByzanzEncoderGStreamerClass *gstreamer_class = BYZANZ_ENCODER_GSTREAMER_CLASS (klass);
 
   encoder_class->filter = gtk_file_filter_new ();
   g_object_ref_sink (encoder_class->filter);
-  gtk_file_filter_set_name (encoder_class->filter, _("Theora video"));
-  gtk_file_filter_add_mime_type (encoder_class->filter, "video/ogg");
-  gtk_file_filter_add_pattern (encoder_class->filter, "*.ogv");
-  gtk_file_filter_add_pattern (encoder_class->filter, "*.ogg");
+  gtk_file_filter_set_name (encoder_class->filter, _("Flash video"));
+  gtk_file_filter_add_mime_type (encoder_class->filter, "video/x-flv");
+  gtk_file_filter_add_pattern (encoder_class->filter, "*.flv");
 
   gstreamer_class->pipeline_string = 
-    "appsrc name=src ! ffmpegcolorspace ! videorate ! "
-    "video/x-raw-yuv,framerate=25/1 ! theoraenc ! oggmux ! giostreamsink name=sink";
+    "appsrc name=src ! ffmpegcolorspace ! ffenc_flashsv buffer-size=8388608 ! flvmux ! giostreamsink name=sink";
 }
 
 static void
-byzanz_encoder_ogv_init (ByzanzEncoderOgv *encoder_ogv)
+byzanz_encoder_flv_init (ByzanzEncoderFlv *encoder_flv)
 {
 }
 

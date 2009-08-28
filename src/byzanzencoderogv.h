@@ -17,40 +17,30 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "byzanzencoder.h"
+#include "byzanzencodergstreamer.h"
 
-#include <gst/gst.h>
-#include <gst/app/gstappsrc.h>
-
-#ifndef __HAVE_BYZANZ_ENCODER_OGG_H__
-#define __HAVE_BYZANZ_ENCODER_OGG_H__
+#ifndef __HAVE_BYZANZ_ENCODER_OGV_H__
+#define __HAVE_BYZANZ_ENCODER_OGV_H__
 
 typedef struct _ByzanzEncoderOgv ByzanzEncoderOgv;
 typedef struct _ByzanzEncoderOgvClass ByzanzEncoderOgvClass;
 
-#define BYZANZ_TYPE_ENCODER_OGG                    (byzanz_encoder_ogv_get_type())
-#define BYZANZ_IS_ENCODER_OGG(obj)                 (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BYZANZ_TYPE_ENCODER_OGG))
-#define BYZANZ_IS_ENCODER_OGG_CLASS(klass)         (G_TYPE_CHECK_CLASS_TYPE ((klass), BYZANZ_TYPE_ENCODER_OGG))
-#define BYZANZ_ENCODER_OGG(obj)                    (G_TYPE_CHECK_INSTANCE_CAST ((obj), BYZANZ_TYPE_ENCODER_OGG, ByzanzEncoderOgv))
-#define BYZANZ_ENCODER_OGG_CLASS(klass)            (G_TYPE_CHECK_CLASS_CAST ((klass), BYZANZ_TYPE_ENCODER_OGG, ByzanzEncoderOgvClass))
-#define BYZANZ_ENCODER_OGG_GET_CLASS(obj)          (G_TYPE_INSTANCE_GET_CLASS ((obj), BYZANZ_TYPE_ENCODER_OGG, ByzanzEncoderOgvClass))
+#define BYZANZ_TYPE_ENCODER_OGV                    (byzanz_encoder_ogv_get_type())
+#define BYZANZ_IS_ENCODER_OGV(obj)                 (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BYZANZ_TYPE_ENCODER_OGV))
+#define BYZANZ_IS_ENCODER_OGV_CLASS(klass)         (G_TYPE_CHECK_CLASS_TYPE ((klass), BYZANZ_TYPE_ENCODER_OGV))
+#define BYZANZ_ENCODER_OGV(obj)                    (G_TYPE_CHECK_INSTANCE_CAST ((obj), BYZANZ_TYPE_ENCODER_OGV, ByzanzEncoderOgv))
+#define BYZANZ_ENCODER_OGV_CLASS(klass)            (G_TYPE_CHECK_CLASS_CAST ((klass), BYZANZ_TYPE_ENCODER_OGV, ByzanzEncoderOgvClass))
+#define BYZANZ_ENCODER_OGV_GET_CLASS(obj)          (G_TYPE_INSTANCE_GET_CLASS ((obj), BYZANZ_TYPE_ENCODER_OGV, ByzanzEncoderOgvClass))
 
 struct _ByzanzEncoderOgv {
-  ByzanzEncoder         encoder;
-
-  cairo_surface_t *     surface;        /* last surface pushed down the pipeline */
-  GTimeVal              start_time;     /* timestamp of first image */
-
-  GstElement *          pipeline;       /* The pipeline */
-  GstAppSrc *           src;            /* the source we feed with images */
-  GstCaps *             caps;           /* caps of video stream */
+  ByzanzEncoderGStreamer        encoder;
 };
 
 struct _ByzanzEncoderOgvClass {
-  ByzanzEncoderClass    encoder_class;
+  ByzanzEncoderGStreamerClass   encoder_class;
 };
 
 GType		byzanz_encoder_ogv_get_type		(void) G_GNUC_CONST;
 
 
-#endif /* __HAVE_BYZANZ_ENCODER_OGG_H__ */
+#endif /* __HAVE_BYZANZ_ENCODER_OGV_H__ */
