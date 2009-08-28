@@ -27,17 +27,79 @@
 
 #include "screenshot-utils.h"
 
-/*** SELECT AREA ***/
+static void
+rectangle_sanitize (GdkRectangle *dest, const GdkRectangle *src)
+{
+  *dest = *src;
+  if (dest->width < 0) {
+    dest->x += dest->width;
+    dest->width = -dest->width;
+  }
+  if (dest->height < 0) {
+    dest->y += dest->height;
+    dest->height = -dest->height;
+  }
+}
 
-typedef struct {
-  GtkWidget *window;
-  cairo_surface_t *root; /* only used without XComposite, NULL otherwise */
-  GMainLoop *loop;
-  gint x0;
-  gint y0;
-  gint x1;
-  gint y1;
-} WindowData;
+typedef struct _ByzanzSelectData ByzanzSelectData;
+struct _ByzanzSelectData {
+  ByzanzSelectFunc      func;           /* func passed to byzanz_select_method_select() */
+  gpointer              func_data;      /* data passed to byzanz_select_method_select() */
+
+  /* results */
+  GdkWindow *           result;         /* window that was selected */
+  GdkRectangle          area;           /* the area to select */
+
+  /* method data */
+  GtkWidget *           window;         /* window we created to do selecting or NULL */
+  cairo_surface_t *     root;           /* only used without XComposite, NULL otherwise: the root window */
+};
+
+static void
+byzanz_select_data_free (gpointer datap)
+{
+  ByzanzSelectData *data = datap;
+
+  g_assert (data->window == NULL);
+
+  if (data->root)
+    cairo_surface_destroy (data->root);
+  if (data->result)
+    g_object_unref (data->result);
+
+  g_slice_free (ByzanzSelectData, data);
+}
+
+static gboolean
+byzanz_select_really_done (gpointer datap)
+{
+  ByzanzSelectData *data = datap;
+
+  data->func (data->result, &data->area, data->func_data);
+  byzanz_select_data_free (data);
+
+  return FALSE;
+}
+
+static void
+byzanz_select_done (ByzanzSelectData *data, GdkWindow *window)
+{
+  if (data->window) {
+    gtk_widget_destroy (data->window);
+    data->window = NULL;
+  }
+
+  if (window) {
+    /* stupid hack to get around a session recording the selection window */
+    gdk_display_sync (gdk_drawable_get_display (GDK_DRAWABLE (window)));
+    data->result = g_object_ref (window);
+    gdk_threads_add_timeout (1000, byzanz_select_really_done, data);
+  } else {
+    byzanz_select_really_done (data);
+  }
+}
+
+/*** SELECT AREA ***/
 
 /* define for SLOW selection mechanism */
 #undef TARGET_LINE
@@ -46,7 +108,7 @@ static gboolean
 expose_cb (GtkWidget *widget, GdkEventExpose *event, gpointer datap)
 {
   cairo_t *cr;
-  WindowData *data = datap;
+  ByzanzSelectData *data = datap;
 #ifdef TARGET_LINE
   static double dashes[] = { 1.0, 2.0 };
 #endif
@@ -71,51 +133,42 @@ expose_cb (GtkWidget *widget, GdkEventExpose *event, gpointer datap)
 #ifdef TARGET_LINE
   cairo_set_source_rgba (cr, 1.0, 0.0, 0.0, 1.0);
   cairo_set_dash (cr, dashes, G_N_ELEMENTS (dashes), 0.0);
-  cairo_move_to (cr, data->x1 - 0.5, 0.0);
-  cairo_line_to (cr, data->x1 - 0.5, event->area.y + event->area.height); /* end of screen really */
-  cairo_move_to (cr, 0.0, data->y1 - 0.5);
-  cairo_line_to (cr, event->area.x + event->area.width, data->y1 - 0.5); /* end of screen really */
+  cairo_move_to (cr, data->area.x + data->area.width - 0.5, 0.0);
+  cairo_line_to (cr, data->area.x + data->area.width - 0.5, event->area.y + event->area.height); /* end of screen really */
+  cairo_move_to (cr, 0.0, data->area.y + data->area.height - 0.5);
+  cairo_line_to (cr, event->area.x + event->area.width, data->area.y + data->area.height - 0.5); /* end of screen really */
   cairo_stroke (cr);
 #endif
-  if (data->x0 >= 0) {
-    double x, y, w, h;
-    x = MIN (data->x0, data->x1);
-    y = MIN (data->y0, data->y1);
-    w = MAX (data->x0, data->x1) - x;
-    h = MAX (data->y0, data->y1) - y;
+  if (data->area.x >= 0 && data->area.width != 0 && data->area.height != 0) {
+    GdkRectangle rect = data->area;
+    rectangle_sanitize (&rect, &data->area);
     cairo_set_source_rgba (cr, 0.0, 0.0, 0.5, 0.2);
     cairo_set_dash (cr, NULL, 0, 0.0);
-    cairo_rectangle (cr, x, y, w, h);
+    gdk_cairo_rectangle (cr, &rect);
     cairo_fill (cr);
     cairo_set_source_rgba (cr, 0.0, 0.0, 0.5, 0.5);
-    cairo_rectangle (cr, x + 0.5, y + 0.5, w - 1, h - 1);
+    cairo_rectangle (cr, rect.x + 0.5, rect.y + 0.5, rect.width - 1, rect.height - 1);
     cairo_stroke (cr);
   }
   if (cairo_status (cr) != CAIRO_STATUS_SUCCESS)
-    g_warning ("cairo error: %s\n", cairo_status_to_string (cairo_status (cr)));
+    g_printerr ("cairo error: %s\n", cairo_status_to_string (cairo_status (cr)));
   cairo_destroy (cr);
   return FALSE;
-}
-
-static void
-byzanz_select_area_stop (WindowData *data)
-{
-  gtk_widget_destroy (data->window);
-  g_main_loop_quit (data->loop);
 }
 
 static gboolean
 button_pressed_cb (GtkWidget *widget, GdkEventButton *event, gpointer datap)
 {
-  WindowData *data = datap;
+  ByzanzSelectData *data = datap;
 
   if (event->button != 1) {
-    data->x0 = data->y0 = -1;
-    byzanz_select_area_stop (data);
+    byzanz_select_done (data, NULL);
     return TRUE;
   }
-  data->x0 = event->x;
-  data->y0 = event->y;
+  data->area.x = event->x;
+  data->area.y = event->y;
+  data->area.width = 1;
+  data->area.height = 1;
 
   gtk_widget_queue_draw (widget);
 
@@ -125,12 +178,13 @@ button_pressed_cb (GtkWidget *widget, GdkEventButton *event, gpointer datap)
 static gboolean
 button_released_cb (GtkWidget *widget, GdkEventButton *event, gpointer datap)
 {
-  WindowData *data = datap;
+  ByzanzSelectData *data = datap;
   
-  if (event->button == 1 && data->x0 >= 0) {
-    data->x1 = event->x + 1;
-    data->y1 = event->y + 1;
-    byzanz_select_area_stop (data);
+  if (event->button == 1 && data->area.x >= 0) {
+    data->area.width = event->x - data->area.x;
+    data->area.height = event->y - data->area.y;
+    rectangle_sanitize (&data->area, &data->area);
+    byzanz_select_done (data, gdk_get_default_root_window ());
   }
   
   return TRUE;
@@ -139,22 +193,24 @@ button_released_cb (GtkWidget *widget, GdkEventButton *event, gpointer datap)
 static gboolean
 motion_notify_cb (GtkWidget *widget, GdkEventMotion *event, gpointer datap)
 {
-  WindowData *data = datap;
+  ByzanzSelectData *data = datap;
   
 #ifdef TARGET_LINE
   gtk_widget_queue_draw (widget);
 #else
-  if (data->x0 >= 0) {
+  if (data->area.x >= 0) {
     GdkRectangle rect;
-    rect.x = MIN (data->x0, MIN (data->x1, event->x + 1));
-    rect.width = MAX (data->x0, MAX (data->x1, event->x + 1)) - rect.x;
-    rect.y = MIN (data->y0, MIN (data->y1, event->y + 1));
-    rect.height = MAX (data->y0, MAX (data->y1, event->y + 1)) - rect.y;
+    rectangle_sanitize (&rect, &data->area);
     gtk_widget_queue_draw_area (widget, rect.x, rect.y, rect.width, rect.height);
   }
 #endif
-  data->x1 = event->x + 1;
-  data->y1 = event->y + 1;
+  data->area.width = event->x - data->area.x;
+  data->area.height = event->y - data->area.y;
+  if (data->area.x >= 0) {
+    GdkRectangle rect;
+    rectangle_sanitize (&rect, &data->area);
+    gtk_widget_queue_draw_area (widget, rect.x, rect.y, rect.width, rect.height);
+  }
 
   return TRUE;
 }
@@ -175,35 +231,29 @@ realize_cb (GtkWidget *widget, gpointer datap)
   gdk_window_set_back_pixmap (window, NULL, FALSE);
 }
 
-static gboolean
-quit_cb (gpointer datap)
+static void
+delete_cb (GtkWidget *widget, ByzanzSelectData *data)
 {
-  WindowData *data = datap;
-
-  g_main_loop_quit (data->loop);
-
-  return FALSE;
+  byzanz_select_done (data, NULL);
 }
 
 static void
-active_cb (GtkWindow *window, GParamSpec *pspec, WindowData *data)
+active_cb (GtkWindow *window, GParamSpec *pspec, ByzanzSelectData *data)
 {
   if (!gtk_window_is_active (window))
-    byzanz_select_area_stop (data);
+    byzanz_select_done (data, NULL);
 }
 
-static GdkWindow *
-byzanz_select_area (GdkRectangle *rect)
+static void
+byzanz_select_area (ByzanzSelectData *data)
 {
   GdkColormap *rgba;
-  WindowData *data;
-  GdkWindow *ret = NULL;
   
-  rgba = gdk_screen_get_rgba_colormap (gdk_screen_get_default ());
-  data = g_new0 (WindowData, 1);
   data->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  data->loop = g_main_loop_new (NULL, FALSE);
-  data->x0 = data->y0 = -1;
+  data->area.x = -1;
+  data->area.y = -1;
+
+  rgba = gdk_screen_get_rgba_colormap (gdk_screen_get_default ());
   if (rgba && gdk_screen_is_composited (gdk_screen_get_default ())) {
     gtk_widget_set_colormap (data->window, rgba);
   } else {
@@ -230,100 +280,66 @@ byzanz_select_area (GdkRectangle *rect)
   g_signal_connect (data->window, "button-press-event", G_CALLBACK (button_pressed_cb), data);
   g_signal_connect (data->window, "button-release-event", G_CALLBACK (button_released_cb), data);
   g_signal_connect (data->window, "motion-notify-event", G_CALLBACK (motion_notify_cb), data);
-  g_signal_connect_swapped (data->window, "delete-event", G_CALLBACK (byzanz_select_area_stop), data);
+  g_signal_connect (data->window, "delete-event", G_CALLBACK (delete_cb), data);
   g_signal_connect (data->window, "notify::is-active", G_CALLBACK (active_cb), data);
   g_signal_connect_after (data->window, "realize", G_CALLBACK (realize_cb), data);
   gtk_widget_show_all (data->window);
-
-  g_main_loop_run (data->loop);
-  
-  if (data->x0 >= 0) {
-    rect->x = MIN (data->x1, data->x0);
-    rect->y = MIN (data->y1, data->y0);
-    rect->width = MAX (data->x1, data->x0) - rect->x;
-    rect->height = MAX (data->y1, data->y0) - rect->y;
-    ret = gdk_get_default_root_window ();
-    /* stupid hack to get around a session recording the selection screen */
-    gdk_display_sync (gdk_display_get_default ());
-    g_timeout_add (1000, quit_cb, data);
-    g_main_loop_run (data->loop);
-  }
-  g_main_loop_unref (data->loop);
-  if (data->root)
-    cairo_surface_destroy (data->root);
-  g_free (data);
-  if (ret)
-    g_object_ref (ret);
-  return ret;
 }
 
 /*** WHOLE SCREEN ***/
 
-static GdkWindow *
-byzanz_select_screen (GdkRectangle *rect)
+static void
+byzanz_select_screen (ByzanzSelectData *data)
 {
   GdkWindow *root;
   
   root = gdk_get_default_root_window ();
-  rect->x = rect->y = 0;
-  gdk_drawable_get_size (root, &rect->width, &rect->height);
-  g_object_ref (root);
-  
-  return root;
+  gdk_drawable_get_size (root, &data->area.width, &data->area.height);
+  byzanz_select_done (data, root);
 }
 
 /*** APPLICATION WINDOW ***/
 
-typedef struct {
-  GMainLoop *loop;
-  GdkWindow *window;
-} PickWindowData;
-
 static gboolean
 select_window_button_pressed_cb (GtkWidget *widget, GdkEventButton *event, gpointer datap)
 {
-  PickWindowData *data = datap;
-  
+  ByzanzSelectData *data = datap;
+  GdkWindow *window;
+
   gdk_pointer_ungrab (event->time);
-  g_main_loop_quit (data->loop);
   if (event->button == 1) {
     Window w;
+
     w = screenshot_find_current_window (TRUE);
     if (w != None)
-      data->window = gdk_window_foreign_new (w);
+      window = gdk_window_foreign_new (w);
     else
-      data->window = gdk_get_default_root_window ();
+      window = gdk_get_default_root_window ();
+
+    gdk_window_get_root_origin (window, &data->area.x, &data->area.y);
+    gdk_drawable_get_size (window, &data->area.width, &data->area.height);
+    g_object_unref (window);
+
+    window = gdk_get_default_root_window ();
+  } else {
+    window = NULL;
   }
+  byzanz_select_done (data, window);
   return TRUE;
 }
 
-static GdkWindow *
-byzanz_select_window (GdkRectangle *area)
+static void
+byzanz_select_window (ByzanzSelectData *data)
 {
   GdkCursor *cursor;
-  GtkWidget *widget;
-  PickWindowData data = { NULL, NULL };
   
   cursor = gdk_cursor_new (GDK_CROSSHAIR);
-  widget = gtk_invisible_new ();
-  g_signal_connect (widget, "button-press-event", 
-      G_CALLBACK (select_window_button_pressed_cb), &data);
-  gtk_widget_show (widget);
-  gdk_pointer_grab (widget->window, FALSE, GDK_BUTTON_PRESS_MASK, NULL, cursor, GDK_CURRENT_TIME);
-  data.loop = g_main_loop_new (NULL, FALSE);
-  
-  g_main_loop_run (data.loop);
-  
-  g_main_loop_unref (data.loop);
-  gtk_widget_destroy (widget);
+  data->window = gtk_invisible_new ();
+  g_signal_connect (data->window, "button-press-event", 
+      G_CALLBACK (select_window_button_pressed_cb), data);
+  gtk_widget_show (data->window);
+  gdk_pointer_grab (data->window->window, FALSE, GDK_BUTTON_PRESS_MASK, NULL, cursor, GDK_CURRENT_TIME);
   gdk_cursor_unref (cursor);
-  if (!data.window)
-    return NULL;
-  gdk_window_get_root_origin (data.window, &area->x, &area->y);
-  gdk_drawable_get_size (data.window, &area->width, &area->height);
-  g_object_unref (data.window);
-
-  return g_object_ref (gdk_get_default_root_window ());
 }
   
 /*** API ***/
@@ -333,7 +349,7 @@ static const struct {
   const char * description;
   const char * icon_name;
   const char * method_name;
-  GdkWindow * (* select) (GdkRectangle *rect);
+  void (* select) (ByzanzSelectData *data);
 } methods [] = {
   { N_("Record _Desktop"), N_("Record the entire desktop"), 
     "byzanz-record-desktop", "screen", byzanz_select_screen },
@@ -396,26 +412,22 @@ byzanz_select_method_get_mnemonic (guint method)
   return _(methods[method].mnemonic);
 }
 
-/**
- * byzanz_select_method_select:
- * @method: id of the method to use
- * @rect: rectangle that will be set to the coordinates to record relative to 
- *        the window
- *
- * Gets the area of the window to record. Note that this might require running
- * the main loop while waiting for user interaction, so be prepared for this.
- *
- * Returns: The #GdkWindow to record from or %NULL if the user aborted.
- *          You must g_object_unref() the window after use.
- **/
-GdkWindow *
-byzanz_select_method_select (guint method, GdkRectangle *rect)
+void
+byzanz_select_method_select (guint               method,
+                             ByzanzSelectFunc    func,
+                             gpointer            func_data)
 {
-  g_return_val_if_fail (method < BYZANZ_METHOD_COUNT, NULL);
-  g_return_val_if_fail (rect != NULL, NULL);
+  ByzanzSelectData *data;
+
+  g_return_if_fail (method < BYZANZ_METHOD_COUNT);
+  g_return_if_fail (func != NULL);
 
   g_assert (methods[method].select != NULL);
 
-  return methods[method].select (rect);
+  data = g_slice_new0 (ByzanzSelectData);
+  data->func = func;
+  data->func_data = func_data;
+
+  methods[method].select (data);
 }
 

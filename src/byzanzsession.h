@@ -63,7 +63,7 @@ GType		        byzanz_session_get_type		(void) G_GNUC_CONST;
 ByzanzSession * 	byzanz_session_new		(GFile *                file,
                                                          GType                  encoder_type,
 							 GdkWindow *		window,
-							 GdkRectangle *		area,
+							 const GdkRectangle *	area,
 							 gboolean		record_cursor);
 void			byzanz_session_start		(ByzanzSession *	session);
 void			byzanz_session_stop		(ByzanzSession *	session);

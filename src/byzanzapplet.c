@@ -43,6 +43,8 @@ typedef struct {
   GtkWidget *		image;		/* image displayed in button */
   GtkTooltips *		tooltips;	/* our tooltips */
   GtkWidget *           dialog;         /* file chooser */
+  GFile *               file;           /* file selected for recording */
+  GType                 encoder_type;   /* last selected encoder type or 0 if none */
   
   ByzanzSession *	rec;		/* the session (if recording) */
 
@@ -156,22 +158,41 @@ byzanz_applet_session_notify (AppletPrivate *priv)
 static int method_response_codes[] = { GTK_RESPONSE_ACCEPT, GTK_RESPONSE_APPLY, GTK_RESPONSE_OK, GTK_RESPONSE_YES };
 
 static void
+byzanz_applet_select_done (GdkWindow *window, const GdkRectangle *area, gpointer data)
+{
+  AppletPrivate *priv = data;
+
+  if (window != NULL) {
+    GType encoder_type = priv->encoder_type;
+
+    if (encoder_type == 0)
+      encoder_type = byzanz_encoder_get_type_from_file (priv->file);
+    priv->rec = byzanz_session_new (priv->file, encoder_type, window, area, TRUE);
+    g_signal_connect_swapped (priv->rec, "notify", G_CALLBACK (byzanz_applet_session_notify), priv);
+    byzanz_session_start (priv->rec);
+  }
+  g_object_unref (priv->file);
+  priv->file = NULL;
+
+  if (priv->rec)
+    byzanz_applet_session_notify (priv);
+  else
+    byzanz_applet_update (priv);
+}
+
+static void
 panel_applet_start_response (GtkWidget *dialog, int response, AppletPrivate *priv)
 {
-  GFile *file;
   guint i;
-  GdkWindow *window;
-  GdkRectangle area;
-  GType encoder_type;
   GtkFileFilter *filter;
 
-  file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
-  if (file == NULL)
+  priv->file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
+  if (priv->file == NULL)
     goto out;
 
   for (i = 0; i < byzanz_select_get_method_count (); i++) {
     if (response == method_response_codes[i]) {
-      char *uri = g_file_get_uri (file);
+      char *uri = g_file_get_uri (priv->file);
       panel_applet_gconf_set_string (priv->applet, "save_filename", uri, NULL);
       g_free (uri);
       byzanz_applet_set_default_method (priv, i);
@@ -183,38 +204,24 @@ panel_applet_start_response (GtkWidget *dialog, int response, AppletPrivate *pri
 
   filter = gtk_file_chooser_get_filter (GTK_FILE_CHOOSER (priv->dialog));
   if (filter && gtk_file_filter_get_needed (filter) != 0) {
-    encoder_type = byzanz_encoder_get_type_from_filter (filter);
+    priv->encoder_type = byzanz_encoder_get_type_from_filter (filter);
   } else {
     /* It's the "All files" filter */
-    encoder_type = byzanz_encoder_get_type_from_file (file);
+    priv->encoder_type = 0;
   }
 
   gtk_widget_destroy (dialog);
   priv->dialog = NULL;
+  byzanz_select_method_select (priv->method, byzanz_applet_select_done, priv);
   byzanz_applet_update (priv);
-
-  window = byzanz_select_method_select (priv->method, &area); 
-  if (window == NULL)
-    goto out2;
-
-  priv->rec = byzanz_session_new (file, encoder_type, window, &area, TRUE);
-  g_signal_connect_swapped (priv->rec, "notify", G_CALLBACK (byzanz_applet_session_notify), priv);
-  
-  byzanz_session_start (priv->rec);
-  byzanz_applet_session_notify (priv);
-  g_object_unref (file);
   return;
 
 out:
   gtk_widget_destroy (dialog);
   priv->dialog = NULL;
-out2:
-  if (file)
-    g_object_unref (file);
-  if (priv->rec)
-    byzanz_applet_session_notify (priv);
-  else
-    byzanz_applet_update (priv);
+  if (priv->file)
+    g_object_unref (priv->file);
+  byzanz_applet_update (priv);
 }
 
 static void

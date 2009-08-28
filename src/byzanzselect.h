@@ -23,14 +23,17 @@
 #ifndef __HAVE_BYZANZ_SELECT_H__
 #define __HAVE_BYZANZ_SELECT_H__
 
-guint			byzanz_select_get_method_count	(void);
-const char *		byzanz_select_method_describe	(guint		method);
-const char *		byzanz_select_method_get_mnemonic (guint	method);
-const char *		byzanz_select_method_get_icon_name (guint	method);
-const char *		byzanz_select_method_get_name	(guint		method);
-int			byzanz_select_method_lookup	(const char *	name);
-GdkWindow *		byzanz_select_method_select	(guint		method,
-							 GdkRectangle *	rect);
+guint			byzanz_select_get_method_count	        (void);
+const char *		byzanz_select_method_describe	        (guint		        method);
+const char *		byzanz_select_method_get_mnemonic       (guint	                method);
+const char *		byzanz_select_method_get_icon_name      (guint	                method);
+const char *		byzanz_select_method_get_name	        (guint		        method);
+int			byzanz_select_method_lookup	        (const char *	        name);
+
+typedef void (* ByzanzSelectFunc) (GdkWindow *window, const GdkRectangle *area, gpointer data);
+void    		byzanz_select_method_select	        (guint		        method,
+                                                                 ByzanzSelectFunc       func,
+                                                                 gpointer               data);
 					
 
 #endif /* __HAVE_BYZANZ_SELECT_H__ */

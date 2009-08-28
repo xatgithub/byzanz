@@ -284,7 +284,7 @@ byzanz_session_init (ByzanzSession *session)
  **/
 ByzanzSession *
 byzanz_session_new (GFile *file, GType encoder_type, 
-    GdkWindow *window, GdkRectangle *area, gboolean record_cursor)
+    GdkWindow *window, const GdkRectangle *area, gboolean record_cursor)
 {
   g_return_val_if_fail (G_IS_FILE (file), NULL);
   g_return_val_if_fail (g_type_is_a (encoder_type, BYZANZ_TYPE_ENCODER), NULL);
