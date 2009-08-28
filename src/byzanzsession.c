@@ -115,33 +115,6 @@ byzanz_session_set_property (GObject *object, guint param_id, const GValue *valu
 }
 
 static void
-byzanz_session_dispose (GObject *object)
-{
-  ByzanzSession *session = BYZANZ_SESSION (object);
-
-  byzanz_session_abort (session);
-
-  G_OBJECT_CLASS (byzanz_session_parent_class)->dispose (object);
-}
-
-static void
-byzanz_session_finalize (GObject *object)
-{
-  ByzanzSession *session = BYZANZ_SESSION (object);
-
-  g_object_unref (session->recorder);
-  if (session->encoder)
-    g_object_unref (session->encoder);
-  g_object_unref (session->window);
-  g_object_unref (session->file);
-
-  if (session->error)
-    g_error_free (session->error);
-
-  G_OBJECT_CLASS (byzanz_session_parent_class)->finalize (object);
-}
-
-static void
 byzanz_session_set_error (ByzanzSession *session, const GError *error)
 {
   GObject *object = G_OBJECT (session);
@@ -150,11 +123,13 @@ byzanz_session_set_error (ByzanzSession *session, const GError *error)
     return;
 
   session->error = g_error_copy (error);
+  g_object_ref (session);
   g_object_freeze_notify (object);
   g_object_notify (object, "error");
   if (byzanz_recorder_get_recording (session->recorder))
     byzanz_session_stop (session);
   g_object_thaw_notify (object);
+  g_object_unref (session);
 }
 
 static void
@@ -190,6 +165,37 @@ byzanz_session_recorder_image_cb (ByzanzRecorder *  recorder,
   } else {
     g_warning ("FIXME: figure out what to do now");
   }
+}
+
+static void
+byzanz_session_dispose (GObject *object)
+{
+  ByzanzSession *session = BYZANZ_SESSION (object);
+
+  byzanz_session_abort (session);
+
+  G_OBJECT_CLASS (byzanz_session_parent_class)->dispose (object);
+}
+
+static void
+byzanz_session_finalize (GObject *object)
+{
+  ByzanzSession *session = BYZANZ_SESSION (object);
+
+  g_assert (session != NULL);
+
+  g_object_unref (session->recorder);
+  if (session->encoder) {
+    g_signal_handlers_disconnect_by_func (session->encoder, byzanz_session_encoder_notify_cb, session);
+    g_object_unref (session->encoder);
+  }
+  g_object_unref (session->window);
+  g_object_unref (session->file);
+
+  if (session->error)
+    g_error_free (session->error);
+
+  G_OBJECT_CLASS (byzanz_session_parent_class)->finalize (object);
 }
 
 static void

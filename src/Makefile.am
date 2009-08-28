@@ -10,6 +10,7 @@ BUILT_SOURCES = \
 noinst_HEADERS = \
 	byzanzencoder.h \
 	byzanzencodergif.h \
+	byzanzencoderogv.h \
 	byzanzlayer.h \
 	byzanzlayercursor.h \
 	byzanzlayerwindow.h \
@@ -22,6 +23,7 @@ noinst_HEADERS = \
 libbyzanz_la_SOURCES = \
 	byzanzencoder.c \
 	byzanzencodergif.c \
+	byzanzencoderogv.c \
 	byzanzlayer.c \
 	byzanzlayercursor.c \
 	byzanzlayerwindow.c \

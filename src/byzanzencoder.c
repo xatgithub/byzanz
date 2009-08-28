@@ -58,6 +58,7 @@ byzanz_encoder_finished (gpointer data)
   if (encoder->error)
     g_object_notify (G_OBJECT (encoder), "error");
   g_object_thaw_notify (G_OBJECT (encoder));
+  g_object_unref (encoder);
 
   return FALSE;
 }
@@ -93,7 +94,6 @@ byzanz_encoder_run (gpointer enc)
           encoder->cancellable, &error);
     byzanz_encoder_job_free (job);
   } while (error == NULL);
-
 
   g_idle_add_full (G_PRIORITY_DEFAULT, byzanz_encoder_finished, enc, NULL);
   return error;
@@ -228,7 +228,6 @@ byzanz_encoder_finalize (GObject *object)
 {
   ByzanzEncoder *encoder = BYZANZ_ENCODER (object);
 
-  /* FIXME: handle the case where the thread is still alive */
   g_assert (encoder->thread == NULL);
 
   g_object_unref (encoder->output_stream);
@@ -249,6 +248,8 @@ byzanz_encoder_constructed (GObject *object)
 
   encoder->thread = g_thread_create (byzanz_encoder_run, encoder, 
       TRUE, &encoder->error);
+  if (encoder->thread)
+    g_object_ref (encoder);
 
   if (G_OBJECT_CLASS (byzanz_encoder_parent_class)->constructed)
     G_OBJECT_CLASS (byzanz_encoder_parent_class)->constructed (object);
@@ -396,10 +397,12 @@ byzanz_encoder_type_get_filter (GType encoder_type)
 
 /* all the encoders */
 #include "byzanzencodergif.h"
+#include "byzanzencoderogv.h"
 
 typedef GType (* TypeFunc) (void);
 static const TypeFunc functions[] = {
-  byzanz_encoder_gif_get_type
+  byzanz_encoder_gif_get_type,
+  byzanz_encoder_ogv_get_type
 };
 #define BYZANZ_ENCODER_DEFAULT_TYPE (functions[0] ())
 

@@ -60,20 +60,24 @@ byzanz_applet_show_error (AppletPrivate *priv, const char *error, const char *de
   gchar *msg;
   va_list args;
 
-  g_return_if_fail (details != NULL);
+  g_return_if_fail (error != NULL);
   
-  va_start (args, details);
-  msg = g_strdup_vprintf (details, args);
-  va_end (args);
+  if (details) {
+    va_start (args, details);
+    msg = g_strdup_vprintf (details, args);
+    va_end (args);
+  } else {
+    msg = NULL;
+  }
   if (priv)
     parent = gtk_widget_get_toplevel (GTK_WIDGET (priv->applet));
   else
     parent = NULL;
   dialog = gtk_message_dialog_new (GTK_WINDOW (parent), GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR,
-      GTK_BUTTONS_CLOSE, "%s", error ? error : msg);
+      GTK_BUTTONS_CLOSE, "%s", error);
   if (parent == NULL)
     gtk_window_set_icon_name (GTK_WINDOW (dialog), "byzanz-record-desktop");
-  if (error)
+  if (msg)
     gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (dialog), "%s", msg);
   g_free (msg);
   g_signal_connect (dialog, "response", G_CALLBACK (gtk_widget_destroy), NULL);
@@ -137,9 +141,11 @@ byzanz_applet_session_notify (AppletPrivate *priv)
   error = byzanz_session_get_error (priv->rec);
   if (error) {
     byzanz_applet_show_error (priv, error->message, NULL);
+    g_signal_handlers_disconnect_by_func (priv->rec, byzanz_applet_session_notify, priv);
     g_object_unref (priv->rec);
     priv->rec = NULL;
   } else if (!byzanz_session_is_encoding (priv->rec)) {
+    g_signal_handlers_disconnect_by_func (priv->rec, byzanz_applet_session_notify, priv);
     g_object_unref (priv->rec);
     priv->rec = NULL;
   }
