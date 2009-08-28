@@ -256,6 +256,8 @@ byzanz_applet_start_recording (AppletPrivate *priv)
       filter = byzanz_encoder_type_get_filter (type);
       if (filter) {
         gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (priv->dialog), filter);
+        if (priv->encoder_type && priv->encoder_type == byzanz_encoder_get_type_from_filter (filter))
+          gtk_file_chooser_set_filter (GTK_FILE_CHOOSER (priv->dialog), filter);
         g_object_unref (filter);
       }
     }
