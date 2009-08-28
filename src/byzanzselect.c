@@ -31,7 +31,7 @@
 
 typedef struct {
   GtkWidget *window;
-  GdkImage *root; /* only used without XComposite, NULL otherwise */
+  cairo_surface_t *root; /* only used without XComposite, NULL otherwise */
   GMainLoop *loop;
   gint x0;
   gint y0;
@@ -54,15 +54,18 @@ expose_cb (GtkWidget *widget, GdkEventExpose *event, gpointer datap)
   cr = gdk_cairo_create (widget->window);
   cairo_rectangle (cr, event->area.x, event->area.y, event->area.width, event->area.height);
   cairo_clip (cr);
+
+  /* clear (or draw) background */
+  cairo_save (cr);
   if (data->root) {
-    gdk_draw_image (widget->window, widget->style->black_gc, data->root,
-	event->area.x, event->area.y, event->area.x, event->area.y,
-	event->area.width, event->area.height);
+    cairo_set_source_surface (cr, data->root, 0, 0);
   } else {
     cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
     cairo_set_source_rgba (cr, 0.0, 0.0, 0.0, 0.0);
-    cairo_paint (cr);
   }
+  cairo_paint (cr);
+  cairo_restore (cr);
+
   /* FIXME: make colors use theme */
   cairo_set_line_width (cr, 1.0);
 #ifdef TARGET_LINE
@@ -205,9 +208,21 @@ byzanz_select_area (GdkRectangle *rect)
     gtk_widget_set_colormap (data->window, rgba);
   } else {
     GdkWindow *root = gdk_get_default_root_window ();
+    cairo_t *cr;
+    cairo_surface_t *root_surface;
     gint width, height;
     gdk_drawable_get_size (root, &width, &height);
-    data->root = gdk_drawable_get_image (root, 0, 0, width, height);
+
+    cr = gdk_cairo_create (root);
+    root_surface = cairo_surface_reference (cairo_get_target (cr));
+    cairo_destroy (cr);
+
+    data->root = cairo_surface_create_similar (root_surface, CAIRO_CONTENT_COLOR, width, height);
+    cr = cairo_create (data->root);
+    cairo_set_source_surface (cr, root_surface, 0, 0);
+    cairo_paint (cr);
+    cairo_destroy (cr);
+    cairo_surface_destroy (root_surface);
   }
   gtk_widget_set_app_paintable (data->window, TRUE);
   gtk_window_fullscreen (GTK_WINDOW (data->window));
@@ -235,7 +250,7 @@ byzanz_select_area (GdkRectangle *rect)
   }
   g_main_loop_unref (data->loop);
   if (data->root)
-    g_object_unref (data->root);
+    cairo_surface_destroy (data->root);
   g_free (data);
   g_object_ref (ret);
   return ret;
