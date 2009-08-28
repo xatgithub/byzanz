@@ -66,12 +66,28 @@ usage (void)
   g_print (_("       %s --help\n"), g_get_prgname ());
 }
 
+static void
+session_notify_cb (ByzanzSession *session, GParamSpec *pspec, gpointer unused)
+{
+  const GError *error = byzanz_session_get_error (session);
+  
+  if (error) {
+    g_print (_("Error during recording: %s\n"), error->message);
+    gtk_main_quit ();
+    return;
+  }
+
+  if (!byzanz_session_is_encoding (session)) {
+    verbose_print (_("Recording done.\n"));
+    gtk_main_quit ();
+  }
+}
+
 static gboolean
 stop_recording (gpointer session)
 {
-  verbose_print (_("Recording done. Cleaning up...\n"));
+  verbose_print (_("Recording completed. Finishing encoding...\n"));
   byzanz_session_stop (session);
-  gtk_main_quit ();
   
   return FALSE;
 }
@@ -84,6 +100,15 @@ start_recording (gpointer session)
   g_timeout_add (duration, stop_recording, session);
   
   return FALSE;
+}
+
+static gboolean
+clamp_to_window (GdkRectangle *out, GdkWindow *window, GdkRectangle *in)
+{
+  GdkRectangle window_area = { 0, };
+
+  gdk_drawable_get_size (GDK_DRAWABLE (window), &window_area.width, &window_area.height);
+  return gdk_rectangle_intersect (in, &window_area, in);
 }
 
 int
@@ -118,17 +143,15 @@ main (int argc, char **argv)
     usage ();
     return 0;
   }
+  if (!clamp_to_window (&area, gdk_get_default_root_window (), &area)) {
+    g_print (_("Given area is not inside desktop.\n"));
+    return 1;
+  }
   file = g_file_new_for_commandline_arg (argv[1]);
   rec = byzanz_session_new (file, byzanz_encoder_get_type_from_file (file),
       gdk_get_default_root_window (), &area, cursor);
   g_object_unref (file);
-  if (rec == NULL) {
-    g_print (_("Could not prepare recording.\n"
-	  "Most likely the Damage extension is not available on the X server "
-	  "or the file \"%s\" is not writable.\n"), 
-	argv[1]);
-    return 2;
-  }
+  g_signal_connect (rec, "notify", G_CALLBACK (session_notify_cb), NULL);
   delay = MAX (delay, 1);
   delay = (delay - 1) * 1000;
   duration = MAX (duration, 0);
