@@ -2,7 +2,16 @@
 src/byzanz.schemas.in
 src/byzanzapplet.c
 src/byzanzapplet.xml
+src/byzanzencoder.c
+src/byzanzencodergif.c
+src/byzanzencoderogv.c
+src/byzanzlayer.c
+src/byzanzlayercursor.c
+src/byzanzlayerwindow.c
 src/byzanzrecorder.c
 src/byzanzselect.c
+src/byzanzsession.c
 src/ByzanzApplet.server.in.in
+src/paneltogglebutton.c
 src/record.c
+src/screenshot-utils.c
