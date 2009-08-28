@@ -252,7 +252,8 @@ byzanz_select_area (GdkRectangle *rect)
   if (data->root)
     cairo_surface_destroy (data->root);
   g_free (data);
-  g_object_ref (ret);
+  if (ret)
+    g_object_ref (ret);
   return ret;
 }
 
