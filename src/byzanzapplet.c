@@ -361,6 +361,7 @@ byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
   gtk_container_add (GTK_CONTAINER (priv->button), priv->image);
   g_signal_connect (priv->button, "toggled", G_CALLBACK (button_clicked_cb), priv);
   gtk_container_add (GTK_CONTAINER (priv->applet), priv->button);
+  panel_applet_set_background_widget (applet, priv->button);
 
   byzanz_applet_update (priv);
   gtk_widget_show_all (GTK_WIDGET (applet));
