@@ -3,7 +3,9 @@ src/byzanz.schemas.in
 src/byzanzapplet.c
 src/byzanzapplet.xml
 src/byzanzencoder.c
+src/byzanzencoderflv.c
 src/byzanzencodergif.c
+src/byzanzencodergstreamer.c
 src/byzanzencoderogv.c
 src/byzanzlayer.c
 src/byzanzlayercursor.c
