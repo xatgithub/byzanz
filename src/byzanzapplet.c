@@ -245,8 +245,10 @@ panel_applet_start_response (GtkWidget *dialog, int response, AppletPrivate *pri
 out:
   gtk_widget_destroy (dialog);
   priv->dialog = NULL;
-  if (priv->file)
+  if (priv->file) {
     g_object_unref (priv->file);
+    priv->file = NULL;
+  }
   byzanz_applet_update (priv);
 }
 
