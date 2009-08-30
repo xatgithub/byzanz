@@ -63,34 +63,6 @@ AC_ARG_WITH(pkg-config-path,
                   [colon-separated list of pkg-config(1) dirs]),
    [export PKG_CONFIG_PATH=${withval}])
 
-dnl Check for a way to display the function name in debug output
-BYZANZ_CHECK_FUNCTION()
-
-AC_ARG_ENABLE(gcov,
-  AC_HELP_STRING([--enable-gcov],[compile with coverage profiling instrumentation (gcc only)]),
-  enable_gcov=$enableval,enable_gcov=no)
-if test x$enable_gcov = xyes ; then
-  AS_COMPILER_FLAG(["-fprofile-arcs"],
-    [BYZANZ_INT_CFLAGS="$BYZANZ_INT_CFLAGS -fprofile-arcs"],
-    true)
-  AS_COMPILER_FLAG(["-ftest-coverage"],
-    [BYZANZ_INT_CFLAGS="$BYZANZ_INT_CFLAGS -ftest-coverage"],
-    true)
-  BYZANZ_INT_CFLAGS=`echo "$BYZANZ_INT_CFLAGS" | sed -e 's/-O[0-9]*//g'`
-
-  AC_DEFINE_UNQUOTED(BYZANZ_GCOV_ENABLED, 1, [Defined if gcov is enabled to force a rebuild due to config.h changing])
-fi
-AM_CONDITIONAL(BYZANZ_GCOV_ENABLED, test x$enable_gcov = xyes)
-
-dnl HAVE_WIN32 currently means "disable POSIXisms".
-case "$host" in
-  *-*-mingw*)
-    AC_DEFINE_UNQUOTED(HAVE_WIN32, 1, [Defined if compiling for Windows])
-    ;;
-  *)
-    ;;
-esac
-
 AC_DEFINE_DIR(DATADIR, "${datadir}", [datadir])
 
 dnl Check for essential libraries first:
