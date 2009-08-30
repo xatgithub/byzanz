@@ -140,8 +140,14 @@ byzanz_session_encoder_notify_cb (ByzanzEncoder * encoder,
   if (g_str_equal (pspec->name, "running")) {
     g_object_notify (G_OBJECT (session), "encoding");
   } else if (g_str_equal (pspec->name, "error")) {
-    byzanz_session_set_error (session,
-        byzanz_encoder_get_error (encoder));
+    const GError *error = byzanz_encoder_get_error (encoder);
+
+    /* Cancellation is not an error, it's been requested via _abort() */
+    if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+      byzanz_session_set_error (session, error);
+
+    /* Delete the file, it's broken after all. Don't throw errors if it fails though. */
+    g_file_delete (session->file, NULL, NULL);
   }
 }
 
