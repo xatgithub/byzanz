@@ -1,3 +1,22 @@
+0.2.0
+=====
+ Features:
+ - Rework the user interface
+ - Support saving to Ogg Theora and Flash Screen video formats
+ - Update to latest technologies (Cairo instead of GDK, gvfs instead of 
+   gnome-vfs)
+ Bugfixes:
+ - Work on 16bpp and 8bpp displays (anything that's supported by Cairo)
+ - Properly be translucent on panels
+
+0.1.1
+=====
+ Forgot to update NEWS
+
+0.1.0
+=====
+ Forgot to update NEWS
+
 0.0.4
 =====
  Features:
