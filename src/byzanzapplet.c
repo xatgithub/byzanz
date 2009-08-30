@@ -90,7 +90,6 @@ byzanz_applet_show_error (AppletPrivate *priv, const char *error, const char *de
 
 typedef enum {
   BYZANZ_APPLET_IDLE,
-  BYZANZ_APPLET_SELECT_FILE,
   BYZANZ_APPLET_SELECT_AREA,
   BYZANZ_APPLET_RECORDING,
   BYZANZ_APPLET_ENCODING,
@@ -103,8 +102,7 @@ static struct {
   const char *  stock_icon;             /* icon to use for this state */
   gboolean      active;                 /* wether the togglebutton should be active */
 } state_info[BYZANZ_APPLET_N_STATES] = {
-  [BYZANZ_APPLET_IDLE] = { N_("Start a new recording"), GTK_STOCK_MEDIA_RECORD, FALSE },
-  [BYZANZ_APPLET_SELECT_FILE] = { N_("Record your desktop"), GTK_STOCK_MEDIA_RECORD, TRUE },
+  [BYZANZ_APPLET_IDLE] = { N_("Record your desktop"), GTK_STOCK_MEDIA_RECORD, FALSE },
   [BYZANZ_APPLET_SELECT_AREA] = { N_("Select area to record"), GTK_STOCK_CANCEL, TRUE },
   [BYZANZ_APPLET_RECORDING] = { N_("End current recording"), GTK_STOCK_MEDIA_STOP, TRUE },
   [BYZANZ_APPLET_ENCODING] = { N_("Abort encoding of recording"), GTK_STOCK_STOP, TRUE }
@@ -114,9 +112,7 @@ static ByzanzAppletState
 byzanz_applet_compute_state (AppletPrivate *priv)
 {
   if (priv->rec == NULL) {
-    if (priv->dialog)
-      return BYZANZ_APPLET_SELECT_FILE;
-    else if (priv->file)
+    if (priv->file)
       return BYZANZ_APPLET_SELECT_AREA;
     else
       return BYZANZ_APPLET_IDLE;
@@ -128,6 +124,7 @@ byzanz_applet_compute_state (AppletPrivate *priv)
   }
 }
 
+static void button_clicked_cb (GtkToggleButton *button, AppletPrivate *priv);
 static gboolean
 byzanz_applet_update (gpointer data)
 {
@@ -136,7 +133,10 @@ byzanz_applet_update (gpointer data)
 
   state = byzanz_applet_compute_state (priv);
 
+  g_signal_handlers_block_by_func (priv->button, button_clicked_cb, priv);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (priv->button), state_info[state].active);
+  g_signal_handlers_unblock_by_func (priv->button, button_clicked_cb, priv);
+
   gtk_image_set_from_icon_name (GTK_IMAGE (priv->image), 
       state_info[state].stock_icon, GTK_ICON_SIZE_LARGE_TOOLBAR);
   gtk_tooltips_set_tip (priv->tooltips, priv->button,
@@ -317,7 +317,6 @@ button_clicked_cb (GtkToggleButton *button, AppletPrivate *priv)
 
   switch (state) {
     case BYZANZ_APPLET_IDLE:
-    case BYZANZ_APPLET_SELECT_FILE:
       byzanz_applet_start_recording (priv);
       break;
     case BYZANZ_APPLET_SELECT_AREA:
