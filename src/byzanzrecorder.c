@@ -377,6 +377,7 @@ byzanz_recorder_set_recording (ByzanzRecorder *recorder, gboolean recording)
   recorder->recording = recording;
   if (recording)
     byzanz_recorder_snapshot (recorder);
+  g_object_notify (G_OBJECT (recorder), "recording");
 }
 
 gboolean
