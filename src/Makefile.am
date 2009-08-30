@@ -83,7 +83,7 @@ $(server_in_files): $(server_in_files:.server.in=.server.in.in)
 uidir = $(datadir)/gnome-2.0/ui
 ui_DATA = byzanzapplet.xml
 
-CLEANFILES = $(server_in_files) $(server_DATA) $(schemas_DATA)
+CLEANFILES = $(server_in_files) $(server_DATA) $(schemas_DATA) $(BUILT_SOURCES)
 
 EXTRA_DIST = \
 	byzanzmarshal.list \
