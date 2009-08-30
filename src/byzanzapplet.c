@@ -77,8 +77,6 @@ byzanz_applet_show_error (AppletPrivate *priv, const char *error, const char *de
     parent = NULL;
   dialog = gtk_message_dialog_new (GTK_WINDOW (parent), GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR,
       GTK_BUTTONS_CLOSE, "%s", error);
-  if (parent == NULL)
-    gtk_window_set_icon_name (GTK_WINDOW (dialog), "byzanz-record-desktop");
   if (msg)
     gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (dialog), "%s", msg);
   g_free (msg);
@@ -381,6 +379,8 @@ byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
   bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
   textdomain (GETTEXT_PACKAGE);
 #endif
+
+  gtk_window_set_default_icon_name ("byzanz-record-desktop");
 
   priv = g_new0 (AppletPrivate, 1);
   priv->applet = applet;
