@@ -375,7 +375,7 @@ byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
   if (!index_quark)
     index_quark = g_quark_from_static_string ("Byzanz-Index");
 #ifdef GETTEXT_PACKAGE
-  bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
+  bindtextdomain (GETTEXT_PACKAGE, GNOMELOCALEDIR);
   bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
   textdomain (GETTEXT_PACKAGE);
 #endif
