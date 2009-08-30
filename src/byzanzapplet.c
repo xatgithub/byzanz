@@ -88,33 +88,59 @@ byzanz_applet_show_error (AppletPrivate *priv, const char *error, const char *de
 
 /*** APPLET ***/
 
+typedef enum {
+  BYZANZ_APPLET_IDLE,
+  BYZANZ_APPLET_SELECT_FILE,
+  BYZANZ_APPLET_SELECT_AREA,
+  BYZANZ_APPLET_RECORDING,
+  BYZANZ_APPLET_ENCODING,
+  /* add more here */
+  BYZANZ_APPLET_N_STATES
+} ByzanzAppletState;
+
+static struct {
+  const char *  tooltip;                /* tooltip to present on the applet */
+  const char *  stock_icon;             /* icon to use for this state */
+  gboolean      active;                 /* wether the togglebutton should be active */
+} state_info[BYZANZ_APPLET_N_STATES] = {
+  [BYZANZ_APPLET_IDLE] = { N_("Start a new recording"), GTK_STOCK_MEDIA_RECORD, FALSE },
+  [BYZANZ_APPLET_SELECT_FILE] = { N_("Record your desktop"), GTK_STOCK_MEDIA_RECORD, TRUE },
+  [BYZANZ_APPLET_SELECT_AREA] = { N_("Select area to record"), GTK_STOCK_CANCEL, TRUE },
+  [BYZANZ_APPLET_RECORDING] = { N_("End current recording"), GTK_STOCK_MEDIA_STOP, TRUE },
+  [BYZANZ_APPLET_ENCODING] = { N_("Abort encoding of recording"), GTK_STOCK_STOP, TRUE }
+};
+
+static ByzanzAppletState
+byzanz_applet_compute_state (AppletPrivate *priv)
+{
+  if (priv->rec == NULL) {
+    if (priv->dialog)
+      return BYZANZ_APPLET_SELECT_FILE;
+    else if (priv->file)
+      return BYZANZ_APPLET_SELECT_AREA;
+    else
+      return BYZANZ_APPLET_IDLE;
+  } else {
+    if (byzanz_session_is_recording (priv->rec))
+      return BYZANZ_APPLET_RECORDING;
+    else
+      return BYZANZ_APPLET_ENCODING;
+  }
+}
+
 static gboolean
 byzanz_applet_update (gpointer data)
 {
   AppletPrivate *priv = data;
+  ByzanzAppletState state;
 
-  if (priv->rec == NULL) {
-    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (priv->button), FALSE);
-    gtk_image_set_from_icon_name (GTK_IMAGE (priv->image), 
-	GTK_STOCK_MEDIA_RECORD, GTK_ICON_SIZE_LARGE_TOOLBAR);
-    gtk_tooltips_set_tip (priv->tooltips, priv->button,
-	_("Start a new recording"), NULL);
-  } else {
-    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (priv->button), TRUE);
-    if (byzanz_session_is_recording (priv->rec)) {
-      gtk_image_set_from_icon_name (GTK_IMAGE (priv->image), 
-          GTK_STOCK_MEDIA_STOP, GTK_ICON_SIZE_LARGE_TOOLBAR);
-      gtk_tooltips_set_tip (priv->tooltips, priv->button,
-          _("End current recording"), NULL);
-    } else if (byzanz_session_is_encoding (priv->rec)) {
-      gtk_image_set_from_icon_name (GTK_IMAGE (priv->image), 
-          GTK_STOCK_CANCEL, GTK_ICON_SIZE_LARGE_TOOLBAR);
-      gtk_tooltips_set_tip (priv->tooltips, priv->button,
-          _("Abort encoding process"), NULL);
-    } else {
-      g_assert_not_reached ();
-    }
-  }
+  state = byzanz_applet_compute_state (priv);
+
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (priv->button), state_info[state].active);
+  gtk_image_set_from_icon_name (GTK_IMAGE (priv->image), 
+      state_info[state].stock_icon, GTK_ICON_SIZE_LARGE_TOOLBAR);
+  gtk_tooltips_set_tip (priv->tooltips, priv->button,
+      _(state_info[state].tooltip), NULL);
   
   return TRUE;
 }
@@ -227,9 +253,6 @@ out:
 static void
 byzanz_applet_start_recording (AppletPrivate *priv)
 {
-  if (priv->rec)
-    goto out;
-  
   if (priv->dialog == NULL) {
     char *uri;
     guint i;
@@ -284,22 +307,32 @@ byzanz_applet_start_recording (AppletPrivate *priv)
   }
   gtk_window_present (GTK_WINDOW (priv->dialog));
 
-out:
   byzanz_applet_update (priv);
 }
 
 static void
 button_clicked_cb (GtkToggleButton *button, AppletPrivate *priv)
 {
-  gboolean active = gtk_toggle_button_get_active (button);
-  
-  if (priv->rec && !active) {
-    if (byzanz_session_is_recording (priv->rec))
+  ByzanzAppletState state = byzanz_applet_compute_state (priv);
+
+  switch (state) {
+    case BYZANZ_APPLET_IDLE:
+    case BYZANZ_APPLET_SELECT_FILE:
+      byzanz_applet_start_recording (priv);
+      break;
+    case BYZANZ_APPLET_SELECT_AREA:
+      /* FIXME: allow cancelling here */
+      break;
+    case BYZANZ_APPLET_RECORDING:
       byzanz_session_stop (priv->rec);
-    else
+      break;
+    case BYZANZ_APPLET_ENCODING:
       byzanz_session_abort (priv->rec);
-  } else if (priv->rec == NULL && active) {
-    byzanz_applet_start_recording (priv);
+      break;
+    case BYZANZ_APPLET_N_STATES:
+    default:
+      g_assert_not_reached ();
+      break;
   }
 }
 
