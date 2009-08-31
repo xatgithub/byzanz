@@ -1,12 +1,13 @@
 # Swedish translation of byzanz.
+# Copyright (C) 2006-2009 Free Software Foundation, Inc.
 # Daniel Nylander <po@danielnylander.se>, 2006, 2009.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: Byzanz\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/\n"
-"POT-Creation-Date: 2009-08-27 08:45+0200\n"
-"PO-Revision-Date: 2009-08-27 08:46+0100\n"
+"POT-Creation-Date: 2009-09-01 00:33+0200\n"
+"PO-Revision-Date: 2009-09-01 00:35+0100\n"
 "Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
 "MIME-Version: 1.0\n"
@@ -39,68 +40,93 @@ msgstr "URI för filnamnet som Byzanz ska föreslå när en inspelning påbörja
 msgid "Use this method as the default method for recording. Must be one of \"screen\" for recording the whole screen, \"area\" for selecting an area or \"window\" to select a window."
 msgstr "Använd den här metoden som standardmetoden för inspelning. Måste vara en av \"screen\" för inspelning av hela skärmen, \"area\" för markering av ett område eller \"window\" för att välja ett fönster."
 
-#: ../src/byzanzapplet.c:97
-msgid "Start a new recording"
-msgstr "Starta en ny inspelning"
-
-#: ../src/byzanzapplet.c:104
-msgid "End current recording"
-msgstr "Avsluta aktuell inspelning"
-
-#: ../src/byzanzapplet.c:109
-msgid "Abort encoding process"
-msgstr "Avbryt kodningsprocessen"
-
-#: ../src/byzanzapplet.c:216
+#: ../src/byzanzapplet.c:103
+#: ../src/byzanzapplet.c:263
 msgid "Record your desktop"
 msgstr "Spela in ditt skrivbord"
 
-#: ../src/byzanzapplet.c:284
+#: ../src/byzanzapplet.c:104
+msgid "Select area to record"
+msgstr "Markera ett område att spela in"
+
+#: ../src/byzanzapplet.c:105
+msgid "End current recording"
+msgstr "Avsluta aktuell inspelning"
+
+#: ../src/byzanzapplet.c:106
+msgid "Abort encoding of recording"
+msgstr "Avbryt kodning av inspelningen"
+
+#: ../src/byzanzapplet.c:273
+msgid "All files"
+msgstr "Alla filer"
+
+#: ../src/byzanzapplet.c:355
 msgid "Desktop Session"
 msgstr "Skrivbordssession"
 
-#: ../src/byzanzapplet.c:287
+#: ../src/byzanzapplet.c:358
 #: ../src/ByzanzApplet.server.in.in.h:3
 msgid "Record what's happening on your desktop"
 msgstr "Spela in vad som hände på ditt skrivbord"
 
-#: ../src/byzanzapplet.c:289
+#: ../src/byzanzapplet.c:360
 msgid "translator-credits"
 msgstr ""
 "Daniel Nylander <po@danielnylander.se>\n"
 "\n"
 "Skicka synpunkter på översättningen till\n"
-"tp-sv@listor.tp-sv.se"
-
-#: ../src/byzanzapplet.c:336
-msgid "Record _Mouse Cursor"
-msgstr "Spela in _muspekare"
+"<tp-sv@listor.tp-sv.se>."
 
 #: ../src/byzanzapplet.xml.h:1
 msgid "_About"
 msgstr "_Om"
 
-#: ../src/byzanzselect.c:322
+#: ../src/byzanzencoderflv.c:38
+msgid "Flash video"
+msgstr "Flash-video"
+
+#: ../src/byzanzencodergif.c:212
+msgid "No image to encode."
+msgstr "Ingen bild att koda."
+
+#: ../src/byzanzencodergif.c:251
+msgid "GIF images"
+msgstr "GIF-bilder"
+
+#: ../src/byzanzencodergstreamer.c:76
+msgid "Failed to start GStreamer pipeline"
+msgstr "Misslyckades med att starta GStreamer-rörledning"
+
+#: ../src/byzanzencodergstreamer.c:94
+msgid "Premature end of GStreamer pipeline"
+msgstr "För tidigt slut på GStreamer-rörledning"
+
+#: ../src/byzanzencoderogv.c:38
+msgid "Theora video"
+msgstr "Theora-video"
+
+#: ../src/byzanzselect.c:354
 msgid "Record _Desktop"
 msgstr "Spela in _skrivbord"
 
-#: ../src/byzanzselect.c:322
+#: ../src/byzanzselect.c:354
 msgid "Record the entire desktop"
 msgstr "Spela in hela skrivbordet"
 
-#: ../src/byzanzselect.c:324
+#: ../src/byzanzselect.c:356
 msgid "Record _Area"
 msgstr "Spela in _område"
 
-#: ../src/byzanzselect.c:324
+#: ../src/byzanzselect.c:356
 msgid "Record a selected area of the desktop"
 msgstr "Spela in ett markerat område av skrivbordet"
 
-#: ../src/byzanzselect.c:326
+#: ../src/byzanzselect.c:358
 msgid "Record _Window"
 msgstr "Spela in _fönster"
 
-#: ../src/byzanzselect.c:326
+#: ../src/byzanzselect.c:358
 msgid "Record a selected window"
 msgstr "Spela in markerat fönster"
 
@@ -162,35 +188,48 @@ msgstr "användning: %s [FLAGGOR] filnamn\n"
 msgid "       %s --help\n"
 msgstr "       %s --help\n"
 
-#: ../src/record.c:72
-msgid "Recording done. Cleaning up...\n"
-msgstr "Inspelningen är klar. Rensar upp...\n"
+#: ../src/record.c:75
+#, c-format
+msgid "Error during recording: %s\n"
+msgstr "Fel under inspelning: %s\n"
 
-#: ../src/record.c:82
+#: ../src/record.c:81
+msgid "Recording done.\n"
+msgstr "Inspelningen är färdig.\n"
+
+#: ../src/record.c:89
+msgid "Recording completed. Finishing encoding...\n"
+msgstr "Inspelningen är färdig. Färdigställer kodningen...\n"
+
+#: ../src/record.c:98
 #, c-format
 msgid "Recording starts. Will record %d seconds...\n"
 msgstr "Inspelningen startar. Kommer att spela in %d sekunder...\n"
 
-#: ../src/record.c:105
+#: ../src/record.c:130
 msgid "record your current desktop session"
 msgstr "spela in din aktuella skrivbordssession"
 
-#: ../src/record.c:113
+#: ../src/record.c:138
 #, c-format
 msgid "Wrong option: %s\n"
 msgstr "Felaktig flagga: %s\n"
 
-#: ../src/record.c:126
+#: ../src/record.c:147
 #, c-format
-msgid ""
-"Could not prepare recording.\n"
-"Most likely the Damage extension is not available on the X server or the file \"%s\" is not writable.\n"
-msgstr ""
-"Kunde inte förbereda inspelningen.\n"
-"Antagligen är inte Damage-tillägget tillgängligt på X-servern eller att filen \"%s\" inte är skrivbar.\n"
+msgid "Given area is not inside desktop.\n"
+msgstr "Angivet område är inte på skrivbordet.\n"
 
-#~ msgid "Failed to save file."
-#~ msgstr "Misslyckades med att spara filen."
+#~ msgid "Record _Mouse Cursor"
+#~ msgstr "Spela in _muspekare"
+#~ msgid ""
+#~ "Could not prepare recording.\n"
+#~ "Most likely the Damage extension is not available on the X server or the "
+#~ "file \"%s\" is not writable.\n"
+#~ msgstr ""
+#~ "Kunde inte förbereda inspelningen.\n"
+#~ "Antagligen är inte Damage-tillägget tillgängligt på X-servern eller att "
+#~ "filen \"%s\" inte är skrivbar.\n"
 #~ msgid "Save Recorded File"
 #~ msgstr "Spara inspelad fil"
 #~ msgid "Let the animation loop"
