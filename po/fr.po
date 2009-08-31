@@ -1,18 +1,19 @@
 # French byzanz translation.
-# Copyright (C) 2004-2007 The Free Software Foundation, Inc
+# Copyright (C) 2004-2009 The Free Software Foundation, Inc
 # This file is distributed under the same license as the byzanz package.
 #
-# Jonathan Ernst <jonathan@ernstfamily.ch>, 2007.
-# Robert-André Mauchin <zebob.m@gmail.com>, 2007.
-#
+# Jonathan Ernst <jonathan@ernstfamily.ch>, 2007
+# Robert-André Mauchin <zebob.m@gmail.com>, 2007
+# Claude Paroz <claude@2xlibre.net>, 2009
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: Byzanz\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/\n"
-"POT-Creation-Date: 2007-04-26 00:17+0200\n"
-"PO-Revision-Date: 2007-04-26 00:16+0200\n"
-"Last-Translator: Robert-André Mauchin <zebob.m@gmail.com>\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=byzanz&component=general\n"
+"POT-Creation-Date: 2009-08-30 17:01+0000\n"
+"PO-Revision-Date: 2009-08-31 09:31+0200\n"
+"Last-Translator: Claude Paroz <claude@2xlibre.net>\n"
 "Language-Team: GNOME French Team <gnomefr@traduc.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -20,31 +21,29 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ../src/byzanz.schemas.in.h:1
-msgid "Directory to save in"
-msgstr "Répertoire d'enregistrement"
-
-#: ../src/byzanz.schemas.in.h:2
 msgid ""
 "If set, Byzanz will record the mouse cursor. While useful, recording the "
 "mouse cursor results in bigger files and should therefore be used with care."
 msgstr ""
-"Si sélectionné, Byzanz enregistrera le curseur de la souris. Bien qu'utile, "
+"Si sélectionné, Byzanz enregistre le curseur de la souris. Bien qu'utile, "
 "l'enregistrement du curseur de la souris a pour conséquence de plus grands "
 "fichiers et devra donc être employé avec soin."
 
-#: ../src/byzanz.schemas.in.h:3 ../src/record.c:39
+#: ../src/byzanz.schemas.in.h:2 ../src/record.c:38
 msgid "Record mouse cursor"
 msgstr "Enregistrer le curseur de la souris"
 
-#: ../src/byzanz.schemas.in.h:4
+#: ../src/byzanz.schemas.in.h:3
 msgid "Recording method"
 msgstr "Méthode d'enregistrement"
 
+#: ../src/byzanz.schemas.in.h:4
+msgid "Save filename"
+msgstr "Nom de fichier d'enregistrement"
+
 #: ../src/byzanz.schemas.in.h:5
-msgid "This is the directory that Byzanz will default to when saving a file."
-msgstr ""
-"Il s'agit du dossier par défaut qu'utilisera Byzanz pour enregistrer les "
-"fichiers."
+msgid "URI for the filename Byzanz will suggest when starting a recording."
+msgstr "URI du nom de fichier que Byzanz suggère au moment de démarrer l'enregistrement."
 
 #: ../src/byzanz.schemas.in.h:6
 msgid ""
@@ -52,94 +51,105 @@ msgid ""
 "\" for recording the whole screen, \"area\" for selecting an area or \"window"
 "\" to select a window."
 msgstr ""
-"Utilise cette méthode comme la méthode par défaut pour l'enregistrement. "
-"Peut prendre les valeurs de « screen » pour enregistrer l'écran entier, "
-"« area » pour choisir un zone de l'écran ou « window » pour enregistrer une "
+"Cette méthode est utilisée comme la méthode par défaut pour l'enregistrement. "
+"Les valeurs possibles sont : « screen » pour enregistrer l'écran entier, "
+"« area » pour choisir une zone de l'écran ou « window » pour enregistrer une "
 "fenêtre."
 
-#: ../src/byzanzapplet.c:110
-msgid "A file could not be saved."
-msgstr "Un fichier ne peut pas être enregistré."
+#: ../src/byzanzapplet.c:105 ../src/byzanzapplet.c:263
+msgid "Record your desktop"
+msgstr "Enregistrer votre bureau"
 
-#: ../src/byzanzapplet.c:111
-#, c-format
-msgid ""
-"\"%s\" could not be saved.\n"
-"The error that occured was: %s"
-msgstr ""
-"« %s » ne peut être enregistré.\n"
-"L'erreur qui s'est produite était : %s"
+#: ../src/byzanzapplet.c:106
+msgid "Select area to record"
+msgstr "Sélectionner une zone à enregistrer"
 
-#: ../src/byzanzapplet.c:175
-msgid "Save Recorded File"
-msgstr "Enregistrer le fichier"
+#: ../src/byzanzapplet.c:107
+msgid "End current recording"
+msgstr "Arrêter l'enregistrement actuel"
 
-#: ../src/byzanzapplet.c:224
-msgid "Stop current recording"
-msgstr "Arreter l'enregistrement"
+#: ../src/byzanzapplet.c:108
+msgid "Abort encoding of recording"
+msgstr "Interrompre le codage de l'enregistrement"
 
-#: ../src/byzanzapplet.c:258
-msgid "Cannot start recording."
-msgstr "Impossible de démarrer l'enregistrement"
+#: ../src/byzanzapplet.c:273
+msgid "All files"
+msgstr "Tous les fichiers"
 
-#: ../src/byzanzapplet.c:259 ../src/record.c:131
-#, c-format
-msgid ""
-"Byzanz requires a 24bpp or 32bpp depth for recording. The current resolution "
-"is set to %dbpp."
-msgstr ""
-"Byzanz requiert une profondeur de couleurs de 24 bpp ou 32 bpp pour "
-"l'enregistrement. La résolution actuelle est définie à %d bpp."
+#: ../src/byzanzapplet.c:355
+msgid "Desktop Session"
+msgstr "Session de bureau"
 
-#: ../src/byzanzapplet.c:369 ../src/ByzanzApplet.server.in.in.h:2
-msgid "Desktop Recorder"
-msgstr "Enregistreur de bureau"
-
-#: ../src/byzanzapplet.c:372 ../src/ByzanzApplet.server.in.in.h:3
+#: ../src/byzanzapplet.c:358 ../src/ByzanzApplet.server.in.in.h:3
 msgid "Record what's happening on your desktop"
-msgstr "Enregistre ce qui se passe sur votre bureau"
+msgstr "Enregistrer ce qui se passe sur votre bureau"
 
-#: ../src/byzanzapplet.c:374
+#: ../src/byzanzapplet.c:360
 msgid "translator-credits"
 msgstr ""
 "Jonathan Ernst <jonathan@ernstfamily.ch>\n"
-"Robert-André Mauchin <zebob.m@gmail.com>"
-
-#: ../src/byzanzapplet.c:441
-msgid "Record _Mouse Cursor"
-msgstr "Enregistrer le _curseur de la souris"
+"Robert-André Mauchin <zebob.m@gmail.com>\n"
+"Claude Paroz <claude@2xlibre.net>"
 
 #: ../src/byzanzapplet.xml.h:1
 msgid "_About"
 msgstr "À _propos"
 
-#: ../src/byzanzselect.c:312
+#: ../src/byzanzencoderflv.c:38
+msgid "Flash video"
+msgstr "Vidéo Flash"
+
+#: ../src/byzanzencodergif.c:212
+msgid "No image to encode."
+msgstr "Aucune image à coder."
+
+#: ../src/byzanzencodergif.c:251
+msgid "GIF images"
+msgstr "Images GIF"
+
+#: ../src/byzanzencodergstreamer.c:76
+msgid "Failed to start GStreamer pipeline"
+msgstr "Impossibel de lancer le pipeline GStreamer"
+
+#: ../src/byzanzencodergstreamer.c:94
+msgid "Premature end of GStreamer pipeline"
+msgstr "Fin prématurée du pipeline GStreamer"
+
+#: ../src/byzanzencoderogv.c:38
+msgid "Theora video"
+msgstr "Vidéo Theora"
+
+#: ../src/byzanzselect.c:354
 msgid "Record _Desktop"
 msgstr "Enregistrer le _bureau"
 
-#: ../src/byzanzselect.c:312
+#: ../src/byzanzselect.c:354
 msgid "Record the entire desktop"
 msgstr "Enregistre la totalité du bureau"
 
-#: ../src/byzanzselect.c:314
+#: ../src/byzanzselect.c:356
 msgid "Record _Area"
 msgstr "_Zone à enregistrer"
 
-#: ../src/byzanzselect.c:314
+#: ../src/byzanzselect.c:356
 msgid "Record a selected area of the desktop"
 msgstr "Enregistre une zone sélectionnée du bureau"
 
-#: ../src/byzanzselect.c:316
+#: ../src/byzanzselect.c:358
 msgid "Record _Window"
 msgstr "_Fenêtre à enregistrer"
 
-#: ../src/byzanzselect.c:316
+#: ../src/byzanzselect.c:358
 msgid "Record a selected window"
 msgstr "Enregistre une fenêtre sélectionnée"
 
 #: ../src/ByzanzApplet.server.in.in.h:1
 msgid "Byzanz Factory"
 msgstr "Usine Byzanz"
+
+#: ../src/ByzanzApplet.server.in.in.h:2
+msgid "Desktop Recorder"
+msgstr "Enregistreur de bureau"
 
 #: ../src/record.c:36
 msgid "Duration of animation (default: 10 seconds)"
@@ -153,73 +163,68 @@ msgstr "SECS"
 msgid "Delay before start (default: 1 second)"
 msgstr "Délai avant le démarrage (par défaut : 1 seconde)"
 
-#: ../src/record.c:38
-msgid "Let the animation loop"
-msgstr "Laissez l'animation en boucle"
-
-#: ../src/record.c:40
+#: ../src/record.c:39
 msgid "X coordinate of rectangle to record"
 msgstr "Coordonnée X du rectangle à enregistrer"
 
-#: ../src/record.c:40 ../src/record.c:41 ../src/record.c:42 ../src/record.c:43
+#: ../src/record.c:39 ../src/record.c:40 ../src/record.c:41 ../src/record.c:42
 msgid "PIXEL"
 msgstr "PIXEL"
 
-#: ../src/record.c:41
+#: ../src/record.c:40
 msgid "Y coordinate of rectangle to record"
 msgstr "Coordonnée Y du rectangle à enregistrer"
 
-#: ../src/record.c:42
+#: ../src/record.c:41
 msgid "Width of recording rectangle"
 msgstr "Largeur du rectangle à enregistrer"
 
-#: ../src/record.c:43
+#: ../src/record.c:42
 msgid "Height of recording rectangle"
 msgstr "Hauteur du rectangle à enregistrer"
 
-#: ../src/record.c:44
+#: ../src/record.c:43
 msgid "Be verbose"
 msgstr "Mode verbeux"
 
-#: ../src/record.c:66
+#: ../src/record.c:65
 #, c-format
 msgid "usage: %s [OPTIONS] filename\n"
 msgstr "utilisation : %s [OPTIONS] fichier\n"
 
-#: ../src/record.c:67
+#: ../src/record.c:66
 #, c-format
 msgid "       %s --help\n"
 msgstr "       %s --help\n"
 
-#: ../src/record.c:73
-msgid "Recording done. Cleaning up...\n"
-msgstr "Enregistrement terminé. Nettoyage...\n"
+#: ../src/record.c:75
+#, c-format
+msgid "Error during recording: %s\n"
+msgstr "Erreur durant l'enregistrement : %s\n"
 
-#: ../src/record.c:83
+#: ../src/record.c:81
+msgid "Recording done.\n"
+msgstr "Enregistrement terminé.\n"
+
+#: ../src/record.c:89
+msgid "Recording completed. Finishing encoding...\n"
+msgstr "Enregistrement terminé. Fin du codage en cours...\n"
+
+#: ../src/record.c:98
 #, c-format
 msgid "Recording starts. Will record %d seconds...\n"
 msgstr "Démarrage de l'enregistrement. %d secondes seront enregistrées...\n"
 
-#: ../src/record.c:93
-msgid "Preparing recording. Will start in 1 second...\n"
-msgstr "Préparation de l'enregistrement... Il démarrera dans 1 seconde...\n"
-
-#: ../src/record.c:116
+#: ../src/record.c:130
 msgid "record your current desktop session"
 msgstr "enregistre votre session de bureau actuelle"
 
-#: ../src/record.c:120
+#: ../src/record.c:138
 #, c-format
 msgid "Wrong option: %s\n"
 msgstr "Option erronée : %s\n"
 
-#: ../src/record.c:138
+#: ../src/record.c:147
 #, c-format
-msgid ""
-"Could not prepare recording.\n"
-"Most likely the Damage extension is not available on the X server or the "
-"file \"%s\" is not writable.\n"
-msgstr ""
-"N'a pas pu préparer l'enregistrement.\n"
-"L'extension Damage n'est probablement pas disponible sur le serveur X ou le "
-"fichier « %s » est en lecture seule.\n"
+msgid "Given area is not inside desktop.\n"
+msgstr "La zone indiquée ne se trouve pas à l'intérieur du bureau.\n"
