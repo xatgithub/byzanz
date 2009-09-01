@@ -396,6 +396,7 @@ byzanz_encoder_type_get_filter (GType encoder_type)
 }
 
 /* all the encoders */
+#include "byzanzencoderbyzanz.h"
 #include "byzanzencoderflv.h"
 #include "byzanzencodergif.h"
 #include "byzanzencoderogv.h"
@@ -404,7 +405,9 @@ typedef GType (* TypeFunc) (void);
 static const TypeFunc functions[] = {
   byzanz_encoder_gif_get_type,
   byzanz_encoder_ogv_get_type,
-  byzanz_encoder_flv_get_type
+  byzanz_encoder_flv_get_type,
+  /* debug types */
+  byzanz_encoder_byzanz_get_type,
 };
 #define BYZANZ_ENCODER_DEFAULT_TYPE (functions[0] ())
 

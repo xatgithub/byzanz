@@ -1,5 +1,5 @@
 noinst_LTLIBRARIES = libbyzanz.la
-bin_PROGRAMS = byzanz-record
+bin_PROGRAMS = byzanz-record byzanz-playback
 libexec_PROGRAMS = byzanz-applet
 man_MANS = byzanz-record.1
 
@@ -9,6 +9,7 @@ BUILT_SOURCES = \
 
 noinst_HEADERS = \
 	byzanzencoder.h \
+	byzanzencoderbyzanz.h \
 	byzanzencoderflv.h \
 	byzanzencodergif.h \
 	byzanzencodergstreamer.h \
@@ -19,11 +20,13 @@ noinst_HEADERS = \
 	byzanzrecorder.h \
 	byzanzsession.h \
 	byzanzselect.h \
+	byzanzserialize.h \
 	paneltogglebutton.h \
 	screenshot-utils.h
 
 libbyzanz_la_SOURCES = \
 	byzanzencoder.c \
+	byzanzencoderbyzanz.c \
 	byzanzencoderflv.c \
 	byzanzencodergif.c \
 	byzanzencodergstreamer.c \
@@ -34,15 +37,23 @@ libbyzanz_la_SOURCES = \
 	byzanzmarshal.c \
 	byzanzrecorder.c \
 	byzanzsession.c \
-	byzanzselect.c
+	byzanzselect.c \
+	byzanzserialize.c
 
 libbyzanz_la_CFLAGS = $(BYZANZ_CFLAGS) -I$(top_srcdir)/gifenc
 libbyzanz_la_LIBADD = $(BYZANZ_LIBS) $(top_builddir)/gifenc/libgifenc.la
 		 
+byzanz_playback_SOURCES = \
+	playback.c
+
+byzanz_playback_CFLAGS = $(BYZANZ_CFLAGS)
+byzanz_playback_LDADD = $(BYZANZ_LIBS) ./libbyzanz.la
+
+
 byzanz_record_SOURCES = \
 	record.c
 
-byzanz_record_CFLAGS = $(BYZANZ_CFLAGS) -I$(top_srcdir)/gifenc
+byzanz_record_CFLAGS = $(BYZANZ_CFLAGS)
 byzanz_record_LDADD = $(BYZANZ_LIBS) ./libbyzanz.la
 
 
@@ -51,8 +62,9 @@ byzanz_applet_SOURCES = \
 	paneltogglebutton.c \
 	screenshot-utils.c
 
-byzanz_applet_CFLAGS = $(APPLET_CFLAGS) -I$(top_srcdir)/gifenc
+byzanz_applet_CFLAGS = $(APPLET_CFLAGS)
 byzanz_applet_LDADD = $(APPLET_LIBS) ./libbyzanz.la
+
 
 byzanzmarshal.h: byzanzmarshal.list
 	$(GLIB_GENMARSHAL) --prefix=byzanz_marshal $(srcdir)/byzanzmarshal.list --header > byzanzmarshal.h

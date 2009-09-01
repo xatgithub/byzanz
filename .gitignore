@@ -42,6 +42,7 @@ po/stamp-it
 src/ByzanzApplet.server
 src/ByzanzApplet.server.in
 src/byzanz-applet
+src/byzanz-playback
 src/byzanz-record
 src/byzanz.schemas
 src/byzanzmarshal.c
