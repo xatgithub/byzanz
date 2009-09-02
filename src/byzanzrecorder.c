@@ -127,7 +127,7 @@ byzanz_recorder_create_snapshot (ByzanzRecorder *recorder, const GdkRegion *inva
   }
 
   if (cairo_status (cr))
-    g_print ("error capturing image: %s\n", cairo_status_to_string (cairo_status (cr)));
+    g_printerr ("error capturing image: %s\n", cairo_status_to_string (cairo_status (cr)));
   cairo_destroy (cr);
 
   surface = ensure_image_surface (surface, invalid);
@@ -146,8 +146,10 @@ byzanz_recorder_next_image (gpointer data)
 {
   ByzanzRecorder *recorder = data;
 
+  g_object_ref (recorder);
   recorder->next_image_source = 0;
   byzanz_recorder_snapshot (recorder);
+  g_object_unref (recorder);
   return FALSE;
 }
 
@@ -304,7 +306,8 @@ byzanz_recorder_dispose (GObject *object)
 {
   ByzanzRecorder *recorder = BYZANZ_RECORDER (object);
 
-  g_sequence_free (recorder->layers);
+  g_sequence_remove_range (g_sequence_get_begin_iter (recorder->layers),
+      g_sequence_get_end_iter (recorder->layers));
 
   G_OBJECT_CLASS (byzanz_recorder_parent_class)->dispose (object);
 }
@@ -320,6 +323,7 @@ byzanz_recorder_finalize (GObject *object)
   gdk_window_remove_filter (recorder->window, 
       byzanz_recorder_filter_events, recorder);
   g_object_unref (recorder->window);
+  g_sequence_free (recorder->layers);
 
   G_OBJECT_CLASS (byzanz_recorder_parent_class)->finalize (object);
 }
