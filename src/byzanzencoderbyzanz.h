@@ -34,8 +34,6 @@ typedef struct _ByzanzEncoderByzanzClass ByzanzEncoderByzanzClass;
 
 struct _ByzanzEncoderByzanz {
   ByzanzEncoder         encoder;
-
-  GTimeVal              start_time;
 };
 
 struct _ByzanzEncoderByzanzClass {

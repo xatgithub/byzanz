@@ -102,12 +102,12 @@ byzanz_encoder_gstreamer_got_error (ByzanzEncoderGStreamer *gstreamer, GError **
 
 static gboolean
 byzanz_encoder_gstreamer_process (ByzanzEncoder *   encoder,
-                            GOutputStream *   stream,
-                            cairo_surface_t * surface,
-                            const GdkRegion * region,
-                            const GTimeVal *  total_elapsed,
-                            GCancellable *    cancellable,
-                            GError **	      error)
+                                  GOutputStream *   stream,
+                                  guint64           msecs,
+                                  cairo_surface_t * surface,
+                                  const GdkRegion * region,
+                                  GCancellable *    cancellable,
+                                  GError **	    error)
 {
   ByzanzEncoderGStreamer *gstreamer = BYZANZ_ENCODER_GSTREAMER (encoder);
   GstBuffer *buffer;
@@ -119,7 +119,6 @@ byzanz_encoder_gstreamer_process (ByzanzEncoder *   encoder,
   if (gstreamer->surface == NULL) {
     /* just assume that the size is right and pray */
     gstreamer->surface = cairo_surface_reference (surface);
-    gstreamer->start_time = *total_elapsed;
   } else {
     cairo_t *cr;
 
@@ -149,7 +148,7 @@ byzanz_encoder_gstreamer_process (ByzanzEncoder *   encoder,
       cairo_image_surface_get_stride (gstreamer->surface) * cairo_image_surface_get_height (gstreamer->surface),
       (GstAppBufferFinalizeFunc) cairo_surface_destroy, gstreamer->surface);
   GST_BUFFER_FLAG_SET (buffer, GST_BUFFER_FLAG_READONLY);
-  GST_BUFFER_TIMESTAMP (buffer) = GST_TIMEVAL_TO_TIME (*total_elapsed) - GST_TIMEVAL_TO_TIME (gstreamer->start_time);
+  GST_BUFFER_TIMESTAMP (buffer) = msecs * GST_MSECOND;
   gst_buffer_set_caps (buffer, gstreamer->caps);
   gst_app_src_push_buffer (gstreamer->src, buffer);
 
@@ -158,10 +157,10 @@ byzanz_encoder_gstreamer_process (ByzanzEncoder *   encoder,
 
 static gboolean
 byzanz_encoder_gstreamer_close (ByzanzEncoder *  encoder,
-                          GOutputStream *  stream,
-                          const GTimeVal * total_elapsed,
-                          GCancellable *   cancellable,
-                          GError **	   error)
+                                GOutputStream *  stream,
+                                guint64          msecs,
+                                GCancellable *   cancellable,
+                                GError **	 error)
 {
   ByzanzEncoderGStreamer *gstreamer = BYZANZ_ENCODER_GSTREAMER (encoder);
   GstBus *bus;

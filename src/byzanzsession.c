@@ -39,6 +39,7 @@
 
 #include "byzanzencoder.h"
 #include "byzanzrecorder.h"
+#include "byzanzserialize.h"
 
 /*** MAIN FUNCTIONS ***/
 
@@ -142,12 +143,12 @@ byzanz_session_encoder_notify_cb (ByzanzEncoder * encoder,
   } else if (g_str_equal (pspec->name, "error")) {
     const GError *error = byzanz_encoder_get_error (encoder);
 
+    /* Delete the file, it's broken after all. Don't throw errors if it fails though. */
+    g_file_delete (session->file, NULL, NULL);
+
     /* Cancellation is not an error, it's been requested via _abort() */
     if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
       byzanz_session_set_error (session, error);
-
-    /* Delete the file, it's broken after all. Don't throw errors if it fails though. */
-    g_file_delete (session->file, NULL, NULL);
   }
 }
 
@@ -159,6 +160,23 @@ byzanz_session_recorder_notify_cb (ByzanzRecorder * recorder,
   g_object_notify (G_OBJECT (session), "recording");
 }
 
+static guint64
+byzanz_session_elapsed (ByzanzSession *session, const GTimeVal *tv)
+{
+  guint elapsed;
+
+  if (session->start_time.tv_sec == 0 && session->start_time.tv_usec == 0) {
+    session->start_time = *tv;
+    return 0;
+  }
+
+  elapsed = tv->tv_sec - session->start_time.tv_sec;
+  elapsed *= 1000;
+  elapsed += (tv->tv_usec - session->start_time.tv_usec) / 1000;
+
+  return elapsed;
+}
+
 static void
 byzanz_session_recorder_image_cb (ByzanzRecorder *  recorder,
                                   cairo_surface_t * surface,
@@ -166,10 +184,14 @@ byzanz_session_recorder_image_cb (ByzanzRecorder *  recorder,
                                   const GTimeVal *  tv,
                                   ByzanzSession *   session)
 {
-  if (session->encoder) {
-    byzanz_encoder_process (session->encoder, surface, region, tv);
-  } else {
-    g_warning ("FIXME: figure out what to do now");
+  GOutputStream *stream;
+  GError *error = NULL;
+
+  stream = byzanz_queue_get_output_stream (session->queue);
+  if (!byzanz_serialize (stream, byzanz_session_elapsed (session, tv), 
+          surface, region, session->cancellable, &error)) {
+    byzanz_session_set_error (session, error);
+    g_error_free (error);
   }
 }
 
@@ -197,6 +219,7 @@ byzanz_session_finalize (GObject *object)
   }
   g_object_unref (session->window);
   g_object_unref (session->file);
+  g_object_unref (session->queue);
 
   if (session->error)
     g_error_free (session->error);
@@ -220,14 +243,17 @@ byzanz_session_constructed (GObject *object)
   stream = G_OUTPUT_STREAM (g_file_replace (session->file, NULL, 
         FALSE, G_FILE_CREATE_REPLACE_DESTINATION, session->cancellable, &session->error));
   if (stream != NULL) {
-    session->encoder = byzanz_encoder_new (session->encoder_type, stream,
-        session->area.width, session->area.height, session->cancellable);
+    session->encoder = byzanz_encoder_new (session->encoder_type, 
+        byzanz_queue_get_input_stream (session->queue),
+        stream, session->cancellable);
     g_signal_connect (session->encoder, "notify", 
         G_CALLBACK (byzanz_session_encoder_notify_cb), session);
     g_object_unref (stream);
     if (byzanz_encoder_get_error (session->encoder))
       byzanz_session_set_error (session, byzanz_encoder_get_error (session->encoder));
   }
+  byzanz_serialize_header (byzanz_queue_get_output_stream (session->queue),
+      session->area.width, session->area.height, session->cancellable, &session->error);
 
   if (G_OBJECT_CLASS (byzanz_session_parent_class)->constructed)
     G_OBJECT_CLASS (byzanz_session_parent_class)->constructed (object);
@@ -271,6 +297,7 @@ static void
 byzanz_session_init (ByzanzSession *session)
 {
   session->cancellable = g_cancellable_new ();
+  session->queue = byzanz_queue_new ();
 }
 
 /**
@@ -318,13 +345,19 @@ byzanz_session_start (ByzanzSession *session)
 void
 byzanz_session_stop (ByzanzSession *session)
 {
+  GOutputStream *stream;
+  GError *error = NULL;
   GTimeVal tv;
 
   g_return_if_fail (BYZANZ_IS_SESSION (session));
 
-  if (session->encoder) {
-    g_get_current_time (&tv);
-    byzanz_encoder_close (session->encoder, &tv);
+  stream = byzanz_queue_get_output_stream (session->queue);
+  g_get_current_time (&tv);
+  if (!byzanz_serialize (stream, byzanz_session_elapsed (session, &tv), 
+          NULL, NULL, session->cancellable, &error) || 
+      !g_output_stream_close (stream, session->cancellable, &error)) {
+    byzanz_session_set_error (session, error);
+    g_error_free (error);
   }
 
   byzanz_recorder_set_recording (session->recorder, FALSE);

@@ -85,9 +85,9 @@ byzanz_encoder_gif_quantize (ByzanzEncoderGif * gif,
 }
 
 static gboolean
-byzanz_encoder_write_image (ByzanzEncoderGif *gif, const GTimeVal *tv, GError **error)
+byzanz_encoder_write_image (ByzanzEncoderGif *gif, guint64 msecs, GError **error)
 {
-  glong msecs;
+  guint elapsed;
   guint width;
 
   g_assert (gif->cached_data != NULL);
@@ -95,19 +95,16 @@ byzanz_encoder_write_image (ByzanzEncoderGif *gif, const GTimeVal *tv, GError **
   g_assert (gif->cached_area.height > 0);
 
   width = gifenc_get_width (gif->gifenc);
-  msecs = (tv->tv_sec - gif->cached_time.tv_sec) * 1000 + 
-	  (tv->tv_usec - gif->cached_time.tv_usec) / 1000 + 5;
-  if (msecs < 10)
-    g_printerr ("<10 msecs for a frame, can this be?\n");
-  msecs = MAX (msecs, 10);
+  elapsed = msecs - gif->cached_time;
+  elapsed = MAX (elapsed, 10);
 
   if (!gifenc_add_image (gif->gifenc, gif->cached_area.x, gif->cached_area.y, 
-            gif->cached_area.width, gif->cached_area.height, msecs,
+            gif->cached_area.width, gif->cached_area.height, elapsed,
             gif->cached_data + width * gif->cached_area.y + gif->cached_area.x,
             width, error))
     return FALSE;
 
-  gif->cached_time = *tv;
+  gif->cached_time = msecs;
   return TRUE;
 }
 
@@ -171,9 +168,9 @@ byzanz_encoder_swap_image (ByzanzEncoderGif * gif,
 static gboolean
 byzanz_encoder_gif_process (ByzanzEncoder *   encoder,
                             GOutputStream *   stream,
+                            guint64           msecs,
                             cairo_surface_t * surface,
                             const GdkRegion * region,
-                            const GTimeVal *  total_elapsed,
                             GCancellable *    cancellable,
                             GError **	      error)
 {
@@ -183,14 +180,14 @@ byzanz_encoder_gif_process (ByzanzEncoder *   encoder,
   if (!gif->has_quantized) {
     if (!byzanz_encoder_gif_quantize (gif, surface, error))
       return FALSE;
-    gif->cached_time = *total_elapsed;
+    gif->cached_time = msecs;
     if (!byzanz_encoder_gif_encode_image (gif, surface, region, &area)) {
       g_assert_not_reached ();
     }
     byzanz_encoder_swap_image (gif, &area);
   } else {
     if (byzanz_encoder_gif_encode_image (gif, surface, region, &area)) {
-      if (!byzanz_encoder_write_image (gif, total_elapsed, error))
+      if (!byzanz_encoder_write_image (gif, msecs, error))
         return FALSE;
       byzanz_encoder_swap_image (gif, &area);
     }
@@ -202,7 +199,7 @@ byzanz_encoder_gif_process (ByzanzEncoder *   encoder,
 static gboolean
 byzanz_encoder_gif_close (ByzanzEncoder *  encoder,
                           GOutputStream *  stream,
-                          const GTimeVal * total_elapsed,
+                          guint64          msecs,
                           GCancellable *   cancellable,
                           GError **	   error)
 {
@@ -213,7 +210,7 @@ byzanz_encoder_gif_close (ByzanzEncoder *  encoder,
     return FALSE;
   }
 
-  if (!byzanz_encoder_write_image (gif, total_elapsed, error) ||
+  if (!byzanz_encoder_write_image (gif, msecs, error) ||
       !gifenc_close (gif->gifenc, error))
     return FALSE;
 

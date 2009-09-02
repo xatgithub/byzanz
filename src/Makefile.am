@@ -17,6 +17,9 @@ noinst_HEADERS = \
 	byzanzlayer.h \
 	byzanzlayercursor.h \
 	byzanzlayerwindow.h \
+	byzanzqueue.h \
+	byzanzqueueinputstream.h \
+	byzanzqueueoutputstream.h \
 	byzanzrecorder.h \
 	byzanzsession.h \
 	byzanzselect.h \
@@ -35,6 +38,9 @@ libbyzanz_la_SOURCES = \
 	byzanzlayercursor.c \
 	byzanzlayerwindow.c \
 	byzanzmarshal.c \
+	byzanzqueue.c \
+	byzanzqueueinputstream.c \
+	byzanzqueueoutputstream.c \
 	byzanzrecorder.c \
 	byzanzsession.c \
 	byzanzselect.c \

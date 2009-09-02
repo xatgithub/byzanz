@@ -43,7 +43,7 @@ struct _ByzanzEncoderGif {
 
   GdkRectangle          cached_area;    /* area that is saved in cached_data */
   guint8 *              cached_data;    /* cached_area.{width x height} sized area of image */
-  GTimeVal              cached_time;    /* timestamp the cached image corresponds to */
+  guint64               cached_time;    /* timestamp the cached image corresponds to */
 
   guint8 *		cached_tmp;	/* temporary data to swap cached_data with */
 };

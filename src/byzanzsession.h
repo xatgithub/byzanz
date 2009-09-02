@@ -21,6 +21,7 @@
 #include <gtk/gtk.h>
 
 #include "byzanzencoder.h"
+#include "byzanzqueue.h"
 #include "byzanzrecorder.h"
 
 #ifndef __HAVE_BYZANZ_SESSION_H__
@@ -45,6 +46,8 @@ struct _ByzanzSession {
   GdkRectangle          area;           /* area of window to record */
   GdkWindow *           window;         /* window to record */
   GType                 encoder_type;   /* type of encoder to use */
+  ByzanzQueue *         queue;          /* queue we use as data cache */
+  GTimeVal              start_time;     /* when we started writing to queue */
 
   /* internal objects */
   GCancellable *        cancellable;    /* cancellable to use for aborting the session */

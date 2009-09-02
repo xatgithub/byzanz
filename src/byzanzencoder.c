@@ -23,6 +23,8 @@
 
 #include "byzanzencoder.h"
 
+#include "byzanzserialize.h"
+
 typedef struct _ByzanzEncoderJob ByzanzEncoderJob;
 struct _ByzanzEncoderJob {
   GTimeVal		tv;		/* time this job was enqueued */
@@ -71,30 +73,36 @@ byzanz_encoder_run (gpointer enc)
   ByzanzEncoder *encoder = enc;
   ByzanzEncoderClass *klass = BYZANZ_ENCODER_GET_CLASS (enc);
   GError *error = NULL;
+  guint width, height;
+  cairo_surface_t *surface;
+  GdkRegion *region;
+  guint64 msecs;
 
-  if (!klass->setup (encoder, encoder->output_stream, encoder->width, encoder->height,
+  if (!byzanz_deserialize_header (encoder->input_stream, &width, &height, encoder->cancellable, &error) ||
+      !klass->setup (encoder, encoder->output_stream, width, height,
         encoder->cancellable, &error))
-    return error;
+    goto fail;
 
   do {
-    ByzanzEncoderJob *job = g_async_queue_pop (encoder->jobs);
+    if (!byzanz_deserialize (encoder->input_stream, &msecs, &surface, &region,
+          encoder->cancellable, &error))
+      break;
 
     /* quit */
-    if (job->surface == NULL) {
-      if (klass->close (encoder, encoder->output_stream, &job->tv,
-              encoder->cancellable, &error))
+    if (surface == NULL) {
+      if (klass->close (encoder, encoder->output_stream, msecs, encoder->cancellable, &error))
         g_output_stream_close (encoder->output_stream, encoder->cancellable, &error);
-      byzanz_encoder_job_free (job);
       break;
     }
 
     /* decode */
-    klass->process (encoder, encoder->output_stream,
-          job->surface, job->region, &job->tv,
-          encoder->cancellable, &error);
-    byzanz_encoder_job_free (job);
+    klass->process (encoder, encoder->output_stream, msecs,
+          surface, region, encoder->cancellable, &error);
+    cairo_surface_destroy (surface);
+    gdk_region_destroy (region);
   } while (error == NULL);
 
+fail:
   g_idle_add_full (G_PRIORITY_DEFAULT, byzanz_encoder_finished, enc, NULL);
   return error;
 }
@@ -103,10 +111,9 @@ byzanz_encoder_run (gpointer enc)
 
 enum {
   PROP_0,
+  PROP_INPUT,
   PROP_OUTPUT,
   PROP_CANCELLABLE,
-  PROP_WIDTH,
-  PROP_HEIGHT,
   PROP_ERROR,
   PROP_RUNNING
 };
@@ -173,6 +180,9 @@ byzanz_encoder_get_property (GObject *object, guint param_id, GValue *value,
   ByzanzEncoder *encoder = BYZANZ_ENCODER (object);
 
   switch (param_id) {
+    case PROP_INPUT:
+      g_value_set_object (value, encoder->input_stream);
+      break;
     case PROP_OUTPUT:
       g_value_set_object (value, encoder->output_stream);
       break;
@@ -184,12 +194,6 @@ byzanz_encoder_get_property (GObject *object, guint param_id, GValue *value,
       break;
     case PROP_RUNNING:
       g_value_set_boolean (value, encoder->thread != NULL);
-      break;
-    case PROP_WIDTH:
-      g_value_set_uint (value, encoder->width);
-      break;
-    case PROP_HEIGHT:
-      g_value_set_uint (value, encoder->height);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, param_id, pspec);
@@ -204,18 +208,16 @@ byzanz_encoder_set_property (GObject *object, guint param_id, const GValue *valu
   ByzanzEncoder *encoder = BYZANZ_ENCODER (object);
 
   switch (param_id) {
+    case PROP_INPUT:
+      encoder->input_stream = g_value_dup_object (value);
+      g_assert (encoder->input_stream != NULL);
+      break;
     case PROP_OUTPUT:
       encoder->output_stream = g_value_dup_object (value);
       g_assert (encoder->output_stream != NULL);
       break;
     case PROP_CANCELLABLE:
       encoder->cancellable = g_value_dup_object (value);
-      break;
-    case PROP_WIDTH:
-      encoder->width = g_value_get_uint (value);
-      break;
-    case PROP_HEIGHT:
-      encoder->height = g_value_get_uint (value);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, param_id, pspec);
@@ -230,6 +232,7 @@ byzanz_encoder_finalize (GObject *object)
 
   g_assert (encoder->thread == NULL);
 
+  g_object_unref (encoder->input_stream);
   g_object_unref (encoder->output_stream);
   if (encoder->cancellable)
     g_object_unref (encoder->cancellable);
@@ -265,6 +268,9 @@ byzanz_encoder_class_init (ByzanzEncoderClass *klass)
   object_class->finalize = byzanz_encoder_finalize;
   object_class->constructed = byzanz_encoder_constructed;
 
+  g_object_class_install_property (object_class, PROP_INPUT,
+      g_param_spec_object ("input", "input", "stream to read data from",
+	  G_TYPE_INPUT_STREAM, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
   g_object_class_install_property (object_class, PROP_OUTPUT,
       g_param_spec_object ("output", "output", "stream to write data to",
 	  G_TYPE_OUTPUT_STREAM, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
@@ -277,12 +283,6 @@ byzanz_encoder_class_init (ByzanzEncoderClass *klass)
   g_object_class_install_property (object_class, PROP_RUNNING,
       g_param_spec_boolean ("running", "running", "TRUE while the encoding thread is running",
 	  TRUE, G_PARAM_READABLE));
-  g_object_class_install_property (object_class, PROP_WIDTH,
-      g_param_spec_uint ("width", "width", "width of the stream that gets encoded",
-	  1, G_MAXUINT, 1, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
-  g_object_class_install_property (object_class, PROP_HEIGHT,
-      g_param_spec_uint ("height", "height", "height of the stream that gets encoded",
-	  1, G_MAXUINT, 1, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 }
 
 static void
@@ -295,25 +295,24 @@ byzanz_encoder_init (GTypeInstance *instance, gpointer klass)
 
 ByzanzEncoder *
 byzanz_encoder_new (GType           encoder_type,
-                    GOutputStream * stream,
-                    guint           width,
-                    guint           height,
+                    GInputStream *  input,
+                    GOutputStream * output,
                     GCancellable *  cancellable)
 {
   ByzanzEncoder *encoder;
 
   g_return_val_if_fail (g_type_is_a (encoder_type, BYZANZ_TYPE_ENCODER), NULL);
-  g_return_val_if_fail (G_IS_OUTPUT_STREAM (stream), NULL);
+  g_return_val_if_fail (G_IS_INPUT_STREAM (input), NULL);
+  g_return_val_if_fail (G_IS_OUTPUT_STREAM (output), NULL);
   g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
-  g_return_val_if_fail (width > 0, NULL);
-  g_return_val_if_fail (height > 0, NULL);
 
-  encoder = g_object_new (encoder_type, "output", stream,
-      "cancellable", cancellable, "width", width, "height", height, NULL);
+  encoder = g_object_new (encoder_type, "input", input, "output", output,
+      "cancellable", cancellable, NULL);
 
   return encoder;
 }
 
+/*
 void
 byzanz_encoder_process (ByzanzEncoder *	 encoder,
 		        cairo_surface_t *surface,
@@ -357,6 +356,7 @@ byzanz_encoder_close (ByzanzEncoder *encoder,
 
   g_async_queue_push (encoder->jobs, job);
 }
+*/
 
 gboolean
 byzanz_encoder_is_running (ByzanzEncoder *encoder)

@@ -30,19 +30,6 @@
 
 G_DEFINE_TYPE (ByzanzEncoderByzanz, byzanz_encoder_byzanz, BYZANZ_TYPE_ENCODER)
 
-static guint64
-byzanz_encoder_byzanz_time (ByzanzEncoderByzanz * byzanz,
-                            const GTimeVal *      tv)
-{
-  guint64 result;
-
-  result = tv->tv_sec - byzanz->start_time.tv_sec;
-  result *= 1000;
-  result += (tv->tv_usec - byzanz->start_time.tv_usec) / 1000;
-
-  return result;
-}
-
 static gboolean
 byzanz_encoder_byzanz_setup (ByzanzEncoder * encoder,
                              GOutputStream * stream,
@@ -57,32 +44,23 @@ byzanz_encoder_byzanz_setup (ByzanzEncoder * encoder,
 static gboolean
 byzanz_encoder_byzanz_process (ByzanzEncoder *   encoder,
                                GOutputStream *   stream,
+                               guint64           msecs,
                                cairo_surface_t * surface,
                                const GdkRegion * region,
-                               const GTimeVal *  total_elapsed,
                                GCancellable *    cancellable,
                                GError **	 error)
 {
-  ByzanzEncoderByzanz *byzanz = BYZANZ_ENCODER_BYZANZ (encoder);
-
-  if (byzanz->start_time.tv_sec == 0 && byzanz->start_time.tv_usec)
-    byzanz->start_time = *total_elapsed;
-
-  return byzanz_serialize (stream, byzanz_encoder_byzanz_time (byzanz, total_elapsed),
-      surface, region, cancellable, error);
+  return byzanz_serialize (stream, msecs, surface, region, cancellable, error);
 }
 
 static gboolean
 byzanz_encoder_byzanz_close (ByzanzEncoder *  encoder,
-                          GOutputStream *  stream,
-                          const GTimeVal * total_elapsed,
-                          GCancellable *   cancellable,
-                          GError **	   error)
+                             GOutputStream *  stream,
+                             guint64          msecs,
+                             GCancellable *   cancellable,
+                             GError **	      error)
 {
-  ByzanzEncoderByzanz *byzanz = BYZANZ_ENCODER_BYZANZ (encoder);
-
-  return byzanz_serialize (stream, byzanz_encoder_byzanz_time (byzanz, total_elapsed),
-      NULL, NULL, cancellable, error);
+  return byzanz_serialize (stream, msecs, NULL, NULL, cancellable, error);
 }
 
 static void

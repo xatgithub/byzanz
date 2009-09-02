@@ -41,11 +41,10 @@ struct _ByzanzEncoder {
   GObject		object;
   
   /*<private >*/
+  GInputStream *        input_stream;           /* stream to read from in byzanzserialize.h format */
   GOutputStream *       output_stream;          /* stream we write to (passed to the vfuncs) */
   GCancellable *        cancellable;            /* cancellable to use in thread */
   GError *              error;                  /* NULL or the encoding error */
-  guint                 width;                  /* width of image */
-  guint                 height;                 /* height of image */
 
   GAsyncQueue *         jobs;                   /* the stuff we still need to encode */
   GThread *             thread;                 /* the encoding thread */
@@ -65,14 +64,14 @@ struct _ByzanzEncoderClass {
 						 GError **		error);
   gboolean		(* process)		(ByzanzEncoder *	encoder,
 						 GOutputStream *	stream,
+                                                 guint64                msecs,
 						 cairo_surface_t *	surface,
 						 const GdkRegion *	region,
-						 const GTimeVal *	total_elapsed,
                                                  GCancellable *         cancellable,
 						 GError **		error);
   gboolean		(* close)		(ByzanzEncoder *	encoder,
 						 GOutputStream *	stream,
-						 const GTimeVal *	total_elapsed,
+                                                 guint64                msecs,
                                                  GCancellable *         cancellable,
 						 GError **		error);
 };
@@ -80,17 +79,17 @@ struct _ByzanzEncoderClass {
 GType		byzanz_encoder_get_type		(void) G_GNUC_CONST;
 
 ByzanzEncoder *	byzanz_encoder_new		(GType                  encoder_type,
-                                                 GOutputStream *        stream,
-                                                 guint                  width,
-                                                 guint                  height,
+                                                 GInputStream *         input,
+                                                 GOutputStream *        output,
                                                  GCancellable *         cancellable);
+/*
 void		byzanz_encoder_process		(ByzanzEncoder *	encoder,
 						 cairo_surface_t *	surface,
 						 const GdkRegion *	region,
 						 const GTimeVal *	total_elapsed);
 void		byzanz_encoder_close		(ByzanzEncoder *	encoder,
 						 const GTimeVal *	total_elapsed);
-
+*/
 gboolean        byzanz_encoder_is_running       (ByzanzEncoder *        encoder);
 const GError *  byzanz_encoder_get_error        (ByzanzEncoder *        encoder);
 

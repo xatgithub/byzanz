@@ -47,37 +47,6 @@ typedef struct {
   ByzanzEncoder *       encoder;
 } Operation;
 
-static gboolean
-add_more_data (gpointer data)
-{
-  Operation *op = data;
-  cairo_surface_t *surface;
-  GdkRegion *region;
-  GTimeVal tv;
-  guint64 elapsed;
-  GError *error = NULL;
-
-  if (!byzanz_deserialize (op->instream, &elapsed, &surface, &region, NULL, &error)) {
-    g_print ("%s\n", error->message);
-    g_error_free (error);
-    g_main_loop_quit (op->loop);
-    return FALSE;
-  }
-
-  tv.tv_sec = elapsed / 1000;
-  tv.tv_usec = (elapsed % 1000) * 1000;
-  if (surface) {
-    byzanz_encoder_process (op->encoder, surface, region, &tv);
-    cairo_surface_destroy (surface);
-    gdk_region_destroy (region);
-    return TRUE;
-  } else {
-    byzanz_encoder_close (op->encoder, &tv);
-    return FALSE;
-  }
-  return surface ? TRUE : FALSE;
-}
-
 static void
 encoder_notify (ByzanzEncoder *encoder, GParamSpec *pspec, Operation *op)
 {
@@ -98,7 +67,6 @@ main (int argc, char **argv)
   GOptionContext* context;
   GError *error = NULL;
   Operation op;
-  guint width, height;
   
   g_set_prgname (argv[0]);
 #ifdef GETTEXT_PACKAGE
@@ -137,11 +105,6 @@ main (int argc, char **argv)
     g_error_free (error);
     return 1;
   }
-  if (!byzanz_deserialize_header (op.instream, &width, &height, NULL, &error)) {
-    g_print ("%s\n", error->message);
-    g_error_free (error);
-    return 1;
-  }
   op.outstream = G_OUTPUT_STREAM (g_file_replace (op.outfile, NULL, 
         FALSE, G_FILE_CREATE_REPLACE_DESTINATION, NULL, &error));
   if (op.outstream == NULL) {
@@ -150,10 +113,9 @@ main (int argc, char **argv)
     return 1;
   }
   op.encoder = byzanz_encoder_new (byzanz_encoder_get_type_from_file (op.outfile),
-      op.outstream, width, height, NULL);
+      op.instream, op.outstream, NULL);
   
   g_signal_connect (op.encoder, "notify", G_CALLBACK (encoder_notify), &op);
-  g_idle_add (add_more_data, &op);
   
   g_main_loop_run (op.loop);
 
