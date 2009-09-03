@@ -68,6 +68,9 @@ byzanz_encoder_byzanz_class_init (ByzanzEncoderByzanzClass *klass)
 {
   ByzanzEncoderClass *encoder_class = BYZANZ_ENCODER_CLASS (klass);
 
+  /* We don't use the run vfunc and just g_output_stream_slice() here,
+   * because this way we get data verification.
+   */
   encoder_class->setup = byzanz_encoder_byzanz_setup;
   encoder_class->process = byzanz_encoder_byzanz_process;
   encoder_class->close = byzanz_encoder_byzanz_close;
