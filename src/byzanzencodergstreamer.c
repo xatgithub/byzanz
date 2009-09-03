@@ -29,8 +29,6 @@
 
 G_DEFINE_TYPE (ByzanzEncoderGStreamer, byzanz_encoder_gstreamer, BYZANZ_TYPE_ENCODER)
 
-#define PIPELINE_STRING "appsrc name=src ! ffmpegcolorspace ! videorate ! video/x-raw-yuv,framerate=25/1 ! theoraenc ! oggmux ! giostreamsink name=sink"
-
 static gboolean
 byzanz_encoder_gstreamer_setup (ByzanzEncoder * encoder,
                           GOutputStream * stream,
