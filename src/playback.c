@@ -38,26 +38,17 @@ usage (void)
   g_print (_("       %s --help\n"), g_get_prgname ());
 }
 
-typedef struct {
-  GFile *               infile;
-  GFile *               outfile;
-  GInputStream *        instream;
-  GOutputStream *       outstream;
-  GMainLoop *           loop;
-  ByzanzEncoder *       encoder;
-} Operation;
-
 static void
-encoder_notify (ByzanzEncoder *encoder, GParamSpec *pspec, Operation *op)
+encoder_notify (ByzanzEncoder *encoder, GParamSpec *pspec, GMainLoop *loop)
 {
   const GError *error;
 
   error = byzanz_encoder_get_error (encoder);
   if (error) {
     g_print ("%s\n", error->message);
-    g_main_loop_quit (op->loop);
+    g_main_loop_quit (loop);
   } else if (!byzanz_encoder_is_running (encoder)) {
-    g_main_loop_quit (op->loop);
+    g_main_loop_quit (loop);
   }
 }
 
@@ -66,7 +57,12 @@ main (int argc, char **argv)
 {
   GOptionContext* context;
   GError *error = NULL;
-  Operation op;
+  GFile *infile;
+  GFile *outfile;
+  GInputStream *instream;
+  GOutputStream *outstream;
+  GMainLoop *loop;
+  ByzanzEncoder *encoder;
   
   g_set_prgname (argv[0]);
 #ifdef GETTEXT_PACKAGE
@@ -95,35 +91,36 @@ main (int argc, char **argv)
     return 0;
   }
 
-  op.infile = g_file_new_for_commandline_arg (argv[1]);
-  op.outfile = g_file_new_for_commandline_arg (argv[2]);
-  op.loop = g_main_loop_new (NULL, FALSE);
+  infile = g_file_new_for_commandline_arg (argv[1]);
+  outfile = g_file_new_for_commandline_arg (argv[2]);
+  loop = g_main_loop_new (NULL, FALSE);
 
-  op.instream = G_INPUT_STREAM (g_file_read (op.infile, NULL, &error));
-  if (op.instream == NULL) {
+  instream = G_INPUT_STREAM (g_file_read (infile, NULL, &error));
+  if (instream == NULL) {
     g_print ("%s\n", error->message);
     g_error_free (error);
     return 1;
   }
-  op.outstream = G_OUTPUT_STREAM (g_file_replace (op.outfile, NULL, 
+  outstream = G_OUTPUT_STREAM (g_file_replace (outfile, NULL, 
         FALSE, G_FILE_CREATE_REPLACE_DESTINATION, NULL, &error));
-  if (op.outstream == NULL) {
+  if (outstream == NULL) {
     g_print ("%s\n", error->message);
     g_error_free (error);
     return 1;
   }
-  op.encoder = byzanz_encoder_new (byzanz_encoder_get_type_from_file (op.outfile),
-      op.instream, op.outstream, NULL);
+  encoder = byzanz_encoder_new (byzanz_encoder_get_type_from_file (outfile),
+      instream, outstream, NULL);
   
-  g_signal_connect (op.encoder, "notify", G_CALLBACK (encoder_notify), &op);
+  g_signal_connect (encoder, "notify", G_CALLBACK (encoder_notify), loop);
   
-  g_main_loop_run (op.loop);
+  g_main_loop_run (loop);
 
-  g_main_loop_unref (op.loop);
-  g_object_unref (op.instream);
-  g_object_unref (op.outstream);
-  g_object_unref (op.infile);
-  g_object_unref (op.outfile);
+  g_main_loop_unref (loop);
+  g_object_unref (encoder);
+  g_object_unref (instream);
+  g_object_unref (outstream);
+  g_object_unref (infile);
+  g_object_unref (outfile);
 
   return 0;
 }
