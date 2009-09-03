@@ -67,42 +67,53 @@ byzanz_encoder_finished (gpointer data)
 
 /*** INSIDE THREAD ***/
 
-static gpointer
-byzanz_encoder_run (gpointer enc)
+static gboolean
+byzanz_encoder_run (ByzanzEncoder * encoder,
+                    GInputStream *  input,
+                    GOutputStream * output,
+                    GCancellable *  cancellable,
+                    GError **	    error)
 {
-  ByzanzEncoder *encoder = enc;
-  ByzanzEncoderClass *klass = BYZANZ_ENCODER_GET_CLASS (enc);
-  GError *error = NULL;
+  ByzanzEncoderClass *klass = BYZANZ_ENCODER_GET_CLASS (encoder);
   guint width, height;
   cairo_surface_t *surface;
   GdkRegion *region;
   guint64 msecs;
+  gboolean success;
 
-  if (!byzanz_deserialize_header (encoder->input_stream, &width, &height, encoder->cancellable, &error) ||
-      !klass->setup (encoder, encoder->output_stream, width, height,
-        encoder->cancellable, &error))
-    goto fail;
+  if (!byzanz_deserialize_header (input, &width, &height, cancellable, error) ||
+      !klass->setup (encoder, output, width, height, cancellable, error))
+    return FALSE;
 
-  do {
-    if (!byzanz_deserialize (encoder->input_stream, &msecs, &surface, &region,
-          encoder->cancellable, &error))
-      break;
+  for (;;) {
+    if (!byzanz_deserialize (input , &msecs, &surface, &region, cancellable, error))
+      return FALSE;
 
     /* quit */
     if (surface == NULL) {
-      if (klass->close (encoder, encoder->output_stream, msecs, encoder->cancellable, &error))
-        g_output_stream_close (encoder->output_stream, encoder->cancellable, &error);
-      break;
+      return klass->close (encoder, output, msecs, cancellable, error) &&
+        g_output_stream_close (output, cancellable, error);
     }
 
     /* decode */
-    klass->process (encoder, encoder->output_stream, msecs,
-          surface, region, encoder->cancellable, &error);
+    success = klass->process (encoder, output, msecs, surface, region, cancellable, error);
     cairo_surface_destroy (surface);
     gdk_region_destroy (region);
-  } while (error == NULL);
+    if (!success)
+      return FALSE;
+  }
+}
 
-fail:
+static gpointer
+byzanz_encoder_thread (gpointer enc)
+{
+  ByzanzEncoder *encoder = BYZANZ_ENCODER (enc);
+  ByzanzEncoderClass *klass = BYZANZ_ENCODER_GET_CLASS (encoder);
+  GError *error = NULL;
+  
+  klass->run (encoder, encoder->input_stream, encoder->output_stream,
+      encoder->cancellable, &error);
+
   g_idle_add_full (G_PRIORITY_DEFAULT, byzanz_encoder_finished, enc, NULL);
   return error;
 }
@@ -249,7 +260,7 @@ byzanz_encoder_constructed (GObject *object)
 {
   ByzanzEncoder *encoder = BYZANZ_ENCODER (object);
 
-  encoder->thread = g_thread_create (byzanz_encoder_run, encoder, 
+  encoder->thread = g_thread_create (byzanz_encoder_thread, encoder, 
       TRUE, &encoder->error);
   if (encoder->thread)
     g_object_ref (encoder);
@@ -283,6 +294,8 @@ byzanz_encoder_class_init (ByzanzEncoderClass *klass)
   g_object_class_install_property (object_class, PROP_RUNNING,
       g_param_spec_boolean ("running", "running", "TRUE while the encoding thread is running",
 	  TRUE, G_PARAM_READABLE));
+
+  klass->run = byzanz_encoder_run;
 }
 
 static void

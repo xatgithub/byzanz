@@ -56,6 +56,14 @@ struct _ByzanzEncoderClass {
   /*< protected >*/
   GtkFileFilter *       filter;                 /* filter to determine if a file should be encoded by this class */
 
+  /* default function run in thread */
+  gboolean              (* run)                 (ByzanzEncoder *        encoder,
+                                                 GInputStream *         input,
+                                                 GOutputStream *        output,
+                                                 GCancellable *         cancellable,
+						 GError **		error);
+
+  /* functions called by the default function */
   gboolean		(* setup)		(ByzanzEncoder *	encoder,
 						 GOutputStream *	stream,
                                                  guint                  width,
