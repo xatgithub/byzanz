@@ -1,27 +1,24 @@
 # Czech translation of byzanz.
-# Copyright (C) 2008 the author(s) of byzanz.
+# Copyright (C) 2008, 2009 the author(s) of byzanz.
 # This file is distributed under the same license as the byzanz package.
-# Adrian Guniš <andygun@seznam.cz>, 2008.
+# Adrian Guniš <andygun@seznam.cz>, 2008, 2009.
 # Petr Kovar <pknbe@volny.cz>, 2008.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: byzanz\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/\n"
-"POT-Creation-Date: 2008-10-12 14:57+0200\n"
-"PO-Revision-Date: 2008-10-07 20:29+0100\n"
+"POT-Creation-Date: 2009-10-06 01:00+0200\n"
+"PO-Revision-Date: 2009-10-04 19:18+0100\n"
 "Last-Translator: Adrian Guniš <andygun696@gmail.com>\n"
 "Language-Team: Czech <gnome-cs-list@gnome.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"X-Poedit-Language: Czech\n"
 
 #: ../src/byzanz.schemas.in.h:1
-msgid "Directory to save in"
-msgstr "Složka pro ukládání"
-
-#: ../src/byzanz.schemas.in.h:2
 msgid ""
 "If set, Byzanz will record the mouse cursor. While useful, recording the "
 "mouse cursor results in bigger files and should therefore be used with care."
@@ -29,19 +26,21 @@ msgstr ""
 "Pokud nastavíte, Byzanz bude nahrávat kurzor myši. Při nahrávání kurzoru "
 "myši vznikají větší soubory a mělo by být proto používáno s rozmyslem."
 
-#: ../src/byzanz.schemas.in.h:3 ../src/record.c:39
+#: ../src/byzanz.schemas.in.h:2 ../src/record.c:38
 msgid "Record mouse cursor"
 msgstr "Nahrát kurzor myši"
 
-#: ../src/byzanz.schemas.in.h:4
+#: ../src/byzanz.schemas.in.h:3
 msgid "Recording method"
 msgstr "Metoda nahrávání"
 
+#: ../src/byzanz.schemas.in.h:4
+msgid "Save filename"
+msgstr "Uložit název souboru"
+
 #: ../src/byzanz.schemas.in.h:5
-msgid "This is the directory that Byzanz will default to when saving a file."
-msgstr ""
-"Toto je adresář, který je v Byzanz nastaven jako výchozí pro ukládání "
-"souborů."
+msgid "URI for the filename Byzanz will suggest when starting a recording."
+msgstr "URI názvu souboru navrhne Byzanz při spuštění nahrávání."
 
 #: ../src/byzanz.schemas.in.h:6
 msgid ""
@@ -53,87 +52,97 @@ msgstr ""
 "\"screen\" pro nahrávání celé obrazovky, \"area\" pro nahrávání vybrané "
 "oblasti nebo \"window\" pro nahrávání vybraného okna."
 
-#: ../src/byzanzapplet.c:110
-msgid "A file could not be saved."
-msgstr "Soubor nelze uložit."
+#: ../src/byzanzapplet.c:103 ../src/byzanzapplet.c:263
+msgid "Record your desktop"
+msgstr "Nahrát pracovní plochu"
 
-#: ../src/byzanzapplet.c:111
-#, c-format
-msgid ""
-"\"%s\" could not be saved.\n"
-"The error that occured was: %s"
-msgstr ""
-"\"%s\" nelze uložit.\n"
-"Chyba, která nastala: %s"
+#: ../src/byzanzapplet.c:104
+msgid "Select area to record"
+msgstr "Vyberte oblast nahrávání"
 
-#: ../src/byzanzapplet.c:175
-msgid "Save Recorded File"
-msgstr "Uložit nahraný soubor"
+#: ../src/byzanzapplet.c:105
+msgid "End current recording"
+msgstr "Ukončit současné nahrávání"
 
-#: ../src/byzanzapplet.c:224
-msgid "Stop current recording"
-msgstr "Zastavit současné nahrávání"
+#: ../src/byzanzapplet.c:106
+msgid "Abort encoding of recording"
+msgstr "Zrušit kódování záznamu"
 
-#: ../src/byzanzapplet.c:258
-msgid "Cannot start recording."
-msgstr "Nelze spustit nahrávání."
+#: ../src/byzanzapplet.c:273
+msgid "All files"
+msgstr "Všechny soubory"
 
-#: ../src/byzanzapplet.c:259 ../src/record.c:135
-#, c-format
-msgid ""
-"Byzanz requires a 24bpp or 32bpp depth for recording. The current resolution "
-"is set to %dbpp."
-msgstr ""
-"Byzanz vyžaduje pro nahrávání 24bpp nebo 32bpp hloubku barev. Aktuální "
-"rozlišení je nastaveno na %dbpp."
+#: ../src/byzanzapplet.c:355
+msgid "Desktop Session"
+msgstr "Sezení pracovní plochy"
 
-#: ../src/byzanzapplet.c:369 ../src/ByzanzApplet.server.in.in.h:2
-msgid "Desktop Recorder"
-msgstr "Záznamník pracovní plochy"
-
-#: ../src/byzanzapplet.c:372 ../src/ByzanzApplet.server.in.in.h:3
+#: ../src/byzanzapplet.c:358 ../src/ByzanzApplet.server.in.in.h:3
 msgid "Record what's happening on your desktop"
 msgstr "Nahrávání dění na pracovní ploše"
 
-#: ../src/byzanzapplet.c:374
+#: ../src/byzanzapplet.c:360
 msgid "translator-credits"
 msgstr "Adrian Guniš <andygun696@gmail.com>"
-
-#: ../src/byzanzapplet.c:441
-msgid "Record _Mouse Cursor"
-msgstr "Nahrát kurzor _myši"
 
 #: ../src/byzanzapplet.xml.h:1
 msgid "_About"
 msgstr "O _aplikaci"
 
-#: ../src/byzanzselect.c:312
+#: ../src/byzanzencoderflv.c:38
+msgid "Flash video"
+msgstr "Flash video"
+
+#: ../src/byzanzencodergif.c:212
+msgid "No image to encode."
+msgstr "Žádný obrázek ke kódování."
+
+#: ../src/byzanzencodergif.c:251
+msgid "GIF images"
+msgstr "Obrázky GIF"
+
+#: ../src/byzanzencodergstreamer.c:76
+msgid "Failed to start GStreamer pipeline"
+msgstr "Nepodařilo se spustit rouru GStreamer"
+
+#: ../src/byzanzencodergstreamer.c:94
+msgid "Premature end of GStreamer pipeline"
+msgstr "Předčasné ukončení roury GStreamer"
+
+#: ../src/byzanzencoderogv.c:38
+msgid "Theora video"
+msgstr "Theora video"
+
+#: ../src/byzanzselect.c:354
 msgid "Record _Desktop"
 msgstr "Nahrát _pracovní plochu"
 
-#: ../src/byzanzselect.c:312
+#: ../src/byzanzselect.c:354
 msgid "Record the entire desktop"
 msgstr "Nahrát celou pracovní plochu"
 
-#: ../src/byzanzselect.c:314
+#: ../src/byzanzselect.c:356
 msgid "Record _Area"
 msgstr "Nahrát obl_ast"
 
-#: ../src/byzanzselect.c:314
+#: ../src/byzanzselect.c:356
 msgid "Record a selected area of the desktop"
 msgstr "Nahrát vybranou oblast pracovní plochy"
 
-#: ../src/byzanzselect.c:316
+#: ../src/byzanzselect.c:358
 msgid "Record _Window"
 msgstr "Nahrát _okno"
 
-#: ../src/byzanzselect.c:316
+#: ../src/byzanzselect.c:358
 msgid "Record a selected window"
 msgstr "Nahrát vybrané okno"
 
 #: ../src/ByzanzApplet.server.in.in.h:1
 msgid "Byzanz Factory"
 msgstr "Generátor Byzanz"
+
+#: ../src/ByzanzApplet.server.in.in.h:2
+msgid "Desktop Recorder"
+msgstr "Záznamník pracovní plochy"
 
 #: ../src/record.c:36
 msgid "Duration of animation (default: 10 seconds)"
@@ -147,73 +156,68 @@ msgstr "SEKUNDY"
 msgid "Delay before start (default: 1 second)"
 msgstr "Zpoždění před spuštěním (výchozí: 1 sekunda)"
 
-#: ../src/record.c:38
-msgid "Let the animation loop"
-msgstr "Uložit animaci jako smyčku"
-
-#: ../src/record.c:40
+#: ../src/record.c:39
 msgid "X coordinate of rectangle to record"
 msgstr "Souřadnice X obdélníku pro nahrávání"
 
-#: ../src/record.c:40 ../src/record.c:41 ../src/record.c:42 ../src/record.c:43
+#: ../src/record.c:39 ../src/record.c:40 ../src/record.c:41 ../src/record.c:42
 msgid "PIXEL"
 msgstr "PIXEL"
 
-#: ../src/record.c:41
+#: ../src/record.c:40
 msgid "Y coordinate of rectangle to record"
 msgstr "Souřadnice Y obdélníku pro nahrávání"
 
-#: ../src/record.c:42
+#: ../src/record.c:41
 msgid "Width of recording rectangle"
 msgstr "Šířka nahrávaného obdélníku"
 
-#: ../src/record.c:43
+#: ../src/record.c:42
 msgid "Height of recording rectangle"
 msgstr "Výška nahrávaného obdélníku"
 
-#: ../src/record.c:44
+#: ../src/record.c:43
 msgid "Be verbose"
 msgstr "Vypisovat podrobnosti"
 
-#: ../src/record.c:66
+#: ../src/record.c:65
 #, c-format
 msgid "usage: %s [OPTIONS] filename\n"
 msgstr "použití: %s [PŘEPÍNAČE] název_souboru\n"
 
-#: ../src/record.c:67
+#: ../src/record.c:66
 #, c-format
 msgid "       %s --help\n"
 msgstr "       %s --help\n"
 
-#: ../src/record.c:73
-msgid "Recording done. Cleaning up...\n"
-msgstr "Nahrávání dokončeno. Uklízení...\n"
+#: ../src/record.c:75
+#, c-format
+msgid "Error during recording: %s\n"
+msgstr "Chyba během nahrávání: %s\n"
 
-#: ../src/record.c:83
+#: ../src/record.c:81
+msgid "Recording done.\n"
+msgstr "Nahrávání dokončeno.\n"
+
+#: ../src/record.c:89
+msgid "Recording completed. Finishing encoding...\n"
+msgstr "Nahrávání dokončeno. Dokončování kódování...\n"
+
+#: ../src/record.c:98
 #, c-format
 msgid "Recording starts. Will record %d seconds...\n"
 msgstr "Spouští se nahrávání. Nahraje se %d sekund...\n"
 
-#: ../src/record.c:93
-msgid "Preparing recording. Will start in 1 second...\n"
-msgstr "Připravuje se nahrávání. Spustí se za 1 sekundu...\n"
-
-#: ../src/record.c:116
+#: ../src/record.c:130
 msgid "record your current desktop session"
 msgstr "nahrát pracovní plochu aktuálního sezení"
 
-#: ../src/record.c:124
+#: ../src/record.c:138
 #, c-format
 msgid "Wrong option: %s\n"
 msgstr "Špatný přepínač: %s\n"
 
-#: ../src/record.c:142
+#: ../src/record.c:147
 #, c-format
-msgid ""
-"Could not prepare recording.\n"
-"Most likely the Damage extension is not available on the X server or the "
-"file \"%s\" is not writable.\n"
-msgstr ""
-"Nelze připravit nahrávání.\n"
-"Nejspíš není k dispozici rozšíření Damage na X serveru nebo soubor \"%s\" "
-"není zapisovatelný.\n"
+msgid "Given area is not inside desktop.\n"
+msgstr "Určená oblast není uvnitř pracovní plochy.\n"
