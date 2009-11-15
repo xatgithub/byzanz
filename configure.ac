@@ -21,7 +21,7 @@ AC_SUBST(ACLOCAL_AMFLAGS, "-I macros")
 AC_PROG_INTLTOOL
 
 dnl the gettext stuff needed
-ALL_LINGUAS="ar ca cs da de dz el en_GB es fi fr gl hu it ja nb oc pl pt_BR ru sv tr vi"
+ALL_LINGUAS="ar ca cs da de dz el en_GB es fi fr gl hu it ja nb oc pl pt_BR ru sl sv tr vi"
 GETTEXT_PACKAGE=$PACKAGE
 AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE], "$GETTEXT_PACKAGE",
