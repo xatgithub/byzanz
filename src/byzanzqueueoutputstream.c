@@ -120,7 +120,7 @@ byzanz_queue_output_stream_write (GOutputStream *output_stream,
     return count;
 
   result = g_output_stream_write (stream->output, buffer, 
-      MIN (count, stream->output_bytes), cancellable, error);
+      MIN ((goffset) count, stream->output_bytes), cancellable, error);
   if (result == -1)
     return -1;
 
