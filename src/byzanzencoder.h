@@ -43,6 +43,7 @@ struct _ByzanzEncoder {
   /*<private >*/
   GInputStream *        input_stream;           /* stream to read from in byzanzserialize.h format */
   GOutputStream *       output_stream;          /* stream we write to (passed to the vfuncs) */
+  gboolean              record_audio;           /* TRUE when we're recording audio */
   GCancellable *        cancellable;            /* cancellable to use in thread */
   GError *              error;                  /* NULL or the encoding error */
 
@@ -60,6 +61,7 @@ struct _ByzanzEncoderClass {
   gboolean              (* run)                 (ByzanzEncoder *        encoder,
                                                  GInputStream *         input,
                                                  GOutputStream *        output,
+                                                 gboolean               record_audio,
                                                  GCancellable *         cancellable,
 						 GError **		error);
 
@@ -89,6 +91,7 @@ GType		byzanz_encoder_get_type		(void) G_GNUC_CONST;
 ByzanzEncoder *	byzanz_encoder_new		(GType                  encoder_type,
                                                  GInputStream *         input,
                                                  GOutputStream *        output,
+                                                 gboolean               record_audio,
                                                  GCancellable *         cancellable);
 /*
 void		byzanz_encoder_process		(ByzanzEncoder *	encoder,

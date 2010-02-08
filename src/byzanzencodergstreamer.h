@@ -42,6 +42,7 @@ struct _ByzanzEncoderGStreamer {
   GTimeVal              start_time;     /* timestamp of first image */
 
   GstElement *          pipeline;       /* The pipeline */
+  GstElement *          audiosrc;       /* the source we record audio from */
   GstAppSrc *           src;            /* the source we feed with images */
   GstCaps *             caps;           /* caps of video stream */
 };
@@ -50,6 +51,7 @@ struct _ByzanzEncoderGStreamerClass {
   ByzanzEncoderClass    encoder_class;
 
   const char *          pipeline_string;
+  const char *          audio_pipeline_string;
 };
 
 GType		byzanz_encoder_gstreamer_get_type		(void) G_GNUC_CONST;

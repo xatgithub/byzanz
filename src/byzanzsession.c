@@ -51,6 +51,7 @@ enum {
   PROP_FILE,
   PROP_AREA,
   PROP_WINDOW,
+  PROP_AUDIO,
   PROP_ENCODER_TYPE
 };
 
@@ -81,6 +82,9 @@ byzanz_session_get_property (GObject *object, guint param_id, GValue *value,
     case PROP_WINDOW:
       g_value_set_object (value, session->window);
       break;
+    case PROP_AUDIO:
+      g_value_set_boolean (value, session->record_audio);
+      break;
     case PROP_ENCODER_TYPE:
       g_value_set_gtype (value, session->encoder_type);
       break;
@@ -105,6 +109,9 @@ byzanz_session_set_property (GObject *object, guint param_id, const GValue *valu
       break;
     case PROP_WINDOW:
       session->window = g_value_dup_object (value);
+      break;
+    case PROP_AUDIO:
+      session->record_audio = g_value_get_boolean (value);
       break;
     case PROP_ENCODER_TYPE:
       session->encoder_type = g_value_get_gtype (value);
@@ -245,7 +252,7 @@ byzanz_session_constructed (GObject *object)
   if (stream != NULL) {
     session->encoder = byzanz_encoder_new (session->encoder_type, 
         byzanz_queue_get_input_stream (session->queue),
-        stream, session->cancellable);
+        stream, session->record_audio, session->cancellable);
     g_signal_connect (session->encoder, "notify", 
         G_CALLBACK (byzanz_session_encoder_notify_cb), session);
     g_object_unref (stream);
@@ -288,6 +295,9 @@ byzanz_session_class_init (ByzanzSessionClass *klass)
   g_object_class_install_property (object_class, PROP_FILE,
       g_param_spec_object ("file", "file", "file to record to",
 	  G_TYPE_FILE, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+  g_object_class_install_property (object_class, PROP_AUDIO,
+      g_param_spec_boolean ("record-audio", "record audio", "TRUE to record audio",
+	  FALSE, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
   g_object_class_install_property (object_class, PROP_ENCODER_TYPE,
       g_param_spec_gtype ("encoder-type", "encoder type", "type for the encoder to use",
 	  BYZANZ_TYPE_ENCODER, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
@@ -307,6 +317,7 @@ byzanz_session_init (ByzanzSession *session)
  * @window: window to record
  * @area: area of window that should be recorded
  * @record_cursor: if the cursor image should be recorded
+ * @record_audio: if audio should be recorded
  *
  * Creates a new #ByzanzSession and initializes all basic variables. 
  * gtk_init() and g_thread_init() must have been called before.
@@ -317,7 +328,8 @@ byzanz_session_init (ByzanzSession *session)
  **/
 ByzanzSession *
 byzanz_session_new (GFile *file, GType encoder_type, 
-    GdkWindow *window, const GdkRectangle *area, gboolean record_cursor)
+    GdkWindow *window, const GdkRectangle *area, gboolean record_cursor,
+    gboolean record_audio)
 {
   g_return_val_if_fail (G_IS_FILE (file), NULL);
   g_return_val_if_fail (g_type_is_a (encoder_type, BYZANZ_TYPE_ENCODER), NULL);
@@ -331,7 +343,7 @@ byzanz_session_new (GFile *file, GType encoder_type,
   /* FIXME: handle mouse cursor */
 
   return g_object_new (BYZANZ_TYPE_SESSION, "file", file, "encoder-type", encoder_type,
-      "window", window, "area", area, NULL);
+      "window", window, "area", area, "record-audio", record_audio, NULL);
 }
 
 void

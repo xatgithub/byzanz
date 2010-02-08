@@ -45,6 +45,7 @@ struct _ByzanzSession {
   GFile *               file;           /* file we're saving to */
   GdkRectangle          area;           /* area of window to record */
   GdkWindow *           window;         /* window to record */
+  gboolean              record_audio;   /* TRUE to record audio */
   GType                 encoder_type;   /* type of encoder to use */
   ByzanzQueue *         queue;          /* queue we use as data cache */
   GTimeVal              start_time;     /* when we started writing to queue */
@@ -67,7 +68,8 @@ ByzanzSession * 	byzanz_session_new		(GFile *                file,
                                                          GType                  encoder_type,
 							 GdkWindow *		window,
 							 const GdkRectangle *	area,
-							 gboolean		record_cursor);
+							 gboolean		record_cursor,
+                                                         gboolean               record_audio);
 void			byzanz_session_start		(ByzanzSession *	session);
 void			byzanz_session_stop		(ByzanzSession *	session);
 void			byzanz_session_abort            (ByzanzSession *	session);

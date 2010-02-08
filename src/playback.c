@@ -109,7 +109,7 @@ main (int argc, char **argv)
     return 1;
   }
   encoder = byzanz_encoder_new (byzanz_encoder_get_type_from_file (outfile),
-      instream, outstream, NULL);
+      instream, outstream, FALSE, NULL);
   
   g_signal_connect (encoder, "notify", G_CALLBACK (encoder_notify), loop);
   

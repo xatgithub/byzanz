@@ -191,7 +191,8 @@ byzanz_applet_select_done (GdkWindow *window, const GdkRectangle *area, gpointer
 
     if (encoder_type == 0)
       encoder_type = byzanz_encoder_get_type_from_file (priv->file);
-    priv->rec = byzanz_session_new (priv->file, encoder_type, window, area, TRUE);
+    priv->rec = byzanz_session_new (priv->file, encoder_type, window, area, FALSE,
+        panel_applet_gconf_get_bool (priv->applet, "record_audio", NULL));
     g_signal_connect_swapped (priv->rec, "notify", G_CALLBACK (byzanz_applet_session_notify), priv);
     byzanz_session_start (priv->rec);
   }
@@ -233,6 +234,10 @@ panel_applet_start_response (GtkWidget *dialog, int response, AppletPrivate *pri
     /* It's the "All files" filter */
     priv->encoder_type = 0;
   }
+
+  panel_applet_gconf_set_bool (priv->applet, "record_audio",
+      gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (
+          gtk_file_chooser_get_extra_widget (GTK_FILE_CHOOSER (priv->dialog)))), NULL);
 
   gtk_widget_destroy (dialog);
   priv->dialog = NULL;
@@ -284,6 +289,14 @@ byzanz_applet_start_recording (AppletPrivate *priv)
         g_object_unref (filter);
       }
     }
+
+    gtk_file_chooser_set_extra_widget (GTK_FILE_CHOOSER (priv->dialog),
+        gtk_check_button_new_with_label (_("Record audio")));
+    if (panel_applet_gconf_get_bool (priv->applet, "record_audio", NULL)) {
+      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (
+          gtk_file_chooser_get_extra_widget (GTK_FILE_CHOOSER (priv->dialog))), TRUE);
+    }
+
     gtk_file_chooser_set_local_only (GTK_FILE_CHOOSER (priv->dialog), FALSE);
     uri = panel_applet_gconf_get_string (priv->applet, "save_filename", NULL);
     if (!uri || uri[0] == '\0' ||

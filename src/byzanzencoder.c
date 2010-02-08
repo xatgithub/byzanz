@@ -23,6 +23,8 @@
 
 #include "byzanzencoder.h"
 
+#include <glib/gi18n-lib.h>
+
 #include "byzanzserialize.h"
 
 typedef struct _ByzanzEncoderJob ByzanzEncoderJob;
@@ -71,6 +73,7 @@ static gboolean
 byzanz_encoder_run (ByzanzEncoder * encoder,
                     GInputStream *  input,
                     GOutputStream * output,
+                    gboolean        record_audio,
                     GCancellable *  cancellable,
                     GError **	    error)
 {
@@ -80,6 +83,12 @@ byzanz_encoder_run (ByzanzEncoder * encoder,
   GdkRegion *region;
   guint64 msecs;
   gboolean success;
+
+  if (record_audio) {
+    g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+        _("This format does not support recording audio."));
+    return FALSE;
+  }
 
   if (!byzanz_deserialize_header (input, &width, &height, cancellable, error) ||
       !klass->setup (encoder, output, width, height, cancellable, error))
@@ -112,7 +121,7 @@ byzanz_encoder_thread (gpointer enc)
   GError *error = NULL;
   
   klass->run (encoder, encoder->input_stream, encoder->output_stream,
-      encoder->cancellable, &error);
+      encoder->record_audio, encoder->cancellable, &error);
 
   g_idle_add_full (G_PRIORITY_DEFAULT, byzanz_encoder_finished, enc, NULL);
   return error;
@@ -124,6 +133,7 @@ enum {
   PROP_0,
   PROP_INPUT,
   PROP_OUTPUT,
+  PROP_SOUND,
   PROP_CANCELLABLE,
   PROP_ERROR,
   PROP_RUNNING
@@ -197,6 +207,9 @@ byzanz_encoder_get_property (GObject *object, guint param_id, GValue *value,
     case PROP_OUTPUT:
       g_value_set_object (value, encoder->output_stream);
       break;
+    case PROP_SOUND:
+      g_value_set_boolean (value, encoder->record_audio);
+      break;
     case PROP_CANCELLABLE:
       g_value_set_object (value, encoder->cancellable);
       break;
@@ -226,6 +239,9 @@ byzanz_encoder_set_property (GObject *object, guint param_id, const GValue *valu
     case PROP_OUTPUT:
       encoder->output_stream = g_value_dup_object (value);
       g_assert (encoder->output_stream != NULL);
+      break;
+    case PROP_SOUND:
+      encoder->record_audio = g_value_get_boolean (value);
       break;
     case PROP_CANCELLABLE:
       encoder->cancellable = g_value_dup_object (value);
@@ -285,6 +301,9 @@ byzanz_encoder_class_init (ByzanzEncoderClass *klass)
   g_object_class_install_property (object_class, PROP_OUTPUT,
       g_param_spec_object ("output", "output", "stream to write data to",
 	  G_TYPE_OUTPUT_STREAM, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+  g_object_class_install_property (object_class, PROP_SOUND,
+      g_param_spec_boolean ("record-audio", "record audio", "TRUE when recording audio",
+	  FALSE, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
   g_object_class_install_property (object_class, PROP_CANCELLABLE,
       g_param_spec_object ("cancellable", "cancellable", "cancellable for stopping the thread",
 	  G_TYPE_CANCELLABLE, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
@@ -310,6 +329,7 @@ ByzanzEncoder *
 byzanz_encoder_new (GType           encoder_type,
                     GInputStream *  input,
                     GOutputStream * output,
+                    gboolean        record_audio,
                     GCancellable *  cancellable)
 {
   ByzanzEncoder *encoder;
@@ -319,8 +339,8 @@ byzanz_encoder_new (GType           encoder_type,
   g_return_val_if_fail (G_IS_OUTPUT_STREAM (output), NULL);
   g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
 
-  encoder = g_object_new (encoder_type, "input", input, "output", output,
-      "cancellable", cancellable, NULL);
+  encoder = g_object_new (encoder_type, "input", input, "output", output, 
+      "record-audio", record_audio, "cancellable", cancellable, NULL);
 
   return encoder;
 }

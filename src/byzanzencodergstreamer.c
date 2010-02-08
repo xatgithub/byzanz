@@ -23,7 +23,7 @@
 
 #include "byzanzencodergstreamer.h"
 
-#include <glib/gi18n.h>
+#include <glib/gi18n-lib.h>
 #include <gst/app/gstappbuffer.h>
 #include <gst/video/video.h>
 
@@ -52,6 +52,8 @@ byzanz_encoder_gstreamer_need_data (GstAppSrc *src, guint length, gpointer data)
 
   if (surface == NULL) {
     gst_app_src_end_of_stream (gst->src);
+    if (gst->audiosrc)
+      gst_element_send_event (gst->audiosrc, gst_event_new_eos ());
     return;
   }
 
@@ -93,6 +95,7 @@ static gboolean
 byzanz_encoder_gstreamer_run (ByzanzEncoder * encoder,
                               GInputStream *  input,
                               GOutputStream * output,
+                              gboolean        record_audio,
                               GCancellable *  cancellable,
                               GError **	      error)
 {
@@ -109,7 +112,18 @@ byzanz_encoder_gstreamer_run (ByzanzEncoder * encoder,
   gstreamer->surface = cairo_image_surface_create (CAIRO_FORMAT_RGB24, width, height);
 
   g_assert (klass->pipeline_string);
-  gstreamer->pipeline = gst_parse_launch (klass->pipeline_string, error);
+  if (record_audio) {
+    if (klass->audio_pipeline_string == NULL) {
+      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+          _("This format does not support recording audio."));
+      return FALSE;
+    }
+    gstreamer->pipeline = gst_parse_launch (klass->audio_pipeline_string, error);
+    gstreamer->audiosrc = gst_bin_get_by_name (GST_BIN (gstreamer->pipeline), "audiosrc");
+    g_assert (gstreamer->audiosrc);
+  } else {
+    gstreamer->pipeline = gst_parse_launch (klass->pipeline_string, error);
+  }
   if (gstreamer->pipeline == NULL)
     return FALSE;
 

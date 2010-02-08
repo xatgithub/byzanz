@@ -28,6 +28,7 @@
 static int duration = 10;
 static int delay = 1;
 static gboolean cursor = FALSE;
+static gboolean audio = FALSE;
 static gboolean verbose = FALSE;
 static GdkRectangle area = { 0, 0, G_MAXINT / 2, G_MAXINT / 2 };
 
@@ -36,6 +37,7 @@ static GOptionEntry entries[] =
   { "duration", 'd', 0, G_OPTION_ARG_INT, &duration, N_("Duration of animation (default: 10 seconds)"), N_("SECS") },
   { "delay", 0, 0, G_OPTION_ARG_INT, &delay, N_("Delay before start (default: 1 second)"), N_("SECS") },
   { "cursor", 'c', 0, G_OPTION_ARG_NONE, &cursor, N_("Record mouse cursor"), NULL },
+  { "audio", 'a', 0, G_OPTION_ARG_NONE, &audio, N_("Record audio"), NULL },
   { "x", 'x', 0, G_OPTION_ARG_INT, &area.x, N_("X coordinate of rectangle to record"), N_("PIXEL") },
   { "y", 'y', 0, G_OPTION_ARG_INT, &area.y, N_("Y coordinate of rectangle to record"), N_("PIXEL") },
   { "width", 'w', 0, G_OPTION_ARG_INT, &area.width, N_("Width of recording rectangle"), N_("PIXEL") },
@@ -149,7 +151,7 @@ main (int argc, char **argv)
   }
   file = g_file_new_for_commandline_arg (argv[1]);
   rec = byzanz_session_new (file, byzanz_encoder_get_type_from_file (file),
-      gdk_get_default_root_window (), &area, cursor);
+      gdk_get_default_root_window (), &area, cursor, audio);
   g_object_unref (file);
   g_signal_connect (rec, "notify", G_CALLBACK (session_notify_cb), NULL);
   delay = MAX (delay, 1);

@@ -43,6 +43,10 @@ byzanz_encoder_ogv_class_init (ByzanzEncoderOgvClass *klass)
   gstreamer_class->pipeline_string = 
     "appsrc name=src ! ffmpegcolorspace ! videorate ! "
     "video/x-raw-yuv,framerate=25/1 ! theoraenc ! oggmux ! giostreamsink name=sink";
+  gstreamer_class->audio_pipeline_string = 
+    "autoaudiosrc name=audiosrc ! audioconvert ! vorbisenc ! queue ! oggmux name=muxer ! giostreamsink name=sink "
+    "appsrc name=src ! ffmpegcolorspace ! videorate ! "
+    "video/x-raw-yuv,framerate=25/1 ! theoraenc ! queue ! muxer.";
 }
 
 static void
