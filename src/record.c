@@ -71,7 +71,7 @@ session_notify_cb (ByzanzSession *session, GParamSpec *pspec, gpointer unused)
 {
   const GError *error = byzanz_session_get_error (session);
   
-  if (error) {
+  if (g_str_equal (pspec->name, "error")) {
     g_print (_("Error during recording: %s\n"), error->message);
     gtk_main_quit ();
     return;
