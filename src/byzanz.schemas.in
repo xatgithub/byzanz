@@ -24,13 +24,13 @@
       </schema>
 
       <schema>
-        <key>/schemas/apps/byzanz-applet/prefs/record_cursor</key>
+        <key>/schemas/apps/byzanz-applet/prefs/record_audio</key>
 	<owner>byzanz-applet</owner>
 	<type>bool</type>
-        <default>TRUE</default>
+        <default>FALSE</default>
 	<locale name="C">
-	  <short>Record mouse cursor</short>
-	  <long>If set, Byzanz will record the mouse cursor. While useful, recording the mouse cursor results in bigger files and should therefore be used with care.</long>
+	  <short>Record audio</short>
+	  <long>If set, Byzanz will record audio from the default audio device if the format supports it. This allows narrating along with the recording.</long>
 	</locale>
       </schema>
 
