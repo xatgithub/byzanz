@@ -7,9 +7,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: byzanz master\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=byzanz&component=general\n"
-"POT-Creation-Date: 2009-08-30 17:01+0000\n"
-"PO-Revision-Date: 2010-01-22 00:48+0100\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/\n"
+"POT-Creation-Date: 2010-02-11 22:04+0100\n"
+"PO-Revision-Date: 2010-02-11 22:05+0100\n"
 "Last-Translator: Gabor Kelemen <kelemeng at gnome dot hu>\n"
 "Language-Team: Hungarian <gnome at fsf dot hu>\n"
 "MIME-Version: 1.0\n"
@@ -20,15 +20,13 @@ msgstr ""
 
 #: ../src/byzanz.schemas.in.h:1
 msgid ""
-"If set, Byzanz will record the mouse cursor. While useful, recording the "
-"mouse cursor results in bigger files and should therefore be used with care."
-msgstr ""
-"Ha ez be van állítva, akkor a felvételre rákerül az egérkurzor. Hasznos "
-"lehet, azonban nagyobb fájlokat eredményez."
+"If set, Byzanz will record audio from the default audio device if the format "
+"supports it. This allows narrating along with the recording."
+msgstr "Ha be van állítva, akkor a Byzanz felveszi a hangot az alapértelmezett hangeszközről, ha a formátum támogatja azt. Ez lehetővé teszi a felvétel narrálását."
 
-#: ../src/byzanz.schemas.in.h:2 ../src/record.c:38
-msgid "Record mouse cursor"
-msgstr "Az egérkurzor felvétele"
+#: ../src/byzanz.schemas.in.h:2 ../src/byzanzapplet.c:294 ../src/record.c:40
+msgid "Record audio"
+msgstr "Hang felvétele"
 
 #: ../src/byzanz.schemas.in.h:3
 msgid "Recording method"
@@ -52,39 +50,35 @@ msgstr ""
 "képernyő felvétele), „area” (egy kijelölt terület) vagy „window” (egy "
 "kijelölt ablak)."
 
-#: ../src/byzanzapplet.c:105 ../src/byzanzapplet.c:263
-#| msgid "Record _Desktop"
+#: ../src/byzanzapplet.c:103 ../src/byzanzapplet.c:268
 msgid "Record your desktop"
 msgstr "Asztal felvétele"
 
-#: ../src/byzanzapplet.c:106
-#| msgid "Stop current recording"
+#: ../src/byzanzapplet.c:104
 msgid "Select area to record"
 msgstr "Válassza ki a felvenni kívánt területet"
 
-#: ../src/byzanzapplet.c:107
-#| msgid "Stop current recording"
+#: ../src/byzanzapplet.c:105
 msgid "End current recording"
 msgstr "Felvétel leállítása"
 
-#: ../src/byzanzapplet.c:108
+#: ../src/byzanzapplet.c:106
 msgid "Abort encoding of recording"
 msgstr "Felvétel kódolásának megszakítása"
 
-#: ../src/byzanzapplet.c:273
+#: ../src/byzanzapplet.c:278
 msgid "All files"
 msgstr "Minden fájl"
 
-#: ../src/byzanzapplet.c:355
-#| msgid "Desktop Recorder"
+#: ../src/byzanzapplet.c:368
 msgid "Desktop Session"
 msgstr "Asztali munkamenet"
 
-#: ../src/byzanzapplet.c:358 ../src/ByzanzApplet.server.in.in.h:3
+#: ../src/byzanzapplet.c:371 ../src/ByzanzApplet.server.in.in.h:3
 msgid "Record what's happening on your desktop"
 msgstr "Felvétel készítése az asztaláról"
 
-#: ../src/byzanzapplet.c:360
+#: ../src/byzanzapplet.c:373
 msgid "translator-credits"
 msgstr ""
 "Kelemen Gábor <kelemeng@gnome.hu>\n"
@@ -94,25 +88,25 @@ msgstr ""
 msgid "_About"
 msgstr "_Névjegy"
 
+#: ../src/byzanzencoder.c:89 ../src/byzanzencodergstreamer.c:118
+msgid "This format does not support recording audio."
+msgstr "Ez a formátum nem támogatja hang felvételét."
+
 #: ../src/byzanzencoderflv.c:38
 msgid "Flash video"
 msgstr "Flash videó"
 
-#: ../src/byzanzencodergif.c:212
+#: ../src/byzanzencodergif.c:209
 msgid "No image to encode."
 msgstr "Nincs kódolandó kép."
 
-#: ../src/byzanzencodergif.c:251
+#: ../src/byzanzencodergif.c:248
 msgid "GIF images"
 msgstr "GIF képek"
 
-#: ../src/byzanzencodergstreamer.c:76
+#: ../src/byzanzencodergstreamer.c:156
 msgid "Failed to start GStreamer pipeline"
 msgstr "A GStreamer adatcsatorna indítása meghiúsult"
-
-#: ../src/byzanzencodergstreamer.c:94
-msgid "Premature end of GStreamer pipeline"
-msgstr "A GStreamer adatcsatorna túl korán fejeződött be"
 
 #: ../src/byzanzencoderogv.c:38
 msgid "Theora video"
@@ -150,83 +144,84 @@ msgstr "Byzanz factory"
 msgid "Desktop Recorder"
 msgstr "Asztalfelvevő"
 
-#: ../src/record.c:36
+#: ../src/record.c:37
 msgid "Duration of animation (default: 10 seconds)"
 msgstr "Animáció hossza (alapértelmezetten 10 másodperc)"
 
-#: ../src/record.c:36 ../src/record.c:37
+#: ../src/record.c:37 ../src/record.c:38
 msgid "SECS"
 msgstr "MÁSODPERC"
 
-#: ../src/record.c:37
+#: ../src/record.c:38
 msgid "Delay before start (default: 1 second)"
 msgstr "Várakozás a felvétel kezdete előtt (alapértelmezetten 1 másodperc)"
 
 #: ../src/record.c:39
+msgid "Record mouse cursor"
+msgstr "Az egérkurzor felvétele"
+
+#: ../src/record.c:41
 msgid "X coordinate of rectangle to record"
 msgstr "Felveendő terület X koordinátája"
 
-#: ../src/record.c:39 ../src/record.c:40 ../src/record.c:41 ../src/record.c:42
+#: ../src/record.c:41 ../src/record.c:42 ../src/record.c:43 ../src/record.c:44
 msgid "PIXEL"
 msgstr "KÉPPONT"
 
-#: ../src/record.c:40
+#: ../src/record.c:42
 msgid "Y coordinate of rectangle to record"
 msgstr "Felveendő terület Y koordinátája"
 
-#: ../src/record.c:41
+#: ../src/record.c:43
 msgid "Width of recording rectangle"
 msgstr "Felveendő terület szélessége"
 
-#: ../src/record.c:42
+#: ../src/record.c:44
 msgid "Height of recording rectangle"
 msgstr "Felveendő terület magassága"
 
-#: ../src/record.c:43
+#: ../src/record.c:45
 msgid "Be verbose"
 msgstr "Részletes kimenet"
 
-#: ../src/record.c:65
+#: ../src/record.c:67
 #, c-format
 msgid "usage: %s [OPTIONS] filename\n"
 msgstr "használat: %s [KAPCSOLÓK] fájlnév\n"
 
-#: ../src/record.c:66
+#: ../src/record.c:68
 #, c-format
 msgid "       %s --help\n"
 msgstr "       %s --help\n"
 
-#: ../src/record.c:75
+#: ../src/record.c:77
 #, c-format
-#| msgid "Stop current recording"
 msgid "Error during recording: %s\n"
 msgstr "Hiba a felvétel során: %s\n"
 
-#: ../src/record.c:81
-#| msgid "Recording method"
+#: ../src/record.c:83
 msgid "Recording done.\n"
 msgstr "Felvétel kész.\n"
 
-#: ../src/record.c:89
-#| msgid "Recording done. Cleaning up...\n"
+#: ../src/record.c:91
 msgid "Recording completed. Finishing encoding...\n"
 msgstr "Felvétel kész. Kódolás befejezése…\n"
 
-#: ../src/record.c:98
+#: ../src/record.c:100
 #, c-format
 msgid "Recording starts. Will record %d seconds...\n"
 msgstr "A felvétel megkezdődött. %d másodperc rögzítése…\n"
 
-#: ../src/record.c:130
+#: ../src/record.c:132
 msgid "record your current desktop session"
 msgstr "a jelenlegi asztali munkamenet felvétele"
 
-#: ../src/record.c:138
+#: ../src/record.c:140
 #, c-format
 msgid "Wrong option: %s\n"
 msgstr "Hibás kapcsoló: %s\n"
 
-#: ../src/record.c:147
+#: ../src/record.c:149
 #, c-format
 msgid "Given area is not inside desktop.\n"
 msgstr "A megadott terület nem az asztalon belül van.\n"
