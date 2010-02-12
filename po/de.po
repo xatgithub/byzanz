@@ -1,15 +1,15 @@
 # German translation of byzanz.
 # This file is put in the public domain.
 # Benjamin Otte <otte@gnome.org>, 2006.
-# Mario Blättermann <mariobl@gnome.org>, 2009.
+# Mario Blättermann <mariobl@gnome.org>, 2009, 2010.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: Byzanz\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=byzanz&component=general\n"
-"POT-Creation-Date: 2009-08-30 17:01+0000\n"
-"PO-Revision-Date: 2009-09-16 20:50+0100\n"
+"POT-Creation-Date: 2010-02-08 17:29+0000\n"
+"PO-Revision-Date: 2010-02-12 22:56+0100\n"
 "Last-Translator: Mario Blättermann <mariobl@gnome.org>\n"
 "Language-Team: German <de@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -18,15 +18,17 @@ msgstr ""
 
 #: ../src/byzanz.schemas.in.h:1
 msgid ""
-"If set, Byzanz will record the mouse cursor. While useful, recording the "
-"mouse cursor results in bigger files and should therefore be used with care."
+"If set, Byzanz will record audio from the default audio device if the format "
+"supports it. This allows narrating along with the recording."
 msgstr ""
-"Wenn aktiviert, zeichnet Byzanz den Mauszeiger auf. Das ist zwar nützlich, "
-"führt aber zu größeren Dateien und sollte deshalb mit Vorsicht benutzt werden."
+"Falls gewählt, zeichnet Byzanz den Ton des gewählten Audiogerätes auf, wenn "
+"das Format es unterstützt. Dies erlaubt Erläuterungen während der "
+"Aufzeichnung."
 
-#: ../src/byzanz.schemas.in.h:2 ../src/record.c:38
-msgid "Record mouse cursor"
-msgstr "Mauszeiger aufnehmen"
+#: ../src/byzanz.schemas.in.h:2 ../src/byzanzapplet.c:294 ../src/record.c:40
+#| msgid "Record _Window"
+msgid "Record audio"
+msgstr "Ton aufzeichnen"
 
 #: ../src/byzanz.schemas.in.h:3
 msgid "Recording method"
@@ -51,35 +53,35 @@ msgstr ""
 "»screen« zur Aufnahme des ganzen Bildschirms, »area« zur Auswahl eines Bereichs "
 "oder »window« zur Auswahl eines Fensters sein."
 
-#: ../src/byzanzapplet.c:105 ../src/byzanzapplet.c:263
+#: ../src/byzanzapplet.c:103 ../src/byzanzapplet.c:268
 msgid "Record your desktop"
 msgstr "Aufzeichnen Ihrer Arbeitsfläche"
 
-#: ../src/byzanzapplet.c:106
+#: ../src/byzanzapplet.c:104
 msgid "Select area to record"
 msgstr "Bereich zur Aufzeichnung auswählen"
 
-#: ../src/byzanzapplet.c:107
+#: ../src/byzanzapplet.c:105
 msgid "End current recording"
 msgstr "Aktuelle Aufzeichnung beenden"
 
-#: ../src/byzanzapplet.c:108
+#: ../src/byzanzapplet.c:106
 msgid "Abort encoding of recording"
 msgstr "Enkodierung der Aufzeichnung abbrechen"
 
-#: ../src/byzanzapplet.c:273
+#: ../src/byzanzapplet.c:278
 msgid "All files"
 msgstr "Alle Dateien"
 
-#: ../src/byzanzapplet.c:355
+#: ../src/byzanzapplet.c:368
 msgid "Desktop Session"
 msgstr "Desktop-Sitzung"
 
-#: ../src/byzanzapplet.c:358 ../src/ByzanzApplet.server.in.in.h:3
+#: ../src/byzanzapplet.c:371 ../src/ByzanzApplet.server.in.in.h:3
 msgid "Record what's happening on your desktop"
 msgstr "Zeichnen Sie auf, was auf Ihrem Desktop passiert"
 
-#: ../src/byzanzapplet.c:360
+#: ../src/byzanzapplet.c:373
 msgid "translator-credits"
 msgstr ""
 "Benjamin Otte <otte@gnome.org>\n"
@@ -89,25 +91,25 @@ msgstr ""
 msgid "_About"
 msgstr "_Info"
 
+#: ../src/byzanzencoder.c:89 ../src/byzanzencodergstreamer.c:118
+msgid "This format does not support recording audio."
+msgstr "Dieses Format unterstützt keine Tonaufzeichnung."
+
 #: ../src/byzanzencoderflv.c:38
 msgid "Flash video"
 msgstr "Flash-Video"
 
-#: ../src/byzanzencodergif.c:212
+#: ../src/byzanzencodergif.c:209
 msgid "No image to encode."
 msgstr "Kein Bild zur Enkodierung vorhanden."
 
-#: ../src/byzanzencodergif.c:251
+#: ../src/byzanzencodergif.c:248
 msgid "GIF images"
 msgstr "GIF-Bilder"
 
-#: ../src/byzanzencodergstreamer.c:76
+#: ../src/byzanzencodergstreamer.c:156
 msgid "Failed to start GStreamer pipeline"
 msgstr "Start der GStreamer-Weiterleitung ist gescheitert"
-
-#: ../src/byzanzencodergstreamer.c:94
-msgid "Premature end of GStreamer pipeline"
-msgstr "Vorzeitiges Ende der GStreamer-Weiterleitung"
 
 #: ../src/byzanzencoderogv.c:38
 msgid "Theora video"
@@ -145,80 +147,96 @@ msgstr "Byzanz-Fabrik"
 msgid "Desktop Recorder"
 msgstr "Desktop-Rekorder"
 
-#: ../src/record.c:36
+#: ../src/record.c:37
 msgid "Duration of animation (default: 10 seconds)"
 msgstr "Dauer der Animation (Standard: 10 Sekunden)"
 
-#: ../src/record.c:36 ../src/record.c:37
+#: ../src/record.c:37 ../src/record.c:38
 msgid "SECS"
 msgstr "SEK"
 
-#: ../src/record.c:37
+#: ../src/record.c:38
 msgid "Delay before start (default: 1 second)"
 msgstr "Pause vor Start (Standard: 1 Sekunde)"
 
 #: ../src/record.c:39
+msgid "Record mouse cursor"
+msgstr "Mauszeiger aufnehmen"
+
+#: ../src/record.c:41
 msgid "X coordinate of rectangle to record"
 msgstr "X Koordinate des aufzuzeichnenden Rechtecks"
 
-#: ../src/record.c:39 ../src/record.c:40 ../src/record.c:41 ../src/record.c:42
+#: ../src/record.c:41 ../src/record.c:42 ../src/record.c:43 ../src/record.c:44
 msgid "PIXEL"
 msgstr "PIXEL"
 
-#: ../src/record.c:40
+#: ../src/record.c:42
 msgid "Y coordinate of rectangle to record"
 msgstr "Y Koordinate des aufzuzeichnenden Rechtecks"
 
-#: ../src/record.c:41
+#: ../src/record.c:43
 msgid "Width of recording rectangle"
 msgstr "Breite des aufzuzeichnenden Rechtecks"
 
-#: ../src/record.c:42
+#: ../src/record.c:44
 msgid "Height of recording rectangle"
 msgstr "Höhe des aufzuzeichnenden Rechtecks"
 
-#: ../src/record.c:43
+#: ../src/record.c:45
 msgid "Be verbose"
 msgstr "Ausführlich"
 
-#: ../src/record.c:65
+#: ../src/record.c:67
 #, c-format
 msgid "usage: %s [OPTIONS] filename\n"
 msgstr "Aufruf: %s [OPTIONEN] Dateiname\n"
 
-#: ../src/record.c:66
+#: ../src/record.c:68
 #, c-format
 msgid "       %s --help\n"
 msgstr "           %s --help\n"
 
-#: ../src/record.c:75
+#: ../src/record.c:77
 #, c-format
 msgid "Error during recording: %s\n"
 msgstr "Fehler während der Aufzeichnung: %s\n"
 
-#: ../src/record.c:81
+#: ../src/record.c:83
 msgid "Recording done.\n"
 msgstr "Aufzeichnung abgeschlossen.\n"
 
-#: ../src/record.c:89
+#: ../src/record.c:91
 msgid "Recording completed. Finishing encoding...\n"
 msgstr "Aufzeichnung abgeschlossen. Enkodierung wird beendet …\n"
 
-#: ../src/record.c:98
+#: ../src/record.c:100
 #, c-format
 msgid "Recording starts. Will record %d seconds...\n"
 msgstr "Aufzeichnung beginnt. Sie wird %d Sekunden dauern …\n"
 
-#: ../src/record.c:130
+#: ../src/record.c:132
 msgid "record your current desktop session"
 msgstr "Zeichnen Sie Ihre Arbeitsfläche auf"
 
-#: ../src/record.c:138
+#: ../src/record.c:140
 #, c-format
 msgid "Wrong option: %s\n"
 msgstr "Falsche Option: %s\n"
 
-#: ../src/record.c:147
+#: ../src/record.c:149
 #, c-format
 msgid "Given area is not inside desktop.\n"
 msgstr "Angegebener Bereich befindet sich außerhalb der Arbeitsfläche.\n"
+
+#~ msgid ""
+#~ "If set, Byzanz will record the mouse cursor. While useful, recording the "
+#~ "mouse cursor results in bigger files and should therefore be used with "
+#~ "care."
+#~ msgstr ""
+#~ "Wenn aktiviert, zeichnet Byzanz den Mauszeiger auf. Das ist zwar nützlich, "
+#~ "führt aber zu größeren Dateien und sollte deshalb mit Vorsicht benutzt "
+#~ "werden."
+
+#~ msgid "Premature end of GStreamer pipeline"
+#~ msgstr "Vorzeitiges Ende der GStreamer-Weiterleitung"
