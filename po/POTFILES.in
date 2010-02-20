@@ -3,6 +3,7 @@ src/byzanz.schemas.in
 src/byzanzapplet.c
 src/byzanzapplet.xml
 src/byzanzencoder.c
+src/byzanzencoderbyzanz.c
 src/byzanzencoderflv.c
 src/byzanzencodergif.c
 src/byzanzencodergstreamer.c
@@ -12,8 +13,10 @@ src/byzanzlayercursor.c
 src/byzanzlayerwindow.c
 src/byzanzrecorder.c
 src/byzanzselect.c
+src/byzanzserialize.c
 src/byzanzsession.c
 src/ByzanzApplet.server.in.in
 src/paneltogglebutton.c
+src/playback.c
 src/record.c
 src/screenshot-utils.c
