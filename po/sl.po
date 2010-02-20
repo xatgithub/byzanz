@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: byzanz\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=byzanz&component=general\n"
-"POT-Creation-Date: 2010-02-08 17:29+0000\n"
-"PO-Revision-Date: 2010-02-11 21:07+0100\n"
+"POT-Creation-Date: 2010-02-20 13:28+0000\n"
+"PO-Revision-Date: 2010-02-20 20:13+0100\n"
 "Last-Translator: Andrej Žnidaršič <andrej.znidarsic@gmail.com>\n"
 "Language-Team: Slovenian <gnome-si@googlegroups.com>\n"
 "MIME-Version: 1.0\n"
@@ -89,6 +89,10 @@ msgstr "_O programu"
 msgid "This format does not support recording audio."
 msgstr "Zapis ne podpira snemanja zvoka"
 
+#: ../src/byzanzencoderbyzanz.c:80
+msgid "Byzanz debug files"
+msgstr "Datoteke razhroščevanja byzanz"
+
 #: ../src/byzanzencoderflv.c:38
 msgid "Flash video"
 msgstr "Flash video"
@@ -133,6 +137,14 @@ msgstr "Posnemi o_kno"
 msgid "Record a selected window"
 msgstr "Omogoči snemanje izbranega okna"
 
+#: ../src/byzanzserialize.c:89
+msgid "Not a Byzanz recording"
+msgstr "Ni posnetek byzanz"
+
+#: ../src/byzanzserialize.c:95
+msgid "Unsupported byte order"
+msgstr "Nepodprt vrsti red bajtov"
+
 #: ../src/ByzanzApplet.server.in.in.h:1
 msgid "Byzanz Factory"
 msgstr "Tovarna Byzanz"
@@ -140,6 +152,27 @@ msgstr "Tovarna Byzanz"
 #: ../src/ByzanzApplet.server.in.in.h:2
 msgid "Desktop Recorder"
 msgstr "Snemalnik namizja"
+
+#: ../src/playback.c:37
+#, c-format
+msgid "usage: %s [OPTIONS] INFILE OUTFILE\n"
+msgstr "uporaba: %s [MOŽNOSTI | VHODNADATOTEKA IZHODADATOTEKA\n"
+
+#: ../src/playback.c:38
+#: ../src/record.c:68
+#, c-format
+msgid "       %s --help\n"
+msgstr "       %s --pomoč\n"
+
+#: ../src/playback.c:77
+msgid "process a byzanz debug recording"
+msgstr "obdelava byzanz razhroščevalnega snemanja"
+
+#: ../src/playback.c:84
+#: ../src/record.c:140
+#, c-format
+msgid "Wrong option: %s\n"
+msgstr "Napačna možnost: %s\n"
 
 #: ../src/record.c:37
 msgid "Duration of animation (default: 10 seconds)"
@@ -190,11 +223,6 @@ msgstr "Podrobni izpis"
 msgid "usage: %s [OPTIONS] filename\n"
 msgstr "uporaba: %s [MOŽNOSTI] ime datoteke\n"
 
-#: ../src/record.c:68
-#, c-format
-msgid "       %s --help\n"
-msgstr "       %s --pomoč\n"
-
 #: ../src/record.c:77
 #, c-format
 msgid "Error during recording: %s\n"
@@ -216,11 +244,6 @@ msgstr "Snemanje se začenja. Posnetih bo %d sekund ...\n"
 #: ../src/record.c:132
 msgid "record your current desktop session"
 msgstr "snamanje vaše trenutne namizne seje"
-
-#: ../src/record.c:140
-#, c-format
-msgid "Wrong option: %s\n"
-msgstr "Napačna možnost: %s\n"
 
 #: ../src/record.c:149
 #, c-format
