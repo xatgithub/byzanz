@@ -74,7 +74,7 @@ main (int argc, char **argv)
   g_thread_init (NULL);
   g_type_init ();
 
-  context = g_option_context_new (_("Process a byzanz debug file"));
+  context = g_option_context_new (_("process a byzanz debug recording"));
 #ifdef GETTEXT_PACKAGE
   g_option_context_set_translation_domain(context, GETTEXT_PACKAGE);
 #endif

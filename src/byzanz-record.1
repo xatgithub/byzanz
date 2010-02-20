@@ -2,7 +2,8 @@
 .\" Written by Josh Triplett <josh@freedesktop.org>,
 .\" with some help from help2man.
 .\"
-.\" Copyright (C) 2006 Josh Triplett
+.\" Copyright (C) 2006 Josh Triplett <josh@freedesktop.org>
+.\"               2010 Benjamin Otte <otte@gnome.org>
 .\"
 .\" This manual page is free software; you can redistribute it and/or
 .\" modify it under the terms of the GNU Library General Public
@@ -18,7 +19,7 @@
 byzanz-record \- record your desktop session to an animated GIF
 .SH SYNOPSIS
 .B byzanz-record
-.RI [ options ] " filename.gif"
+.RI [ options ] " FILENAME"
 .SH DESCRIPTION
 Byzanz records your desktop session to an animated GIF.  You can record your
 entire screen, a single window, or an arbitrary region.  \fBbyzanz-record\fP
@@ -67,8 +68,32 @@ Show GTK+ Options
 .TP
 \fB\-\-help\-all\fR
 Show all help options
+.SH OUTPUT FILE
+After \fBbyzanz-record\fP is finished, the recording is written to FILENAME.
+The format is determined by the filename extension. The following formats are
+supported:
+.TP
+\fBgif\fR
+Record to an animated GIF image. Use this if you want to record a mostly
+static screen with a limited amount of colors, such as using a file manager
+or an office application.
+This is the default and will be used if an unrecognized extension is used.
+.TP
+\fBogg\fR, \fBogv\fR
+Record to an Ogg Theora video. This format supports audio. Use this if you
+want to record dynamic contents, such as video playback.
+.TP
+\fBflv\fR
+Record to a Flash Screen video. This recording method is lossless. Use it if
+you want to postprocess the file in other applications.
+.TP
+\fBbyzanz\fR
+Record to Byzanz' internal debugging format. This is useful for benchmarking
+Byzanz or if you want to convert the recording to multiple formats later.
+You can use \fBbyzanz-playback\fP(1) to convert the file.
+.SH SEE ALSO
+\fBbyzanz-playback\fR(1)
 .SH AUTHOR
-byzanz was written by Benjamin Otte <otte@gnome.org>.
+Byzanz was written by Benjamin Otte <otte@gnome.org>.
 .PP
-This manual page was written by Josh Triplett <josh@freedesktop.org>, for the
-Debian project (but may be used by others).
+This manual page was last updated for version 0.2.1.

@@ -1,7 +1,7 @@
 noinst_LTLIBRARIES = libbyzanz.la
 bin_PROGRAMS = byzanz-record byzanz-playback
 libexec_PROGRAMS = byzanz-applet
-man_MANS = byzanz-record.1
+man_MANS = byzanz-record.1 byzanz-playback.1
 
 BUILT_SOURCES = \
 	byzanzmarshal.h \
