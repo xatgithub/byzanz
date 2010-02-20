@@ -1,3 +1,10 @@
+0.2.1
+=====
+ Features:
+ - Allow recording audio with Theora video.
+ - Add an internal debugging format
+ - Cache recording on disk. Slow encoders will not consume all memory anymore.
+
 0.2.0
 =====
  Features:
