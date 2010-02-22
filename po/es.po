@@ -9,8 +9,8 @@ msgstr ""
 "Project-Id-Version: byzanz.HEAD.es\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=byzanz&component=general\n"
-"POT-Creation-Date: 2010-02-08 17:29+0000\n"
-"PO-Revision-Date: 2010-02-15 11:19+0100\n"
+"POT-Creation-Date: 2010-02-20 11:13+0000\n"
+"PO-Revision-Date: 2010-02-22 21:07+0100\n"
 "Last-Translator: Jorge González <jorgegonz@svn.gnome.org>\n"
 "Language-Team: Español <gnome-es-list@gnome.org>\n"
 "MIME-Version: 1.0\n"
@@ -29,7 +29,6 @@ msgstr ""
 "grabación."
 
 #: ../src/byzanz.schemas.in.h:2 ../src/byzanzapplet.c:294 ../src/record.c:40
-#| msgid "Record _Window"
 msgid "Record audio"
 msgstr "Grabar sonido"
 
@@ -97,6 +96,10 @@ msgstr "Acerca _de"
 msgid "This format does not support recording audio."
 msgstr "Este formato no soporta grabación de sonido"
 
+#: ../src/byzanzencoderbyzanz.c:80
+msgid "Byzanz debug files"
+msgstr "Archivos de depuración de Byzanz"
+
 #: ../src/byzanzencoderflv.c:38
 msgid "Flash video"
 msgstr "Vídeo Flash"
@@ -141,6 +144,15 @@ msgstr "Seleccione la _ventana a grabar"
 msgid "Record a selected window"
 msgstr "Seleccione la ventana a grabar"
 
+#: ../src/byzanzserialize.c:89
+#| msgid "Cannot start recording."
+msgid "Not a Byzanz recording"
+msgstr "No es una grabación de Byzanz"
+
+#: ../src/byzanzserialize.c:95
+msgid "Unsupported byte order"
+msgstr "Orden de bytes no soportado"
+
 #: ../src/ByzanzApplet.server.in.in.h:1
 msgid "Byzanz Factory"
 msgstr "Fábrica de Byzanz"
@@ -148,6 +160,26 @@ msgstr "Fábrica de Byzanz"
 #: ../src/ByzanzApplet.server.in.in.h:2
 msgid "Desktop Recorder"
 msgstr "Grabador de escritorio"
+
+#: ../src/playback.c:37
+#, c-format
+#| msgid "usage: %s [OPTIONS] filename\n"
+msgid "usage: %s [OPTIONS] INFILE OUTFILE\n"
+msgstr "uso: %s [OPCIONES] ARCHIVO-DE-ENTRADA ARCHIVO-DE-SALIDA\n"
+
+#: ../src/playback.c:38 ../src/record.c:68
+#, c-format
+msgid "       %s --help\n"
+msgstr "       %s --help\n"
+
+#: ../src/playback.c:77
+msgid "process a byzanz debug recording"
+msgstr "procesar una grabación de depuración de byzanz"
+
+#: ../src/playback.c:84 ../src/record.c:140
+#, c-format
+msgid "Wrong option: %s\n"
+msgstr "Opción incorrecta: %s\n"
 
 #: ../src/record.c:37
 msgid "Duration of animation (default: 10 seconds)"
@@ -194,11 +226,6 @@ msgstr "Detallado"
 msgid "usage: %s [OPTIONS] filename\n"
 msgstr "uso: %s [OPCIONES] archivo\n"
 
-#: ../src/record.c:68
-#, c-format
-msgid "       %s --help\n"
-msgstr "       %s --help\n"
-
 #: ../src/record.c:77
 #, c-format
 msgid "Error during recording: %s\n"
@@ -220,11 +247,6 @@ msgstr "Iniciando grabación. Se grabarán %d segundos...\n"
 #: ../src/record.c:132
 msgid "record your current desktop session"
 msgstr "grabar su sesión actual de escritorio"
-
-#: ../src/record.c:140
-#, c-format
-msgid "Wrong option: %s\n"
-msgstr "Opción incorrecta: %s\n"
 
 #: ../src/record.c:149
 #, c-format
@@ -261,9 +283,6 @@ msgstr "El área proporcionado no está dentro del escritorio.\n"
 
 #~ msgid "Save Recorded File"
 #~ msgstr "Guardar archivo grabado"
-
-#~ msgid "Cannot start recording."
-#~ msgstr "No se puede iniciar la grabación."
 
 #~ msgid ""
 #~ "Byzanz requires a 24bpp or 32bpp depth for recording. The current "
