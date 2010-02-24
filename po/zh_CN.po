@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: byzanz master\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=byzanz&component=general\n"
-"POT-Creation-Date: 2010-02-15 10:25+0000\n"
-"PO-Revision-Date: 2010-02-19 11:45+0800\n"
+"POT-Creation-Date: 2010-02-21 20:01+0000\n"
+"PO-Revision-Date: 2010-02-22 21:56+0800\n"
 "Last-Translator: YunQiang Su <wzssyqa@gmail.com>\n"
 "Language-Team: Chinese (China) <i18n-zh@googlegroups.com>\n"
 "MIME-Version: 1.0\n"
@@ -46,8 +46,8 @@ msgid ""
 "\" for recording the whole screen, \"area\" for selecting an area or \"window"
 "\" to select a window."
 msgstr ""
-"使用此方法作为默认方法。必须是如下之一：“screen”表示录制整个屏幕，“area"
-"”表示选择一个区域，“window”表示选择一个窗口。"
+"使用此方法作为默认方法。必须是如下之一：“screen”表示录制整个屏幕，“area”表示"
+"选择一个区域，“window”表示选择一个窗口。"
 
 #: ../src/byzanzapplet.c:103 ../src/byzanzapplet.c:268
 msgid "Record your desktop"
@@ -79,15 +79,19 @@ msgstr "录制您桌面上发生的事情"
 
 #: ../src/byzanzapplet.c:373
 msgid "translator-credits"
-msgstr "YunQiang Su <wzssyqazz2gmail.com>"
+msgstr "YunQiang Su <wzssyqazz@gmail.com>"
 
 #: ../src/byzanzapplet.xml.h:1
 msgid "_About"
-msgstr "终止(_A)"
+msgstr "关于(_A)"
 
 #: ../src/byzanzencoder.c:89 ../src/byzanzencodergstreamer.c:118
 msgid "This format does not support recording audio."
 msgstr "此格式不支持录制音频。"
+
+#: ../src/byzanzencoderbyzanz.c:80
+msgid "Byzanz debug files"
+msgstr "Byzanz 调试文件"
 
 #: ../src/byzanzencoderflv.c:38
 msgid "Flash video"
@@ -133,6 +137,14 @@ msgstr "录制窗口(_W)"
 msgid "Record a selected window"
 msgstr "录制选择的窗口"
 
+#: ../src/byzanzserialize.c:89
+msgid "Not a Byzanz recording"
+msgstr "不是一个 Byzanz 记录"
+
+#: ../src/byzanzserialize.c:95
+msgid "Unsupported byte order"
+msgstr "不支持的字节顺序"
+
 #: ../src/ByzanzApplet.server.in.in.h:1
 msgid "Byzanz Factory"
 msgstr "Byzanz 工厂"
@@ -141,9 +153,28 @@ msgstr "Byzanz 工厂"
 msgid "Desktop Recorder"
 msgstr "桌面录像机"
 
+#: ../src/playback.c:37
+#, c-format
+msgid "usage: %s [OPTIONS] INFILE OUTFILE\n"
+msgstr "用法：%s [选项] 输入文件 输出文件\n"
+
+#: ../src/playback.c:38 ../src/record.c:68
+#, c-format
+msgid "       %s --help\n"
+msgstr "       %s --help\n"
+
+#: ../src/playback.c:77
+msgid "process a byzanz debug recording"
+msgstr "处理 byzanz 调试记录"
+
+#: ../src/playback.c:84 ../src/record.c:140
+#, c-format
+msgid "Wrong option: %s\n"
+msgstr "错误选项：%s\n"
+
 #: ../src/record.c:37
 msgid "Duration of animation (default: 10 seconds)"
-msgstr "动画的时间 (默认： 10 秒)"
+msgstr "动画的时间 (默认：10 秒)"
 
 #: ../src/record.c:37 ../src/record.c:38
 msgid "SECS"
@@ -186,11 +217,6 @@ msgstr "详细"
 msgid "usage: %s [OPTIONS] filename\n"
 msgstr "用法： %s [选项] 文件名\n"
 
-#: ../src/record.c:68
-#, c-format
-msgid "       %s --help\n"
-msgstr "       %s --help\n"
-
 #: ../src/record.c:77
 #, c-format
 msgid "Error during recording: %s\n"
@@ -212,11 +238,6 @@ msgstr "录制开始。将录制 %d 秒...\n"
 #: ../src/record.c:132
 msgid "record your current desktop session"
 msgstr "录制您的当前桌面会话"
-
-#: ../src/record.c:140
-#, c-format
-msgid "Wrong option: %s\n"
-msgstr "错误选项：%s\n"
 
 #: ../src/record.c:149
 #, c-format
