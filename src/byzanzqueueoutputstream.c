@@ -60,6 +60,8 @@ byzanz_queue_output_stream_ensure_output (ByzanzQueueOutputStream *stream,
 					  GError **                error)
 {
   GFile *file;
+  int fd;
+  char *filename;
 
   if (stream->output_bytes == 0 && stream->output)
     {
@@ -73,21 +75,23 @@ byzanz_queue_output_stream_ensure_output (ByzanzQueueOutputStream *stream,
     return TRUE;
 
   g_async_queue_lock (stream->queue->files);
-  if (!stream->queue->input_closed) {
-    int fd;
-    char *filename;
 
-    fd = g_file_open_tmp ("byzanzcacheXXXXXX", &filename, error);
-    if (fd < 0) {
-      file = NULL;
-    } else {
-      close (fd);
-      file = g_file_new_for_path (filename);
-      g_free (filename);
-      g_object_ref (file);
-      g_async_queue_push_unlocked (stream->queue->files, file);
-    }
+  if (stream->queue->input_closed) {
+    g_async_queue_unlock (stream->queue->files);
+    return TRUE;
   }
+
+  fd = g_file_open_tmp ("byzanzcacheXXXXXX", &filename, error);
+  if (fd < 0) {
+    file = NULL;
+  } else {
+    close (fd);
+    file = g_file_new_for_path (filename);
+    g_free (filename);
+    g_object_ref (file);
+    g_async_queue_push_unlocked (stream->queue->files, file);
+  }
+
   g_async_queue_unlock (stream->queue->files);
 
   if (file == NULL)
