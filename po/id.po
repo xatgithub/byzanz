@@ -5,124 +5,112 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: byzanz.HEAD\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
-"product=byzanz&component=general\n"
-"POT-Creation-Date: 2010-02-20 11:13+0000\n"
-"PO-Revision-Date: 2009-04-01 13:32+0700\n"
-"Last-Translator: Imam Musthaqim <userindesign@gmail.com>\n"
-"Language-Team: INDONESIA <userindesign@gmail.com>\n"
+"Project-Id-Version: byzanz master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=byzanz&component=general\n"
+"POT-Creation-Date: 2010-04-16 07:48+0000\n"
+"PO-Revision-Date: 2010-04-16 14:57+0700\n"
+"Last-Translator: Andika Triwidada <andika@gmail.com>\n"
+"Language-Team: GNOME Indonesian Translation Team <gnome@i15n.org>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Poedit-Language: Indonesian\n"
 "X-Poedit-Country: INDONESIA\n"
 
 #: ../src/byzanz.schemas.in.h:1
-msgid ""
-"If set, Byzanz will record audio from the default audio device if the format "
-"supports it. This allows narrating along with the recording."
-msgstr ""
+msgid "If set, Byzanz will record audio from the default audio device if the format supports it. This allows narrating along with the recording."
+msgstr "Bila ditata, Byzanz akan merekam suara dari perangkat suara bawaan bila bentuk mendukungnya. Ini memungkinkan narasi berbarengan dengan perekaman."
 
-#: ../src/byzanz.schemas.in.h:2 ../src/byzanzapplet.c:294 ../src/record.c:40
-#, fuzzy
-#| msgid "Record _Window"
+#: ../src/byzanz.schemas.in.h:2
+#: ../src/byzanzapplet.c:294
+#: ../src/record.c:40
 msgid "Record audio"
-msgstr "Rekam _Jendela"
+msgstr "Rekam suara"
 
 #: ../src/byzanz.schemas.in.h:3
 msgid "Recording method"
-msgstr "Merekam metode"
+msgstr "Metoda perekaman"
 
 #: ../src/byzanz.schemas.in.h:4
 msgid "Save filename"
-msgstr ""
+msgstr "Nama berkas penyimpanan"
 
 #: ../src/byzanz.schemas.in.h:5
 msgid "URI for the filename Byzanz will suggest when starting a recording."
-msgstr ""
+msgstr "URI bagi nama berkas yang akan disarankan Byzanz ketika memulai suatu rekaman."
 
 #: ../src/byzanz.schemas.in.h:6
-msgid ""
-"Use this method as the default method for recording. Must be one of \"screen"
-"\" for recording the whole screen, \"area\" for selecting an area or \"window"
-"\" to select a window."
-msgstr ""
-"Gunakan metode ini sebagai metode default untuk perekaman. Harus ada salah "
-"satu \"layar\"  untuk merekam seluruh layar, \"area\" untuk memilih suatu "
-"area atau \"jendela\" untuk memilih suatu jendela."
+msgid "Use this method as the default method for recording. Must be one of \"screen\" for recording the whole screen, \"area\" for selecting an area or \"window\" to select a window."
+msgstr "Gunakan metode ini sebagai metode default untuk perekaman. Harus ada salah satu \"layar\"  untuk merekam seluruh layar, \"area\" untuk memilih suatu area atau \"jendela\" untuk memilih suatu jendela."
 
-#: ../src/byzanzapplet.c:103 ../src/byzanzapplet.c:268
-#, fuzzy
-#| msgid "Record _Desktop"
+#: ../src/byzanzapplet.c:103
+#: ../src/byzanzapplet.c:268
 msgid "Record your desktop"
-msgstr "Rekam _Desktop"
+msgstr "Rekam desktop Anda"
 
 #: ../src/byzanzapplet.c:104
-#, fuzzy
-#| msgid "Stop current recording"
 msgid "Select area to record"
-msgstr "Hentikan perekaman saat ini"
+msgstr "Pilih wilayah untuk direkam"
 
 #: ../src/byzanzapplet.c:105
-#, fuzzy
-#| msgid "Stop current recording"
 msgid "End current recording"
 msgstr "Hentikan perekaman saat ini"
 
 #: ../src/byzanzapplet.c:106
 msgid "Abort encoding of recording"
-msgstr ""
+msgstr "Gugurkan pengkodean rekaman"
 
 #: ../src/byzanzapplet.c:278
 msgid "All files"
-msgstr ""
+msgstr "Semua berkas"
 
 #: ../src/byzanzapplet.c:368
-#, fuzzy
-#| msgid "Desktop Recorder"
 msgid "Desktop Session"
-msgstr "Perekam Desktop"
+msgstr "Sesi Desktop"
 
-#: ../src/byzanzapplet.c:371 ../src/ByzanzApplet.server.in.in.h:3
+#: ../src/byzanzapplet.c:371
+#: ../src/ByzanzApplet.server.in.in.h:3
 msgid "Record what's happening on your desktop"
 msgstr "Merekam apa yang terjadi pada desktop Anda"
 
 #: ../src/byzanzapplet.c:373
 msgid "translator-credits"
-msgstr "kredit-penerjemah"
+msgstr ""
+"Imam Musthaqim <userindesign@gmail.com>, 2009.\n"
+"Andika Triwidada <andika@gmail.com>, 2010."
 
 #: ../src/byzanzapplet.xml.h:1
 msgid "_About"
 msgstr "_Tentang"
 
-#: ../src/byzanzencoder.c:89 ../src/byzanzencodergstreamer.c:118
+#: ../src/byzanzencoder.c:89
+#: ../src/byzanzencodergstreamer.c:118
 msgid "This format does not support recording audio."
-msgstr ""
+msgstr "Bentuk ini tidak mendukung perekaman suara."
 
 #: ../src/byzanzencoderbyzanz.c:80
 msgid "Byzanz debug files"
-msgstr ""
+msgstr "Berkas awa kutu Byzanz"
 
 #: ../src/byzanzencoderflv.c:38
 msgid "Flash video"
-msgstr ""
+msgstr "Video flash"
 
 #: ../src/byzanzencodergif.c:209
 msgid "No image to encode."
-msgstr ""
+msgstr "Tidak ada citra untuk diencode."
 
 #: ../src/byzanzencodergif.c:248
 msgid "GIF images"
-msgstr ""
+msgstr "Citra GIF"
 
 #: ../src/byzanzencodergstreamer.c:156
 msgid "Failed to start GStreamer pipeline"
-msgstr ""
+msgstr "Gagal memulai pipeline GStreamer"
 
 #: ../src/byzanzencoderogv.c:38
 msgid "Theora video"
-msgstr ""
+msgstr "Video Theora"
 
 #: ../src/byzanzselect.c:354
 msgid "Record _Desktop"
@@ -149,14 +137,12 @@ msgid "Record a selected window"
 msgstr "Rekam jendela yang dipilih"
 
 #: ../src/byzanzserialize.c:89
-#, fuzzy
-#| msgid "Cannot start recording."
 msgid "Not a Byzanz recording"
-msgstr "Tidak dapat menghentikan perekaman."
+msgstr "Bukan suatu rekaman Byzanz"
 
 #: ../src/byzanzserialize.c:95
 msgid "Unsupported byte order"
-msgstr ""
+msgstr "Urutan byte tak didukung"
 
 #: ../src/ByzanzApplet.server.in.in.h:1
 msgid "Byzanz Factory"
@@ -167,21 +153,22 @@ msgid "Desktop Recorder"
 msgstr "Perekam Desktop"
 
 #: ../src/playback.c:37
-#, fuzzy, c-format
-#| msgid "usage: %s [OPTIONS] filename\n"
+#, c-format
 msgid "usage: %s [OPTIONS] INFILE OUTFILE\n"
-msgstr "penggunaan: %s [OPSI] nama file\n"
+msgstr "penggunaan: %s [OPSI] BERKAS_MASUK BERKAS_KELUAR\n"
 
-#: ../src/playback.c:38 ../src/record.c:68
+#: ../src/playback.c:38
+#: ../src/record.c:68
 #, c-format
 msgid "       %s --help\n"
 msgstr "       %s --bantuan\n"
 
 #: ../src/playback.c:77
 msgid "process a byzanz debug recording"
-msgstr ""
+msgstr "proses suatu rekaman awa kutu byzanz"
 
-#: ../src/playback.c:84 ../src/record.c:140
+#: ../src/playback.c:84
+#: ../src/record.c:140
 #, c-format
 msgid "Wrong option: %s\n"
 msgstr "Opsi salah: %s\n"
@@ -190,7 +177,8 @@ msgstr "Opsi salah: %s\n"
 msgid "Duration of animation (default: 10 seconds)"
 msgstr "Durasi animasi (default: 10 detik)"
 
-#: ../src/record.c:37 ../src/record.c:38
+#: ../src/record.c:37
+#: ../src/record.c:38
 msgid "SECS"
 msgstr "SECS"
 
@@ -206,9 +194,12 @@ msgstr "Rekam kursor mouse"
 msgid "X coordinate of rectangle to record"
 msgstr "Koordinat X dari kotak untuk merekam"
 
-#: ../src/record.c:41 ../src/record.c:42 ../src/record.c:43 ../src/record.c:44
+#: ../src/record.c:41
+#: ../src/record.c:42
+#: ../src/record.c:43
+#: ../src/record.c:44
 msgid "PIXEL"
-msgstr "PIKSEL"
+msgstr "PIXEL"
 
 #: ../src/record.c:42
 msgid "Y coordinate of rectangle to record"
@@ -224,7 +215,7 @@ msgstr "Tinggi kotak rekaman"
 
 #: ../src/record.c:45
 msgid "Be verbose"
-msgstr "Urakanlah"
+msgstr "Uraikanlah"
 
 #: ../src/record.c:67
 #, c-format
@@ -232,22 +223,17 @@ msgid "usage: %s [OPTIONS] filename\n"
 msgstr "penggunaan: %s [OPSI] nama file\n"
 
 #: ../src/record.c:77
-#, fuzzy, c-format
-#| msgid "Stop current recording"
+#, c-format
 msgid "Error during recording: %s\n"
-msgstr "Hentikan perekaman saat ini"
+msgstr "Galat saat perekaman: %s\n"
 
 #: ../src/record.c:83
-#, fuzzy
-#| msgid "Recording method"
 msgid "Recording done.\n"
-msgstr "Merekam metode"
+msgstr "Perekaman selesai.\n"
 
 #: ../src/record.c:91
-#, fuzzy
-#| msgid "Recording done. Cleaning up...\n"
 msgid "Recording completed. Finishing encoding...\n"
-msgstr "Perekaman selesai. Sedang membersihkan...\n"
+msgstr "Perekaman selesai. Menuntaskan pengkodean...\n"
 
 #: ../src/record.c:100
 #, c-format
@@ -261,4 +247,5 @@ msgstr "rekam sesi desktop Anda saat ini"
 #: ../src/record.c:149
 #, c-format
 msgid "Given area is not inside desktop.\n"
-msgstr ""
+msgstr "Wilayah yang diberikan tidak di dalam desktop.\n"
+
