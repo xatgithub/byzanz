@@ -41,6 +41,9 @@ byzanz_encoder_flv_class_init (ByzanzEncoderFlvClass *klass)
 
   gstreamer_class->pipeline_string = 
     "appsrc name=src ! ffmpegcolorspace ! ffenc_flashsv buffer-size=8388608 ! flvmux ! giostreamsink name=sink";
+  gstreamer_class->audio_pipeline_string = 
+    "autoaudiosrc name=audiosrc ! audioconvert ! audio/x-raw-int,width=16 ! queue ! flvmux name=muxer ! giostreamsink name=sink "
+    "appsrc name=src ! ffmpegcolorspace ! ffenc_flashsv buffer-size=8388608 ! muxer.";
 }
 
 static void
