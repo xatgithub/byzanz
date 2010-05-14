@@ -9,8 +9,8 @@ msgstr ""
 "Project-Id-Version: byzanz\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=byzanz&component=general\n"
 "POT-Creation-Date: 2010-02-20 13:28+0000\n"
-"PO-Revision-Date: 2010-02-20 20:13+0100\n"
-"Last-Translator: Andrej Žnidaršič <andrej.znidarsic@gmail.com>\n"
+"PO-Revision-Date: 2010-05-14 21:51+0100\n"
+"Last-Translator: Matej Urbančič <mateju@svn.gnome.org>\n"
 "Language-Team: Slovenian <gnome-si@googlegroups.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -44,7 +44,7 @@ msgstr "Predlagani URI imena datoteke ob začetku snemanja."
 
 #: ../src/byzanz.schemas.in.h:6
 msgid "Use this method as the default method for recording. Must be one of \"screen\" for recording the whole screen, \"area\" for selecting an area or \"window\" to select a window."
-msgstr "Uporabi ta način kot privzet način snemanja. Mora biti \"zaslon\" za snemanje celega zaslona, \"območje\" za izbor območja ali \"okno\" za izbor okna."
+msgstr "Uporabi ta način kot privzet način snemanja. Način mora biti \"zaslon\" za snemanje celega zaslona, \"območje\" za izbor območja ali \"okno\" za izbor okna."
 
 #: ../src/byzanzapplet.c:103
 #: ../src/byzanzapplet.c:268
@@ -143,7 +143,7 @@ msgstr "Ni posnetek byzanz"
 
 #: ../src/byzanzserialize.c:95
 msgid "Unsupported byte order"
-msgstr "Nepodprt vrsti red bajtov"
+msgstr "Nepodprt vrstni red bajtov"
 
 #: ../src/ByzanzApplet.server.in.in.h:1
 msgid "Byzanz Factory"
@@ -185,7 +185,7 @@ msgstr "SEKUND"
 
 #: ../src/record.c:38
 msgid "Delay before start (default: 1 second)"
-msgstr "Zamik pred začetkom (privzeto: 1 sekunda)"
+msgstr "Časovni zamik pred začetkom (privzeto: 1 sekunda)"
 
 #: ../src/record.c:39
 msgid "Record mouse cursor"
@@ -243,21 +243,20 @@ msgstr "Snemanje se začenja. Posnetih bo %d sekund ...\n"
 
 #: ../src/record.c:132
 msgid "record your current desktop session"
-msgstr "snamanje vaše trenutne namizne seje"
+msgstr "snemanje vaše trenutne namizne seje"
 
 #: ../src/record.c:149
 #, c-format
 msgid "Given area is not inside desktop.\n"
-msgstr "Dano območje ni znotraj namizja.\n"
+msgstr "Podano območje ni znotraj namizja.\n"
 
 #~ msgid ""
 #~ "If set, Byzanz will record the mouse cursor. While useful, recording the "
 #~ "mouse cursor results in bigger files and should therefore be used with "
 #~ "care."
 #~ msgstr ""
-#~ "Izbrana možnost omogoči snemanje gibanja miškinega kazalca. Snemanje "
+#~ "Izbrana možnost omogoči snemanje gibanja kazalca miške. Snemanje "
 #~ "miškinega kazalca poveča velikost datotek, zato je treba možnost "
 #~ "uporabljati pazljivo."
 #~ msgid "Premature end of GStreamer pipeline"
 #~ msgstr "Prezgodnji konec cevovoda Gstreamer"
-
