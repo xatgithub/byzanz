@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: byzanz master\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/\n"
-"POT-Creation-Date: 2010-02-11 22:04+0100\n"
-"PO-Revision-Date: 2010-02-11 22:05+0100\n"
+"POT-Creation-Date: 2010-06-08 13:06+0200\n"
+"PO-Revision-Date: 2010-06-08 13:05+0200\n"
 "Last-Translator: Gabor Kelemen <kelemeng at gnome dot hu>\n"
 "Language-Team: Hungarian <gnome at fsf dot hu>\n"
 "MIME-Version: 1.0\n"
@@ -22,7 +22,10 @@ msgstr ""
 msgid ""
 "If set, Byzanz will record audio from the default audio device if the format "
 "supports it. This allows narrating along with the recording."
-msgstr "Ha be van állítva, akkor a Byzanz felveszi a hangot az alapértelmezett hangeszközről, ha a formátum támogatja azt. Ez lehetővé teszi a felvétel narrálását."
+msgstr ""
+"Ha be van állítva, akkor a Byzanz felveszi a hangot az alapértelmezett "
+"hangeszközről, ha a formátum támogatja azt. Ez lehetővé teszi a felvétel "
+"narrálását."
 
 #: ../src/byzanz.schemas.in.h:2 ../src/byzanzapplet.c:294 ../src/record.c:40
 msgid "Record audio"
@@ -38,7 +41,8 @@ msgstr "Mentési fájlnév"
 
 #: ../src/byzanz.schemas.in.h:5
 msgid "URI for the filename Byzanz will suggest when starting a recording."
-msgstr "Felvétel kezdésekor a Byzanz ezt az URI-t fogja javasolni a fájlnévhez."
+msgstr ""
+"Felvétel kezdésekor a Byzanz ezt az URI-t fogja javasolni a fájlnévhez."
 
 #: ../src/byzanz.schemas.in.h:6
 msgid ""
@@ -92,6 +96,10 @@ msgstr "_Névjegy"
 msgid "This format does not support recording audio."
 msgstr "Ez a formátum nem támogatja hang felvételét."
 
+#: ../src/byzanzencoderbyzanz.c:80
+msgid "Byzanz debug files"
+msgstr "Byzanz hibakeresési fájlok"
+
 #: ../src/byzanzencoderflv.c:38
 msgid "Flash video"
 msgstr "Flash videó"
@@ -136,6 +144,14 @@ msgstr "_Ablak felvétele"
 msgid "Record a selected window"
 msgstr "Egy kiválasztott ablak felvétele"
 
+#: ../src/byzanzserialize.c:89
+msgid "Not a Byzanz recording"
+msgstr "Nem Byzanz felvétel"
+
+#: ../src/byzanzserialize.c:95
+msgid "Unsupported byte order"
+msgstr "Nem támogatott bájtsorrend"
+
 #: ../src/ByzanzApplet.server.in.in.h:1
 msgid "Byzanz Factory"
 msgstr "Byzanz factory"
@@ -143,6 +159,25 @@ msgstr "Byzanz factory"
 #: ../src/ByzanzApplet.server.in.in.h:2
 msgid "Desktop Recorder"
 msgstr "Asztalfelvevő"
+
+#: ../src/playback.c:37
+#, c-format
+msgid "usage: %s [OPTIONS] INFILE OUTFILE\n"
+msgstr "használat: %s [KAPCSOLÓK] BEMENETIFÁJL KIMENETIFÁJL\n"
+
+#: ../src/playback.c:38 ../src/record.c:68
+#, c-format
+msgid "       %s --help\n"
+msgstr "       %s --help\n"
+
+#: ../src/playback.c:77
+msgid "process a byzanz debug recording"
+msgstr "byzanz hibakeresési felvétel feldolgozása"
+
+#: ../src/playback.c:84 ../src/record.c:140
+#, c-format
+msgid "Wrong option: %s\n"
+msgstr "Hibás kapcsoló: %s\n"
 
 #: ../src/record.c:37
 msgid "Duration of animation (default: 10 seconds)"
@@ -189,11 +224,6 @@ msgstr "Részletes kimenet"
 msgid "usage: %s [OPTIONS] filename\n"
 msgstr "használat: %s [KAPCSOLÓK] fájlnév\n"
 
-#: ../src/record.c:68
-#, c-format
-msgid "       %s --help\n"
-msgstr "       %s --help\n"
-
 #: ../src/record.c:77
 #, c-format
 msgid "Error during recording: %s\n"
@@ -216,13 +246,7 @@ msgstr "A felvétel megkezdődött. %d másodperc rögzítése…\n"
 msgid "record your current desktop session"
 msgstr "a jelenlegi asztali munkamenet felvétele"
 
-#: ../src/record.c:140
-#, c-format
-msgid "Wrong option: %s\n"
-msgstr "Hibás kapcsoló: %s\n"
-
 #: ../src/record.c:149
 #, c-format
 msgid "Given area is not inside desktop.\n"
 msgstr "A megadott terület nem az asztalon belül van.\n"
-
