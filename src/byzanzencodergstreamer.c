@@ -138,7 +138,7 @@ byzanz_encoder_gstreamer_run (ByzanzEncoder * encoder,
 #if G_BYTE_ORDER == G_LITTLE_ENDIAN
   gstreamer->caps = gst_caps_from_string (GST_VIDEO_CAPS_BGRx);
 #elif G_BYTE_ORDER == G_BIG_ENDIAN
-  gstreamer->caps = gst_caps_new_from_string (GST_VIDEO_CAPS_xRGB);
+  gstreamer->caps = gst_caps_from_string (GST_VIDEO_CAPS_xRGB);
 #else
 #error "Please add the Cairo caps format here"
 #endif
