@@ -357,7 +357,7 @@ destroy_applet (GtkWidget *widget, AppletPrivate *priv)
 }
 
 static void 
-byzanz_about_cb (BonoboUIComponent *uic, AppletPrivate *priv, const char *verb)
+byzanz_about_cb (GtkAction *action, AppletPrivate *priv)
 {
   const gchar *authors[] = {
     "Benjamin Otte <otte@gnome.org>", 
@@ -374,15 +374,18 @@ byzanz_about_cb (BonoboUIComponent *uic, AppletPrivate *priv, const char *verb)
     NULL );
 }
 
-static const BonoboUIVerb byzanz_menu_verbs [] = {
-	BONOBO_UI_UNSAFE_VERB ("ByzanzAbout",      byzanz_about_cb),
-        BONOBO_UI_VERB_END
+static const GtkActionEntry byzanz_menu_actions [] = {
+  { "ByzanzAbout", GTK_STOCK_ABOUT, N_("_About"),
+    NULL, NULL,
+    G_CALLBACK (byzanz_about_cb) }
 };
 
 static gboolean
 byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
 {
   AppletPrivate *priv;
+  GtkActionGroup *action_group;
+  char *ui_path;
   char *method;
   
   if (!index_quark)
@@ -401,8 +404,19 @@ byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
   panel_applet_add_preferences (applet, "/schemas/apps/byzanz-applet/prefs",
       NULL);
   panel_applet_set_flags (applet, PANEL_APPLET_EXPAND_MINOR);
-  panel_applet_setup_menu_from_file (PANEL_APPLET (applet), 
-      DATADIR, "byzanzapplet.xml", NULL, byzanz_menu_verbs, priv);
+  action_group = gtk_action_group_new ("Byzanz Applet Actions");
+#ifdef GETTEXT_PACKAGE
+  gtk_action_group_set_translation_domain (action_group, GETTEXT_PACKAGE);
+#endif
+  gtk_action_group_add_actions (action_group,
+				byzanz_menu_actions,
+				G_N_ELEMENTS (byzanz_menu_actions),
+				priv);
+  ui_path = g_build_filename (BYZANZ_MENU_UI_DIR, "byzanzapplet.xml", NULL);
+  panel_applet_setup_menu_from_file (PANEL_APPLET (applet),
+				     ui_path, action_group);
+  g_free (ui_path);
+  g_object_unref (action_group);
 
   priv->tooltips = gtk_tooltips_new ();
 
@@ -425,7 +439,10 @@ byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
   return TRUE;
 }
 
-PANEL_APPLET_BONOBO_FACTORY ("OAFIID:ByzanzApplet_Factory",
-    PANEL_TYPE_APPLET, "ByzanzApplet", "0",
-    byzanz_applet_fill, NULL);
+PANEL_APPLET_OUT_PROCESS_FACTORY ("ByzanzAppletFactory",
+				  PANEL_TYPE_APPLET,
+				  "ByzanzApplet",
+				  byzanz_applet_fill,
+				  NULL)
+
 

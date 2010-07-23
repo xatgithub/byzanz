@@ -66,7 +66,7 @@ dnl ====================================
 CAIRO_REQ="1.8.10"
 GTK_REQ="2.17.10"
 GTHREAD_REQ="2.6.0"
-APPLET_REQ="2.10.0"
+APPLET_REQ="2.31.2"
 XDAMAGE_REQ="1.0"
 GST_REQ="0.10.24"
 
@@ -74,7 +74,7 @@ PKG_CHECK_MODULES(GTK, cairo >= $CAIRO_REQ gtk+-2.0 >= $GTK_REQ x11 gio-2.0)
 
 PKG_CHECK_MODULES(GTHREAD, xdamage >= $XDAMAGE_REQ gthread-2.0 >= $GTHREAD_REQ)
 
-PKG_CHECK_MODULES(APPLET, libpanelapplet-2.0 >= $APPLET_REQ)
+PKG_CHECK_MODULES(APPLET, libpanelapplet-3.0 >= $APPLET_REQ)
 
 PKG_CHECK_MODULES(GST, gstreamer-app-0.10 >= $GST_REQ gstreamer-0.10 >= $GST_REQ)
 

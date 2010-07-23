@@ -15,7 +15,7 @@ src/byzanzrecorder.c
 src/byzanzselect.c
 src/byzanzserialize.c
 src/byzanzsession.c
-src/ByzanzApplet.server.in.in
+src/org.gnome.ByzanzApplet.panel-applet.in.in
 src/paneltogglebutton.c
 src/playback.c
 src/record.c

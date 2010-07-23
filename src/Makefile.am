@@ -68,7 +68,7 @@ byzanz_applet_SOURCES = \
 	paneltogglebutton.c \
 	screenshot-utils.c
 
-byzanz_applet_CFLAGS = $(APPLET_CFLAGS)
+byzanz_applet_CFLAGS = -DBYZANZ_MENU_UI_DIR=\""$(uidir)"\" $(APPLET_CFLAGS)
 byzanz_applet_LDADD = $(APPLET_LIBS) ./libbyzanz.la
 
 
@@ -91,24 +91,37 @@ install-data-local:
 	GCONF_CONFIG_SOURCE=$(GCONF_SCHEMA_CONFIG_SOURCE) $(GCONFTOOL) --makefile-install-rule $(schemas_DATA) ;
 endif
 
-serverdir       = $(libdir)/bonobo/servers
-server_in_files = ByzanzApplet.server.in
-server_DATA     = $(server_in_files:.server.in=.server)
+appletdir       = $(datadir)/gnome-panel/applets
+applet_in_files = org.gnome.ByzanzApplet.panel-applet.in
+applet_DATA     = $(applet_in_files:.panel-applet.in=.panel-applet)
 
-$(server_in_files): $(server_in_files:.server.in=.server.in.in)
-	sed -e "s|\@LIBEXECDIR\@|$(libexecdir)|" $< > $@
+$(applet_in_files): $(applet_in_files).in Makefile
+	sed \
+            -e "s|\@LIBEXECDIR\@|$(libexecdir)|" \
+            -e "s|\@VERSION\@|$(PACKAGE_VERSION)|" \
+            $< > $@
+
+%.panel-applet: %.panel-applet.in $(INTLTOOL_MERGE) $(wildcard $(top_srcdir)/po/*po) ; $(INTLTOOL_MERGE) $(top_srcdir)/po $< $@ -d -u -c $(top_builddir)/po/.intltool-merge-cache
+
+servicedir       = $(datadir)/dbus-1/services
+service_in_files = org.gnome.panel.applet.ByzanzAppletFactory.service.in
+service_DATA     = $(service_in_files:.service.in=.service)
+
+org.gnome.panel.applet.ByzanzAppletFactory.service: $(service_in_files)
+	sed \
+	    -e "s|\@LIBEXECDIR\@|$(libexecdir)|" \
+	    $< > $@
 
 uidir = $(datadir)/gnome-2.0/ui
 ui_DATA = byzanzapplet.xml
 
-CLEANFILES = $(server_in_files) $(server_DATA) $(schemas_DATA) $(BUILT_SOURCES)
+CLEANFILES = $(applet_DATA) $(applet_DATA).in $(service_DATA) $(schemas_DATA) $(BUILT_SOURCES)
 
 EXTRA_DIST = \
 	byzanzmarshal.list \
-	ByzanzApplet.server.in.in \
+	org.gnome.ByzanzApplet.panel-applet.in.in \
 	$(man_MANS) \
 	$(ui_DATA) \
 	$(schemas_in_files)
 
 
-@INTLTOOL_SERVER_RULE@
