@@ -164,8 +164,8 @@ msgid "       %s --help\n"
 msgstr "       %s --bantuan\n"
 
 #: ../src/playback.c:77
-msgid "process a byzanz debug recording"
-msgstr "proses suatu rekaman awa kutu byzanz"
+msgid "process a Byzanz debug recording"
+msgstr "proses suatu rekaman awa kutu Byzanz"
 
 #: ../src/playback.c:84
 #: ../src/record.c:140

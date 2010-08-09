@@ -164,8 +164,8 @@ msgid "       %s --help\n"
 msgstr "       %s --help\n"
 
 #: ../src/playback.c:77
-msgid "process a byzanz debug recording"
-msgstr "处理 byzanz 调试记录"
+msgid "process a Byzanz debug recording"
+msgstr "处理 Byzanz 调试记录"
 
 #: ../src/playback.c:84 ../src/record.c:140
 #, c-format
