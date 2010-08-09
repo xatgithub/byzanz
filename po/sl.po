@@ -165,8 +165,8 @@ msgid "       %s --help\n"
 msgstr "       %s --pomoč\n"
 
 #: ../src/playback.c:77
-msgid "process a byzanz debug recording"
-msgstr "obdelava byzanz razhroščevalnega snemanja"
+msgid "process a Byzanz debug recording"
+msgstr "obdelava Byzanz razhroščevalnega snemanja"
 
 #: ../src/playback.c:84
 #: ../src/record.c:140

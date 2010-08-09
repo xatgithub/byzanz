@@ -171,7 +171,7 @@ msgid "       %s --help\n"
 msgstr "       %s --help\n"
 
 #: ../src/playback.c:77
-msgid "process a byzanz debug recording"
+msgid "process a Byzanz debug recording"
 msgstr "elabora una registrazione di debug di Byzanz"
 
 #: ../src/playback.c:84 ../src/record.c:140
