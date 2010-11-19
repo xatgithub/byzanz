@@ -2,22 +2,23 @@
 # Copyright (C) 2008, 2009 the author(s) of byzanz.
 # This file is distributed under the same license as the byzanz package.
 #
-# Adrian Guniš <andygun@seznam.cz>, 2008-2010.
 # Petr Kovar <pknbe@volny.cz>, 2008.
 # Marek Černocký <marek@manet.cz>, 2010 (just fixes).
+# Adrian Guniš <andygun696@gmail.com>, 2008-2010.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: byzanz\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=byzanz&component=general\n"
-"POT-Creation-Date: 2010-06-19 16:53+0000\n"
-"PO-Revision-Date: 2010-04-05 09:47+0100\n"
-"Last-Translator: Adrian Guniš <andygun696@gmail.com>\n"
+"POT-Creation-Date: 2010-09-15 17:59+0000\n"
+"PO-Revision-Date: 2010-11-17 03:03+0100\n"
+"Last-Translator: Marek Černocký <marek@manet.cz>\n"
 "Language-Team: Czech <gnome-cs-list@gnome.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: cs\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
 "X-Poedit-Language: Czech\n"
 
@@ -79,7 +80,7 @@ msgstr "Všechny soubory"
 msgid "Desktop Session"
 msgstr "Sezení pracovní plochy"
 
-#: ../src/byzanzapplet.c:371 ../src/ByzanzApplet.server.in.in.h:3
+#: ../src/byzanzapplet.c:371
 msgid "Record what's happening on your desktop"
 msgstr "Nahrávání dění na pracovní ploše"
 
@@ -87,7 +88,7 @@ msgstr "Nahrávání dění na pracovní ploše"
 msgid "translator-credits"
 msgstr "Adrian Guniš <andygun696@gmail.com>"
 
-#: ../src/byzanzapplet.xml.h:1
+#: ../src/byzanzapplet.c:378
 msgid "_About"
 msgstr "O _aplikaci"
 
@@ -148,17 +149,8 @@ msgid "Not a Byzanz recording"
 msgstr "Nejedná se o nahrávání Byzanz"
 
 #: ../src/byzanzserialize.c:95
-#, fuzzy
 msgid "Unsupported byte order"
 msgstr "Nepodporované pořadí bajtů"
-
-#: ../src/ByzanzApplet.server.in.in.h:1
-msgid "Byzanz Factory"
-msgstr "Generátor Byzanz"
-
-#: ../src/ByzanzApplet.server.in.in.h:2
-msgid "Desktop Recorder"
-msgstr "Záznamník pracovní plochy"
 
 #: ../src/playback.c:37
 #, c-format
@@ -171,7 +163,6 @@ msgid "       %s --help\n"
 msgstr "       %s --help\n"
 
 #: ../src/playback.c:77
-#, fuzzy
 msgid "process a Byzanz debug recording"
 msgstr "zpracovat zaznamenané ladění Byzanz"
 
