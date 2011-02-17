@@ -476,7 +476,7 @@ gifenc_dither_rgb (guint8* target, guint target_rowstride,
     const GifencPalette *palette, const guint8 *data, guint width, guint height, 
     guint rowstride)
 {
-  guint x, y, i, c;
+  guint x, y, c;
   gint *this_error, *next_error;
   guint8 this[3];
   gint err[3] = { 0, 0, 0 };
@@ -486,7 +486,6 @@ gifenc_dither_rgb (guint8* target, guint target_rowstride,
 
   this_error = g_new0 (gint, (width + 2) * 3);
   next_error = g_new (gint, (width + 2) * 3);
-  i = 0;
   for (y = 0; y < height; y++) {
     const guint32 *row = (const guint32 *) data;
     gint *cur_error = this_error + 3;
@@ -533,7 +532,7 @@ gifenc_dither_rgb_with_full_image (guint8 *target, guint target_rowstride,
     const GifencPalette *palette, const guint8 *data, guint width, guint height, 
     guint rowstride, GdkRectangle *rect_out)
 {
-  int x, y, i, c;
+  int x, y, c;
   gint *this_error, *next_error;
   guint8 this[3], alpha;
   gint err[3] = { 0, 0, 0 };
@@ -546,7 +545,6 @@ gifenc_dither_rgb_with_full_image (guint8 *target, guint target_rowstride,
 
   this_error = g_new0 (gint, (width + 2) * 3);
   next_error = g_new (gint, (width + 2) * 3);
-  i = 0;
   for (y = 0; y < (int) height; y++) {
     const guint32 *row = (const guint32 *) data;
     gint *cur_error = this_error + 3;
