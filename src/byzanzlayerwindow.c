@@ -36,14 +36,16 @@ byzanz_layer_window_event (ByzanzLayer * layer,
 
   if (event->type == layer->recorder->damage_event_base + XDamageNotify && 
       event->damage == wlayer->damage) {
-    GdkRectangle rect;
+    cairo_rectangle_int_t rect;
 
     rect.x = event->area.x;
     rect.y = event->area.y;
     rect.width = event->area.width;
     rect.height = event->area.height;
-    if (gdk_rectangle_intersect (&rect, &layer->recorder->area, &rect)) {
-      gdk_region_union_with_rect (wlayer->invalid, &rect);
+    if (gdk_rectangle_intersect ((GdkRectangle*) &rect,
+                                 (GdkRectangle*) &layer->recorder->area,
+                                 (GdkRectangle*) &rect)) {
+      cairo_region_union_rectangle (wlayer->invalid, &rect);
       byzanz_layer_invalidate (layer);
     }
     return TRUE;
@@ -53,38 +55,38 @@ byzanz_layer_window_event (ByzanzLayer * layer,
 }
 
 static XserverRegion
-byzanz_server_region_from_gdk (Display *dpy, GdkRegion *source)
+byzanz_server_region_from_gdk (Display *dpy, cairo_region_t *source)
 {
   XserverRegion dest;
   XRectangle *dest_rects;
-  GdkRectangle *source_rects;
+  cairo_rectangle_int_t source_rect;
   int n_rectangles, i;
 
-  gdk_region_get_rectangles (source, &source_rects, &n_rectangles);
+  n_rectangles = cairo_region_num_rectangles (source);
   g_assert (n_rectangles);
   dest_rects = g_new (XRectangle, n_rectangles);
   for (i = 0; i < n_rectangles; i++) {
-    dest_rects[i].x = source_rects[i].x;
-    dest_rects[i].y = source_rects[i].y;
-    dest_rects[i].width = source_rects[i].width;
-    dest_rects[i].height = source_rects[i].height;
+    cairo_region_get_rectangle (source, i, &source_rect);
+    dest_rects[i].x = source_rect.x;
+    dest_rects[i].y = source_rect.y;
+    dest_rects[i].width = source_rect.width;
+    dest_rects[i].height = source_rect.height;
   }
   dest = XFixesCreateRegion (dpy, dest_rects, n_rectangles);
   g_free (dest_rects);
-  g_free (source_rects);
 
   return dest;
 }
 
-static GdkRegion *
+static cairo_region_t *
 byzanz_layer_window_snapshot (ByzanzLayer *layer)
 {
-  Display *dpy = gdk_x11_drawable_get_xdisplay (layer->recorder->window);
+  Display *dpy = GDK_DISPLAY_XDISPLAY (gdk_window_get_display (layer->recorder->window));
   ByzanzLayerWindow *wlayer = BYZANZ_LAYER_WINDOW (layer);
   XserverRegion reg;
-  GdkRegion *region;
+  cairo_region_t *region;
 
-  if (gdk_region_empty (wlayer->invalid))
+  if (cairo_region_is_empty (wlayer->invalid))
     return NULL;
 
   reg = byzanz_server_region_from_gdk (dpy, wlayer->invalid);
@@ -92,7 +94,7 @@ byzanz_layer_window_snapshot (ByzanzLayer *layer)
   XFixesDestroyRegion (dpy, reg);
 
   region = wlayer->invalid;
-  wlayer->invalid = gdk_region_new ();
+  wlayer->invalid = cairo_region_create ();
   return region;
 }
 
@@ -117,11 +119,11 @@ byzanz_layer_window_render (ByzanzLayer *layer,
 static void
 byzanz_layer_window_finalize (GObject *object)
 {
-  Display *dpy = gdk_x11_drawable_get_xdisplay (BYZANZ_LAYER (object)->recorder->window);
+  Display *dpy = GDK_DISPLAY_XDISPLAY (gdk_window_get_display (BYZANZ_LAYER (object)->recorder->window));
   ByzanzLayerWindow *wlayer = BYZANZ_LAYER_WINDOW (object);
 
   XDamageDestroy (dpy, wlayer->damage);
-  gdk_region_destroy (wlayer->invalid);
+  cairo_region_destroy (wlayer->invalid);
 
   G_OBJECT_CLASS (byzanz_layer_window_parent_class)->finalize (object);
 }
@@ -131,11 +133,11 @@ byzanz_layer_window_constructed (GObject *object)
 {
   ByzanzLayer *layer = BYZANZ_LAYER (object);
   GdkWindow *window = layer->recorder->window;
-  Display *dpy = gdk_x11_drawable_get_xdisplay (window);
+  Display *dpy = GDK_DISPLAY_XDISPLAY (gdk_window_get_display (window));
   ByzanzLayerWindow *wlayer = BYZANZ_LAYER_WINDOW (object);
 
-  wlayer->damage = XDamageCreate (dpy, gdk_x11_drawable_get_xid (window), XDamageReportDeltaRectangles);
-  gdk_region_union_with_rect (wlayer->invalid, &layer->recorder->area);
+  wlayer->damage = XDamageCreate (dpy, gdk_x11_window_get_xid (window), XDamageReportDeltaRectangles);
+  cairo_region_union_rectangle (wlayer->invalid, &layer->recorder->area);
 
   G_OBJECT_CLASS (byzanz_layer_window_parent_class)->constructed (object);
 }
@@ -157,6 +159,6 @@ byzanz_layer_window_class_init (ByzanzLayerWindowClass *klass)
 static void
 byzanz_layer_window_init (ByzanzLayerWindow *wlayer)
 {
-  wlayer->invalid = gdk_region_new ();
+  wlayer->invalid = cairo_region_create ();
 }
 

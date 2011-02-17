@@ -45,7 +45,7 @@ struct _ByzanzLayerClass {
 
   gboolean              (* event)                       (ByzanzLayer *          layer,
                                                          GdkXEvent *            event);
-  GdkRegion *           (* snapshot)                    (ByzanzLayer *          layer);
+  cairo_region_t *      (* snapshot)                    (ByzanzLayer *          layer);
   void                  (* render)                      (ByzanzLayer *          layer,
                                                          cairo_t *              cr);
 };

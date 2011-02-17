@@ -30,7 +30,7 @@ static int delay = 1;
 static gboolean cursor = FALSE;
 static gboolean audio = FALSE;
 static gboolean verbose = FALSE;
-static GdkRectangle area = { 0, 0, G_MAXINT / 2, G_MAXINT / 2 };
+static cairo_rectangle_int_t area = { 0, 0, G_MAXINT / 2, G_MAXINT / 2 };
 
 static GOptionEntry entries[] = 
 {
@@ -105,12 +105,15 @@ start_recording (gpointer session)
 }
 
 static gboolean
-clamp_to_window (GdkRectangle *out, GdkWindow *window, GdkRectangle *in)
+clamp_to_window (cairo_rectangle_int_t *out, GdkWindow *window, cairo_rectangle_int_t *in)
 {
-  GdkRectangle window_area = { 0, };
+  cairo_rectangle_int_t window_area = { 0, };
 
-  gdk_drawable_get_size (GDK_DRAWABLE (window), &window_area.width, &window_area.height);
-  return gdk_rectangle_intersect (in, &window_area, in);
+  window_area.width = gdk_window_get_width (window);
+  window_area.height = gdk_window_get_height (window);
+  return gdk_rectangle_intersect ((GdkRectangle *) in,
+                                  (GdkRectangle *) &window_area,
+                                  (GdkRectangle *) in);
 }
 
 int

@@ -32,7 +32,7 @@ panel_toggle_button_size_request (GtkWidget *widget,
 {
   GtkWidget *child;
   
-  child = GTK_BIN (widget)->child;
+  child = gtk_bin_get_child (GTK_BIN (widget));
 
   if (child) {
     gtk_widget_size_request (child, requisition);
@@ -42,53 +42,77 @@ panel_toggle_button_size_request (GtkWidget *widget,
 }
 
 static void
+panel_toggle_button_get_preferred_width (GtkWidget *widget,
+                                         gint      *minimal_width,
+                                         gint      *natural_width)
+{
+  GtkRequisition requisition;
+
+  panel_toggle_button_size_request (widget, &requisition);
+
+  *minimal_width = *natural_width = requisition.width;
+}
+
+static void
+panel_toggle_button_get_preferred_height (GtkWidget *widget,
+                                          gint      *minimal_height,
+                                          gint      *natural_height)
+{
+  GtkRequisition requisition;
+
+  panel_toggle_button_size_request (widget, &requisition);
+
+  *minimal_height = *natural_height = requisition.height;
+}
+
+static void
 panel_toggle_button_size_allocate (GtkWidget *widget,
     GtkAllocation *allocation)
 {
   GtkWidget *child;
   
-  child = GTK_BIN (widget)->child;
+  child = gtk_bin_get_child (GTK_BIN (widget));
 
-  widget->allocation = *allocation;
+  gtk_widget_set_allocation (widget, allocation);
   
-  if (GTK_WIDGET_REALIZED (widget))
-    gdk_window_move_resize (GTK_BUTTON (widget)->event_window, 
-	widget->allocation.x, widget->allocation.y,
-	widget->allocation.width, widget->allocation.height);
+  if (gtk_widget_get_realized (widget))
+    gdk_window_move_resize (gtk_button_get_event_window (GTK_BUTTON(widget)), 
+	allocation->x, allocation->y,
+	allocation->width, allocation->height); 
   
   if (child)
     gtk_widget_size_allocate (child, allocation);
 }
 
 static gboolean
-panel_toggle_button_expose (GtkWidget *widget, GdkEventExpose *event)
+panel_toggle_button_draw (GtkWidget *widget, cairo_t *cr)
 {
-  if (GTK_WIDGET_DRAWABLE (widget)) {
-    GtkWidget *child = GTK_BIN (widget)->child;
-    GtkStateType state_type;
-    GtkShadowType shadow_type;
+  GtkWidget *child = gtk_bin_get_child (GTK_BIN (widget));
+  GtkStateType state_type;
+  GtkShadowType shadow_type;
+  GtkAllocation allocation;
 
-    state_type = GTK_WIDGET_STATE (widget);
+  state_type = gtk_widget_get_state (widget);
     
-    /* FIXME: someone make this layout work nicely for all themes
-     * Currently I'm trying to imitate the volume applet's widget */
-    if (GTK_TOGGLE_BUTTON (widget)->inconsistent) {
-      if (state_type == GTK_STATE_ACTIVE)
-	state_type = GTK_STATE_NORMAL;
-      shadow_type = GTK_SHADOW_ETCHED_IN;
-    } else {
-      shadow_type = GTK_BUTTON (widget)->depressed ? GTK_SHADOW_IN : GTK_SHADOW_OUT;
-    }
-    if (GTK_BUTTON (widget)->depressed)
-      state_type = GTK_STATE_SELECTED;
-    /* FIXME: better detail? */
-    gtk_paint_flat_box (widget->style, widget->window, state_type, shadow_type,
-	&event->area, widget, "togglebutton", widget->allocation.x,
-	widget->allocation.y, widget->allocation.width, widget->allocation.height);
-      
-    if (child)
-      gtk_container_propagate_expose (GTK_CONTAINER (widget), child, event);
+  /* FIXME: someone make this layout work nicely for all themes
+   * Currently I'm trying to imitate the volume applet's widget */
+  if (gtk_toggle_button_get_inconsistent (GTK_TOGGLE_BUTTON (widget))) {
+    if (state_type == GTK_STATE_ACTIVE)
+      state_type = GTK_STATE_NORMAL;
+    shadow_type = GTK_SHADOW_ETCHED_IN;
+  } else {
+    shadow_type = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (widget)) ? GTK_SHADOW_IN : GTK_SHADOW_OUT;
   }
+  if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (widget)))
+    state_type = GTK_STATE_SELECTED;
+  /* FIXME: better detail? */
+  gtk_widget_get_allocation (widget, &allocation);
+  gtk_paint_flat_box (gtk_widget_get_style (widget), cr, state_type, shadow_type,
+                      widget, "togglebutton", allocation.x,
+                      allocation.y, allocation.width, allocation.height);
+
+  if (child)
+    gtk_container_propagate_draw (GTK_CONTAINER (widget), child, cr);
   
   return FALSE;
 }
@@ -118,9 +142,10 @@ panel_toggle_button_class_init (PanelToggleButtonClass *class)
 
   parent_class = g_type_class_peek_parent (class);
 
-  widget_class->size_request = panel_toggle_button_size_request;
+  widget_class->get_preferred_width = panel_toggle_button_get_preferred_width;
+  widget_class->get_preferred_height = panel_toggle_button_get_preferred_height;
   widget_class->size_allocate = panel_toggle_button_size_allocate;
-  widget_class->expose_event = panel_toggle_button_expose;
+  widget_class->draw = panel_toggle_button_draw;
   widget_class->button_press_event = panel_toggle_button_button_press;
   widget_class->button_release_event = panel_toggle_button_button_release;
 }

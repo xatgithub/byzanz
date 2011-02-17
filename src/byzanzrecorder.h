@@ -39,7 +39,7 @@ struct _ByzanzRecorder {
   GObject		object;
 
   GdkWindow *           window;                 /* window we are recording from */
-  GdkRectangle          area;                   /* area of window that we record */
+  cairo_rectangle_int_t area;                   /* area of window that we record */
   gboolean              recording;              /* wether we should be recording now */
 
   int                   damage_event_base;      /* base event for Damage extension */
@@ -55,16 +55,16 @@ struct _ByzanzRecorder {
 struct _ByzanzRecorderClass {
   GObjectClass		object_class;
 
-  void                  (* image)                       (ByzanzRecorder *       recorder,
-                                                         cairo_surface_t *      surface,
-                                                         const GdkRegion *      region,
-                                                         const GTimeVal *       tv);
+  void                  (* image)                       (ByzanzRecorder *        recorder,
+                                                         cairo_surface_t *       surface,
+                                                         const cairo_surface_t * region,
+                                                         const GTimeVal *        tv);
 };
 
 GType		        byzanz_recorder_get_type	(void) G_GNUC_CONST;
 
-ByzanzRecorder *	byzanz_recorder_new		(GdkWindow *		window,
-							 GdkRectangle *		area);
+ByzanzRecorder *	byzanz_recorder_new		(GdkWindow *		 window,
+							 cairo_rectangle_int_t * area);
 
 void                    byzanz_recorder_set_recording   (ByzanzRecorder *       recorder,
                                                          gboolean               recording);

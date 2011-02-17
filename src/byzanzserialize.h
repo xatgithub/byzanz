@@ -30,12 +30,12 @@ gboolean                byzanz_serialize_header         (GOutputStream *        
                                                          guint                  height,
                                                          GCancellable *         cancellable,
                                                          GError **              error);
-gboolean                byzanz_serialize                (GOutputStream *        stream,
-                                                         guint64                msecs,
-                                                         cairo_surface_t *      surface,
-                                                         const GdkRegion *      region,
-                                                         GCancellable *         cancellable,
-                                                         GError **              error);
+gboolean                byzanz_serialize                (GOutputStream *         stream,
+                                                         guint64                 msecs,
+                                                         cairo_surface_t *       surface,
+                                                         const cairo_region_t * region,
+                                                         GCancellable *          cancellable,
+                                                         GError **               error);
 
 gboolean                byzanz_deserialize_header       (GInputStream *         stream,
                                                          guint *                width,
@@ -45,7 +45,7 @@ gboolean                byzanz_deserialize_header       (GInputStream *         
 gboolean                byzanz_deserialize              (GInputStream *         stream,
                                                          guint64 *              msecs_out,
                                                          cairo_surface_t **     surface_out,
-                                                         GdkRegion **           region_out,
+                                                         cairo_region_t **      region_out,
                                                          GCancellable *         cancellable,
                                                          GError **              error);
 

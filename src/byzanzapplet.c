@@ -41,7 +41,6 @@ typedef struct {
 
   GtkWidget *		button;		/* recording button */
   GtkWidget *		image;		/* image displayed in button */
-  GtkTooltips *		tooltips;	/* our tooltips */
   GtkWidget *           dialog;         /* file chooser */
   GFile *               file;           /* file selected for recording */
   GType                 encoder_type;   /* last selected encoder type or 0 if none */
@@ -137,8 +136,7 @@ byzanz_applet_update (gpointer data)
 
   gtk_image_set_from_icon_name (GTK_IMAGE (priv->image), 
       state_info[state].stock_icon, GTK_ICON_SIZE_LARGE_TOOLBAR);
-  gtk_tooltips_set_tip (priv->tooltips, priv->button,
-      _(state_info[state].tooltip), NULL);
+  gtk_widget_set_tooltip_text (priv->button, _(state_info[state].tooltip));
   
   return TRUE;
 }
@@ -182,7 +180,7 @@ byzanz_applet_session_notify (AppletPrivate *priv)
 static int method_response_codes[] = { GTK_RESPONSE_ACCEPT, GTK_RESPONSE_APPLY, GTK_RESPONSE_OK, GTK_RESPONSE_YES };
 
 static void
-byzanz_applet_select_done (GdkWindow *window, const GdkRectangle *area, gpointer data)
+byzanz_applet_select_done (GdkWindow *window, const cairo_rectangle_int_t *area, gpointer data)
 {
   AppletPrivate *priv = data;
 
@@ -417,8 +415,6 @@ byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
 				     ui_path, action_group);
   g_free (ui_path);
   g_object_unref (action_group);
-
-  priv->tooltips = gtk_tooltips_new ();
 
   method = panel_applet_gconf_get_string (priv->applet, "method", NULL);
   priv->method = byzanz_select_method_lookup (method);

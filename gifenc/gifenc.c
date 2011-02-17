@@ -530,14 +530,14 @@ gboolean
 gifenc_dither_rgb_with_full_image (guint8 *target, guint target_rowstride, 
     guint8 *full, guint full_rowstride,
     const GifencPalette *palette, const guint8 *data, guint width, guint height, 
-    guint rowstride, GdkRectangle *rect_out)
+    guint rowstride, cairo_rectangle_int_t *rect_out)
 {
   int x, y, c;
   gint *this_error, *next_error;
   guint8 this[3], alpha;
   gint err[3] = { 0, 0, 0 };
   guint32 pixel;
-  GdkRectangle area = { width, height, 0, 0 };
+  cairo_rectangle_int_t area = { width, height, 0, 0 };
   
   g_return_val_if_fail (palette != NULL, FALSE);
   g_return_val_if_fail (palette->alpha, FALSE);

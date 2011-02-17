@@ -39,9 +39,10 @@ byzanz_encoder_gstreamer_need_data (GstAppSrc *src, guint length, gpointer data)
   GstBuffer *buffer;
   cairo_t *cr;
   cairo_surface_t *surface;
-  GdkRegion *region;
+  cairo_region_t *region;
   GError *error = NULL;
   guint64 msecs;
+  int i, num_rects;
 
   if (!byzanz_deserialize (encoder->input_stream, &msecs, &surface, &region, encoder->cancellable, &error)) {
     gst_element_message_full (GST_ELEMENT (src), GST_MESSAGE_ERROR,
@@ -71,7 +72,15 @@ byzanz_encoder_gstreamer_need_data (GstAppSrc *src, guint length, gpointer data)
   }
   cr = cairo_create (gst->surface);
   cairo_set_source_surface (cr, surface, 0, 0);
-  gdk_cairo_region (cr, region);
+
+  num_rects = cairo_region_num_rectangles (region);
+  for (i = 0; i < num_rects; i++) {
+    cairo_rectangle_int_t rect;
+    cairo_region_get_rectangle (region, i, &rect);
+    cairo_rectangle (cr, rect.x, rect.y,
+                     rect.width, rect.height);
+  }
+
   cairo_fill (cr);
   cairo_destroy (cr);
 

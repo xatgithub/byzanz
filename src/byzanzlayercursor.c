@@ -30,7 +30,7 @@ G_DEFINE_TYPE (ByzanzLayerCursor, byzanz_layer_cursor, BYZANZ_TYPE_LAYER)
 static void
 byzanz_layer_cursor_read_cursor (ByzanzLayerCursor *clayer)
 {
-  Display *dpy = gdk_x11_drawable_get_xdisplay (BYZANZ_LAYER (clayer)->recorder->window);
+  Display *dpy = GDK_DISPLAY_XDISPLAY (gdk_window_get_display (BYZANZ_LAYER (clayer)->recorder->window));
 
   clayer->cursor_next = XFixesGetCursorImage (dpy);
   if (clayer->cursor_next)
@@ -86,9 +86,9 @@ byzanz_layer_cursor_setup_poll (ByzanzLayerCursor *clayer)
 }
 
 static void
-byzanz_recorder_invalidate_cursor (GdkRegion *region, XFixesCursorImage *cursor, int x, int y)
+byzanz_recorder_invalidate_cursor (cairo_region_t *region, XFixesCursorImage *cursor, int x, int y)
 {
-  GdkRectangle cursor_rect;
+  cairo_rectangle_int_t cursor_rect;
 
   if (cursor == NULL)
     return;
@@ -98,14 +98,14 @@ byzanz_recorder_invalidate_cursor (GdkRegion *region, XFixesCursorImage *cursor,
   cursor_rect.width = cursor->width;
   cursor_rect.height = cursor->height;
 
-  gdk_region_union_with_rect (region, &cursor_rect);
+  cairo_region_union_rectangle (region, &cursor_rect);
 }
 
-static GdkRegion *
+static cairo_region_t *
 byzanz_layer_cursor_snapshot (ByzanzLayer *layer)
 {
   ByzanzLayerCursor *clayer = BYZANZ_LAYER_CURSOR (layer);
-  GdkRegion *region, *area;
+  cairo_region_t *region, *area;
   int x, y;
   
   gdk_window_get_pointer (layer->recorder->window, &x, &y, NULL);
@@ -114,12 +114,12 @@ byzanz_layer_cursor_snapshot (ByzanzLayer *layer)
       clayer->cursor_next == clayer->cursor)
     return NULL;
 
-  region = gdk_region_new ();
+  region = cairo_region_create ();
   byzanz_recorder_invalidate_cursor (region, clayer->cursor, clayer->cursor_x, clayer->cursor_y);
   byzanz_recorder_invalidate_cursor (region, clayer->cursor_next, x, y);
-  area = gdk_region_rectangle (&layer->recorder->area);
-  gdk_region_intersect (region, area);
-  gdk_region_destroy (area);
+  area = cairo_region_create_rectangle (&layer->recorder->area);
+  cairo_region_intersect (region, area);
+  cairo_region_destroy (area);
 
   clayer->cursor = clayer->cursor_next;
   clayer->cursor_x = x;
@@ -168,9 +168,9 @@ byzanz_layer_cursor_finalize (GObject *object)
 {
   ByzanzLayerCursor *clayer = BYZANZ_LAYER_CURSOR (object);
   GdkWindow *window = BYZANZ_LAYER (object)->recorder->window;
-  Display *dpy = gdk_x11_drawable_get_xdisplay (window);
+  Display *dpy = GDK_DISPLAY_XDISPLAY (gdk_window_get_display (window));
 
-  XFixesSelectCursorInput (dpy, gdk_x11_drawable_get_xid (window), 0);
+  XFixesSelectCursorInput (dpy, GDK_WINDOW_XID (window), 0);
 
   g_hash_table_destroy (clayer->cursors);
 
@@ -186,9 +186,9 @@ byzanz_layer_cursor_constructed (GObject *object)
 {
   ByzanzLayerCursor *clayer = BYZANZ_LAYER_CURSOR (object);
   GdkWindow *window = BYZANZ_LAYER (object)->recorder->window;
-  Display *dpy = gdk_x11_drawable_get_xdisplay (window);
+  Display *dpy = GDK_DISPLAY_XDISPLAY (gdk_window_get_display (window));
 
-  XFixesSelectCursorInput (dpy, gdk_x11_drawable_get_xid (window), XFixesDisplayCursorNotifyMask);
+  XFixesSelectCursorInput (dpy, GDK_WINDOW_XID (window), XFixesDisplayCursorNotifyMask);
   byzanz_layer_cursor_read_cursor (clayer);
   byzanz_layer_cursor_setup_poll (clayer);
 

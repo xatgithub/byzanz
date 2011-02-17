@@ -76,7 +76,7 @@ struct _ByzanzEncoderClass {
 						 GOutputStream *	stream,
                                                  guint64                msecs,
 						 cairo_surface_t *	surface,
-						 const GdkRegion *	region,
+						 const cairo_region_t *	region,
                                                  GCancellable *         cancellable,
 						 GError **		error);
   gboolean		(* close)		(ByzanzEncoder *	encoder,
@@ -96,7 +96,7 @@ ByzanzEncoder *	byzanz_encoder_new		(GType                  encoder_type,
 /*
 void		byzanz_encoder_process		(ByzanzEncoder *	encoder,
 						 cairo_surface_t *	surface,
-						 const GdkRegion *	region,
+						 const cairo_region_t *	region,
 						 const GTimeVal *	total_elapsed);
 void		byzanz_encoder_close		(ByzanzEncoder *	encoder,
 						 const GTimeVal *	total_elapsed);

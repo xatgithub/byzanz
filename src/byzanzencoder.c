@@ -31,7 +31,7 @@ typedef struct _ByzanzEncoderJob ByzanzEncoderJob;
 struct _ByzanzEncoderJob {
   GTimeVal		tv;		/* time this job was enqueued */
   cairo_surface_t *	surface;	/* image to process */
-  GdkRegion *		region;		/* relevant region of image */
+  cairo_region_t *	region;		/* relevant region of image */
 };
 
 static void
@@ -40,7 +40,7 @@ byzanz_encoder_job_free (ByzanzEncoderJob *job)
   if (job->surface)
     cairo_surface_destroy (job->surface);
   if (job->region)
-    gdk_region_destroy (job->region);
+    cairo_region_destroy (job->region);
 
   g_slice_free (ByzanzEncoderJob, job);
 }
@@ -80,7 +80,7 @@ byzanz_encoder_run (ByzanzEncoder * encoder,
   ByzanzEncoderClass *klass = BYZANZ_ENCODER_GET_CLASS (encoder);
   guint width, height;
   cairo_surface_t *surface;
-  GdkRegion *region;
+  cairo_region_t *region;
   guint64 msecs;
   gboolean success;
 
@@ -107,7 +107,7 @@ byzanz_encoder_run (ByzanzEncoder * encoder,
     /* decode */
     success = klass->process (encoder, output, msecs, surface, region, cancellable, error);
     cairo_surface_destroy (surface);
-    gdk_region_destroy (region);
+    cairo_region_destroy (region);
     if (!success)
       return FALSE;
   }
@@ -349,7 +349,7 @@ byzanz_encoder_new (GType           encoder_type,
 void
 byzanz_encoder_process (ByzanzEncoder *	 encoder,
 		        cairo_surface_t *surface,
-			const GdkRegion *region,
+			const cairo_region_t *region,
 			const GTimeVal * total_elapsed)
 {
   ByzanzEncoderJob *job;
@@ -364,7 +364,7 @@ byzanz_encoder_process (ByzanzEncoder *	 encoder,
 
   job = g_slice_new (ByzanzEncoderJob);
   job->surface = cairo_surface_reference (surface);
-  job->region = gdk_region_copy (region);
+  job->region = cairo_region_copy (region);
   job->tv = *total_elapsed;
 
   g_async_queue_push (encoder->jobs, job);

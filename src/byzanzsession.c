@@ -105,7 +105,7 @@ byzanz_session_set_property (GObject *object, guint param_id, const GValue *valu
       session->file = g_value_dup_object (value);
       break;
     case PROP_AREA:
-      session->area = *(GdkRectangle *) g_value_get_boxed (value);
+      session->area = *(cairo_rectangle_int_t *) g_value_get_boxed (value);
       break;
     case PROP_WINDOW:
       session->window = g_value_dup_object (value);
@@ -185,11 +185,11 @@ byzanz_session_elapsed (ByzanzSession *session, const GTimeVal *tv)
 }
 
 static void
-byzanz_session_recorder_image_cb (ByzanzRecorder *  recorder,
-                                  cairo_surface_t * surface,
-                                  const GdkRegion * region,
-                                  const GTimeVal *  tv,
-                                  ByzanzSession *   session)
+byzanz_session_recorder_image_cb (ByzanzRecorder *       recorder,
+                                  cairo_surface_t *      surface,
+                                  const cairo_region_t * region,
+                                  const GTimeVal *       tv,
+                                  ByzanzSession *        session)
 {
   GOutputStream *stream;
   GError *error = NULL;
@@ -328,7 +328,7 @@ byzanz_session_init (ByzanzSession *session)
  **/
 ByzanzSession *
 byzanz_session_new (GFile *file, GType encoder_type, 
-    GdkWindow *window, const GdkRectangle *area, gboolean record_cursor,
+    GdkWindow *window, const cairo_rectangle_int_t *area, gboolean record_cursor,
     gboolean record_audio)
 {
   g_return_val_if_fail (G_IS_FILE (file), NULL);

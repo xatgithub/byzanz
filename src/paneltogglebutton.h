@@ -22,7 +22,7 @@
 #ifndef __PANEL_TOGGLE_BUTTON_H__
 #define __PANEL_TOGGLE_BUTTON_H__
 
-#include <gtk/gtktogglebutton.h>
+#include <gtk/gtk.h>
 
 G_BEGIN_DECLS
 

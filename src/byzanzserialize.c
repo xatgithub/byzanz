@@ -106,22 +106,22 @@ byzanz_deserialize_header (GInputStream * stream,
 } 
 
 gboolean
-byzanz_serialize (GOutputStream *   stream,
-                  guint64           msecs,
-                  cairo_surface_t * surface,
-                  const GdkRegion * region,
-                  GCancellable *    cancellable,
-                  GError **         error)
+byzanz_serialize (GOutputStream *        stream,
+                  guint64                msecs,
+                  cairo_surface_t *      surface,
+                  const cairo_region_t * region,
+                  GCancellable *         cancellable,
+                  GError **              error)
 {
   guint i, stride;
-  GdkRectangle *rects, extents;
+  cairo_rectangle_int_t rect, extents;
   guchar *data;
   guint32 n;
   int y, n_rects;
 
   g_return_val_if_fail (G_IS_OUTPUT_STREAM (stream), FALSE);
   g_return_val_if_fail ((surface == NULL) == (region == NULL), FALSE);
-  g_return_val_if_fail (region == NULL || !gdk_region_empty (region), FALSE);
+  g_return_val_if_fail (region == NULL || !cairo_region_is_empty (region), FALSE);
 
   if (!g_output_stream_write_all (stream, &msecs, sizeof (guint64), NULL, cancellable, error))
     return FALSE;
@@ -131,51 +131,48 @@ byzanz_serialize (GOutputStream *   stream,
     return g_output_stream_write_all (stream, &n, sizeof (guint32), NULL, cancellable, error);
   }
 
-  gdk_region_get_rectangles (region, &rects, &n_rects);
-  n = n_rects;
+  n = n_rects = cairo_region_num_rectangles (region);
   if (!g_output_stream_write_all (stream, &n, sizeof (guint32), NULL, cancellable, error))
-    goto fail;
+    return FALSE;
   for (i = 0; i < n; i++) {
-    gint32 ints[4] = { rects[i].x, rects[i].y, rects[i].width, rects[i].height };
+    gint32 ints[4];
+    cairo_region_get_rectangle (region, i, &rect);
+    ints[0] = rect.x, ints[1] = rect.y, ints[2] = rect.width, ints[3] = rect.height;
 
     g_assert (sizeof (ints) == 16);
     if (!g_output_stream_write_all (stream, ints, sizeof (ints), NULL, cancellable, error))
-      goto fail;
+      return FALSE;
   }
 
   stride = cairo_image_surface_get_stride (surface);
-  gdk_region_get_clipbox (region, &extents);
+  cairo_region_get_extents (region, &extents);
   for (i = 0; i < n; i++) {
+    cairo_region_get_rectangle (region, i, &rect);
     data = cairo_image_surface_get_data (surface) 
-      + stride * (rects[i].y - extents.y) 
-      + sizeof (guint32) * (rects[i].x - extents.x);
-    for (y = 0; y < rects[i].height; y++) {
+      + stride * (rect.y - extents.y) 
+      + sizeof (guint32) * (rect.x - extents.x);
+    for (y = 0; y < rect.height; y++) {
       if (!g_output_stream_write_all (G_OUTPUT_STREAM (stream), data, 
-            rects[i].width * sizeof (guint32), NULL, cancellable, error))
-        goto fail;
+            rect.width * sizeof (guint32), NULL, cancellable, error))
+        return FALSE;
       data += stride;
     }
   }
 
-  g_free (rects);
   return TRUE;
-
-fail:
-  g_free (rects);
-  return FALSE;
 }
 
 gboolean
 byzanz_deserialize (GInputStream *     stream,
                     guint64 *          msecs_out,
                     cairo_surface_t ** surface_out,
-                    GdkRegion **       region_out,
+                    cairo_region_t **  region_out,
                     GCancellable *     cancellable,
                     GError **          error)
 {
   guint i, stride;
-  GdkRectangle extents, *rects;
-  GdkRegion *region;
+  cairo_rectangle_int_t extents, *rects;
+  cairo_region_t *region;
   cairo_surface_t *surface;
   guchar *data;
   guint32 n;
@@ -197,8 +194,8 @@ byzanz_deserialize (GInputStream *     stream,
     return TRUE;
   }
 
-  region = gdk_region_new ();
-  rects = g_new (GdkRectangle, n);
+  region = cairo_region_create ();
+  rects = g_new (cairo_rectangle_int_t, n);
   surface = NULL;
   for (i = 0; i < n; i++) {
     gint ints[4];
@@ -209,10 +206,10 @@ byzanz_deserialize (GInputStream *     stream,
     rects[i].y = ints[1];
     rects[i].width = ints[2];
     rects[i].height = ints[3];
-    gdk_region_union_with_rect (region, &rects[i]);
+    cairo_region_union_rectangle (region, &rects[i]);
   }
 
-  gdk_region_get_clipbox (region, &extents);
+  cairo_region_get_extents (region, &extents);
   surface = cairo_image_surface_create (CAIRO_FORMAT_RGB24, extents.width, extents.height);
   cairo_surface_set_device_offset (surface, -extents.x, -extents.y);
   stride = cairo_image_surface_get_stride (surface);
@@ -236,7 +233,7 @@ byzanz_deserialize (GInputStream *     stream,
 fail:
   if (surface)
     cairo_surface_destroy (surface);
-  gdk_region_destroy (region);
+  cairo_region_destroy (region);
   g_free (rects);
   return FALSE;
 }

@@ -30,7 +30,7 @@ const char *		byzanz_select_method_get_icon_name      (guint	                met
 const char *		byzanz_select_method_get_name	        (guint		        method);
 int			byzanz_select_method_lookup	        (const char *	        name);
 
-typedef void (* ByzanzSelectFunc) (GdkWindow *window, const GdkRectangle *area, gpointer data);
+typedef void (* ByzanzSelectFunc) (GdkWindow *window, const cairo_rectangle_int_t *area, gpointer data);
 void    		byzanz_select_method_select	        (guint		        method,
                                                                  ByzanzSelectFunc       func,
                                                                  gpointer               data);

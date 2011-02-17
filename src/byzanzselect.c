@@ -28,7 +28,7 @@
 #include "screenshot-utils.h"
 
 static void
-rectangle_sanitize (GdkRectangle *dest, const GdkRectangle *src)
+rectangle_sanitize (cairo_rectangle_int_t *dest, const cairo_rectangle_int_t *src)
 {
   *dest = *src;
   if (dest->width < 0) {
@@ -48,7 +48,7 @@ struct _ByzanzSelectData {
 
   /* results */
   GdkWindow *           result;         /* window that was selected */
-  GdkRectangle          area;           /* the area to select */
+  cairo_rectangle_int_t area;           /* the area to select */
 
   /* method data */
   GtkWidget *           window;         /* window we created to do selecting or NULL */
@@ -91,7 +91,7 @@ byzanz_select_done (ByzanzSelectData *data, GdkWindow *window)
 
   if (window) {
     /* stupid hack to get around a session recording the selection window */
-    gdk_display_sync (gdk_drawable_get_display (GDK_DRAWABLE (window)));
+    gdk_display_sync (gdk_window_get_display (window));
     data->result = g_object_ref (window);
     gdk_threads_add_timeout (1000, byzanz_select_really_done, data);
   } else {
@@ -113,7 +113,7 @@ expose_cb (GtkWidget *widget, GdkEventExpose *event, gpointer datap)
   static double dashes[] = { 1.0, 2.0 };
 #endif
 
-  cr = gdk_cairo_create (widget->window);
+  cr = gdk_cairo_create (gtk_widget_get_window (widget));
   cairo_rectangle (cr, event->area.x, event->area.y, event->area.width, event->area.height);
   cairo_clip (cr);
 
@@ -140,11 +140,11 @@ expose_cb (GtkWidget *widget, GdkEventExpose *event, gpointer datap)
   cairo_stroke (cr);
 #endif
   if (data->area.x >= 0 && data->area.width != 0 && data->area.height != 0) {
-    GdkRectangle rect = data->area;
+    cairo_rectangle_int_t rect = data->area;
     rectangle_sanitize (&rect, &data->area);
     cairo_set_source_rgba (cr, 0.0, 0.0, 0.5, 0.2);
     cairo_set_dash (cr, NULL, 0, 0.0);
-    gdk_cairo_rectangle (cr, &rect);
+    gdk_cairo_rectangle (cr, (GdkRectangle *) &rect);
     cairo_fill (cr);
     cairo_set_source_rgba (cr, 0.0, 0.0, 0.5, 0.5);
     cairo_rectangle (cr, rect.x + 0.5, rect.y + 0.5, rect.width - 1, rect.height - 1);
@@ -199,7 +199,7 @@ motion_notify_cb (GtkWidget *widget, GdkEventMotion *event, gpointer datap)
   gtk_widget_queue_draw (widget);
 #else
   if (data->area.x >= 0) {
-    GdkRectangle rect;
+    cairo_rectangle_int_t rect;
     rectangle_sanitize (&rect, &data->area);
     gtk_widget_queue_draw_area (widget, rect.x, rect.y, rect.width, rect.height);
   }
@@ -207,7 +207,7 @@ motion_notify_cb (GtkWidget *widget, GdkEventMotion *event, gpointer datap)
   data->area.width = event->x - data->area.x;
   data->area.height = event->y - data->area.y;
   if (data->area.x >= 0) {
-    GdkRectangle rect;
+    cairo_rectangle_int_t rect;
     rectangle_sanitize (&rect, &data->area);
     gtk_widget_queue_draw_area (widget, rect.x, rect.y, rect.width, rect.height);
   }
@@ -218,7 +218,7 @@ motion_notify_cb (GtkWidget *widget, GdkEventMotion *event, gpointer datap)
 static void
 realize_cb (GtkWidget *widget, gpointer datap)
 {
-  GdkWindow *window = widget->window;
+  GdkWindow *window = gtk_widget_get_window (widget);
   GdkCursor *cursor;
 
   gdk_window_set_events (window, gdk_window_get_events (window) |
@@ -228,7 +228,7 @@ realize_cb (GtkWidget *widget, gpointer datap)
   cursor = gdk_cursor_new (GDK_CROSSHAIR);
   gdk_window_set_cursor (window, cursor);
   gdk_cursor_unref (cursor);
-  gdk_window_set_back_pixmap (window, NULL, FALSE);
+  gdk_window_set_background_pattern (window, NULL);
 }
 
 static void
@@ -247,21 +247,22 @@ active_cb (GtkWindow *window, GParamSpec *pspec, ByzanzSelectData *data)
 static void
 byzanz_select_area (ByzanzSelectData *data)
 {
-  GdkColormap *rgba;
+  GdkVisual *visual;
   
   data->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   data->area.x = -1;
   data->area.y = -1;
 
-  rgba = gdk_screen_get_rgba_colormap (gdk_screen_get_default ());
-  if (rgba && gdk_screen_is_composited (gdk_screen_get_default ())) {
-    gtk_widget_set_colormap (data->window, rgba);
+  visual = gdk_screen_get_rgba_visual (gdk_screen_get_default ());
+  if (visual && gdk_screen_is_composited (gdk_screen_get_default ())) {
+    gtk_widget_set_visual (data->window, visual);
   } else {
     GdkWindow *root = gdk_get_default_root_window ();
     cairo_t *cr;
     cairo_surface_t *root_surface;
     gint width, height;
-    gdk_drawable_get_size (root, &width, &height);
+    width = gdk_window_get_width (root);
+    height = gdk_window_get_height (root);
 
     cr = gdk_cairo_create (root);
     root_surface = cairo_surface_reference (cairo_get_target (cr));
@@ -294,7 +295,8 @@ byzanz_select_screen (ByzanzSelectData *data)
   GdkWindow *root;
   
   root = gdk_get_default_root_window ();
-  gdk_drawable_get_size (root, &data->area.width, &data->area.height);
+  data->area.width = gdk_window_get_width (root);
+  data->area.height = gdk_window_get_height (root);
   byzanz_select_done (data, root);
 }
 
@@ -312,12 +314,13 @@ select_window_button_pressed_cb (GtkWidget *widget, GdkEventButton *event, gpoin
 
     w = screenshot_find_current_window (TRUE);
     if (w != None)
-      window = gdk_window_foreign_new (w);
+      window = gdk_x11_window_foreign_new_for_display (gdk_display_get_default (), w);
     else
       window = gdk_get_default_root_window ();
 
     gdk_window_get_root_origin (window, &data->area.x, &data->area.y);
-    gdk_drawable_get_size (window, &data->area.width, &data->area.height);
+    data->area.width = gdk_window_get_width (window);
+    data->area.height = gdk_window_get_height (window);
     g_object_unref (window);
 
     window = gdk_get_default_root_window ();
@@ -338,7 +341,7 @@ byzanz_select_window (ByzanzSelectData *data)
   g_signal_connect (data->window, "button-press-event", 
       G_CALLBACK (select_window_button_pressed_cb), data);
   gtk_widget_show (data->window);
-  gdk_pointer_grab (data->window->window, FALSE, GDK_BUTTON_PRESS_MASK, NULL, cursor, GDK_CURRENT_TIME);
+  gdk_pointer_grab (gtk_widget_get_window (data->window), FALSE, GDK_BUTTON_PRESS_MASK, NULL, cursor, GDK_CURRENT_TIME);
   gdk_cursor_unref (cursor);
 }
   

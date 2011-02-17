@@ -41,7 +41,7 @@ struct _ByzanzEncoderGif {
   gboolean              has_quantized;  /* qantization has happened already */
   guint8 *              image_data;     /* width * height of encoded image */
 
-  GdkRectangle          cached_area;    /* area that is saved in cached_data */
+  cairo_rectangle_int_t cached_area;    /* area that is saved in cached_data */
   guint8 *              cached_data;    /* cached_area.{width x height} sized area of image */
   guint64               cached_time;    /* timestamp the cached image corresponds to */
 

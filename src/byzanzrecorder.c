@@ -48,13 +48,13 @@ enum {
 G_DEFINE_TYPE (ByzanzRecorder, byzanz_recorder, G_TYPE_OBJECT)
 static guint signals[LAST_SIGNAL] = { 0, };
 
-static GdkRegion *
+static cairo_region_t *
 byzanz_recorder_get_invalid_region (ByzanzRecorder *recorder)
 {
-  GdkRegion *invalid, *layer_invalid;
+  cairo_region_t *invalid, *layer_invalid;
   GSequenceIter *iter;
 
-  invalid = gdk_region_new ();
+  invalid = cairo_region_create ();
   for (iter = g_sequence_get_begin_iter (recorder->layers);
        !g_sequence_iter_is_end (iter);
        iter = g_sequence_iter_next (iter)) {
@@ -63,8 +63,8 @@ byzanz_recorder_get_invalid_region (ByzanzRecorder *recorder)
 
     layer_invalid = klass->snapshot (layer);
     if (layer_invalid) {
-      gdk_region_union (invalid, layer_invalid);
-      gdk_region_destroy (layer_invalid);
+      cairo_region_union (invalid, layer_invalid);
+      cairo_region_destroy (layer_invalid);
     }
   }
 
@@ -72,23 +72,32 @@ byzanz_recorder_get_invalid_region (ByzanzRecorder *recorder)
 }
 
 static cairo_surface_t *
-ensure_image_surface (cairo_surface_t *surface, const GdkRegion *region)
+ensure_image_surface (cairo_surface_t *surface, const cairo_region_t *region)
 {
-  GdkRectangle extents;
+  cairo_rectangle_int_t extents;
   cairo_surface_t *image;
   cairo_t *cr;
+  int i, num_rects;
 
   if (cairo_surface_get_type (surface) == CAIRO_SURFACE_TYPE_IMAGE)
     return surface;
 
-  gdk_region_get_clipbox (region, &extents);
+  cairo_region_get_extents (region, &extents);
   image = cairo_image_surface_create (CAIRO_FORMAT_RGB24, extents.width, extents.height);
   cairo_surface_set_device_offset (image, -extents.x, -extents.y);
 
   cr = cairo_create (image);
   cairo_set_source_surface (cr, surface, 0, 0);
   cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
-  gdk_cairo_region (cr, region);
+
+  num_rects = cairo_region_num_rectangles (region);
+  for (i = 0; i < num_rects; i++) {
+    cairo_rectangle_int_t rect;
+    cairo_region_get_rectangle (region, i, &rect);
+    cairo_rectangle (cr, rect.x, rect.y,
+                     rect.width, rect.height);
+  }
+
   cairo_fill (cr);
   cairo_destroy (cr);
 
@@ -97,14 +106,15 @@ ensure_image_surface (cairo_surface_t *surface, const GdkRegion *region)
 }
 
 static cairo_surface_t *
-byzanz_recorder_create_snapshot (ByzanzRecorder *recorder, const GdkRegion *invalid)
+byzanz_recorder_create_snapshot (ByzanzRecorder *recorder, const cairo_region_t *invalid)
 {
-  GdkRectangle extents;
+  cairo_rectangle_int_t extents;
   cairo_surface_t *surface;
   cairo_t *cr;
   GSequenceIter *iter;
+  int i, num_rects;
   
-  gdk_region_get_clipbox (invalid, &extents);
+  cairo_region_get_extents (invalid, &extents);
   cr = gdk_cairo_create (recorder->window);
   surface = cairo_surface_create_similar (cairo_get_target (cr), CAIRO_CONTENT_COLOR,
       extents.width, extents.height);
@@ -112,7 +122,15 @@ byzanz_recorder_create_snapshot (ByzanzRecorder *recorder, const GdkRegion *inva
   cairo_surface_set_device_offset (surface, -extents.x, -extents.y);
 
   cr = cairo_create (surface);
-  gdk_cairo_region (cr, invalid);
+
+  num_rects = cairo_region_num_rectangles (invalid);
+  for (i = 0; i < num_rects; i++) {
+    cairo_rectangle_int_t rect;
+    cairo_region_get_rectangle (invalid, i, &rect);
+    cairo_rectangle (cr, rect.x, rect.y,
+                     rect.width, rect.height);
+  }
+
   cairo_clip (cr);
 
   for (iter = g_sequence_get_begin_iter (recorder->layers);
@@ -157,7 +175,7 @@ static gboolean
 byzanz_recorder_snapshot (ByzanzRecorder *recorder)
 {
   cairo_surface_t *surface;
-  GdkRegion *invalid;
+  cairo_region_t *invalid;
   GTimeVal tv;
 
   if (!recorder->recording)
@@ -167,19 +185,19 @@ byzanz_recorder_snapshot (ByzanzRecorder *recorder)
     return FALSE;
 
   invalid = byzanz_recorder_get_invalid_region (recorder);
-  if (gdk_region_empty (invalid)) {
-    gdk_region_destroy (invalid);
+  if (cairo_region_is_empty (invalid)) {
+    cairo_region_destroy (invalid);
     return FALSE;
   }
 
   surface = byzanz_recorder_create_snapshot (recorder, invalid);
   g_get_current_time (&tv);
-  gdk_region_offset (invalid, -recorder->area.x, -recorder->area.y);
+  cairo_region_translate (invalid, -recorder->area.x, -recorder->area.y);
 
   g_signal_emit (recorder, signals[IMAGE], 0, surface, invalid, &tv);
 
   cairo_surface_destroy (surface);
-  gdk_region_destroy (invalid);
+  cairo_region_destroy (invalid);
 
   recorder->next_image_source = gdk_threads_add_timeout_full (G_PRIORITY_HIGH_IDLE,
       BYZANZ_RECORDER_FRAME_RATE_MS, byzanz_recorder_next_image, recorder, NULL);
@@ -254,7 +272,7 @@ byzanz_recorder_set_property (GObject *object, guint param_id, const GValue *val
       byzanz_recorder_set_window (recorder, g_value_get_object (value));
       break;
     case PROP_AREA:
-      recorder->area = *(GdkRectangle *) g_value_get_boxed (value);
+      recorder->area = *(cairo_rectangle_int_t *) g_value_get_boxed (value);
       break;
     case PROP_RECORDING:
       byzanz_recorder_set_recording (recorder, g_value_get_boolean (value));
@@ -362,7 +380,7 @@ byzanz_recorder_init (ByzanzRecorder *recorder)
 }
 
 ByzanzRecorder *
-byzanz_recorder_new (GdkWindow *window, GdkRectangle *area)
+byzanz_recorder_new (GdkWindow *window, cairo_rectangle_int_t *area)
 {
   g_return_val_if_fail (GDK_IS_WINDOW (window), NULL);
   g_return_val_if_fail (area != NULL, NULL);

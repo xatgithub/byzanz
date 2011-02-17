@@ -43,7 +43,7 @@ struct _ByzanzSession {
   /*< private >*/
   /* properties */
   GFile *               file;           /* file we're saving to */
-  GdkRectangle          area;           /* area of window to record */
+  cairo_rectangle_int_t area;           /* area of window to record */
   GdkWindow *           window;         /* window to record */
   gboolean              record_audio;   /* TRUE to record audio */
   GType                 encoder_type;   /* type of encoder to use */
@@ -64,12 +64,12 @@ struct _ByzanzSessionClass {
 GType		        byzanz_session_get_type		(void) G_GNUC_CONST;
 
 
-ByzanzSession * 	byzanz_session_new		(GFile *                file,
-                                                         GType                  encoder_type,
-							 GdkWindow *		window,
-							 const GdkRectangle *	area,
-							 gboolean		record_cursor,
-                                                         gboolean               record_audio);
+ByzanzSession * 	byzanz_session_new		(GFile *                        file,
+                                                         GType                          encoder_type,
+							 GdkWindow *		        window,
+							 const cairo_rectangle_int_t *	area,
+							 gboolean		        record_cursor,
+                                                         gboolean                       record_audio);
 void			byzanz_session_start		(ByzanzSession *	session);
 void			byzanz_session_stop		(ByzanzSession *	session);
 void			byzanz_session_abort            (ByzanzSession *	session);

@@ -42,13 +42,13 @@ byzanz_encoder_byzanz_setup (ByzanzEncoder * encoder,
 }
 
 static gboolean
-byzanz_encoder_byzanz_process (ByzanzEncoder *   encoder,
-                               GOutputStream *   stream,
-                               guint64           msecs,
-                               cairo_surface_t * surface,
-                               const GdkRegion * region,
-                               GCancellable *    cancellable,
-                               GError **	 error)
+byzanz_encoder_byzanz_process (ByzanzEncoder *        encoder,
+                               GOutputStream *        stream,
+                               guint64                msecs,
+                               cairo_surface_t *      surface,
+                               const cairo_region_t * region,
+                               GCancellable *         cancellable,
+                               GError **	      error)
 {
   return byzanz_serialize (stream, msecs, surface, region, cancellable, error);
 }

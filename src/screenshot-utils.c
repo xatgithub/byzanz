@@ -23,7 +23,7 @@ get_atom_property (Window  xwindow,
   
   gdk_error_trap_push ();
   type = None;
-  result = XGetWindowProperty (gdk_display,
+  result = XGetWindowProperty (GDK_DISPLAY_XDISPLAY (gdk_display_get_default ()),
 			       xwindow,
 			       atom,
 			       0, G_MAXLONG,
@@ -56,7 +56,7 @@ find_toplevel_window (Window xid)
 
   do
     {
-      if (XQueryTree (GDK_DISPLAY (), xid, &root,
+      if (XQueryTree (GDK_DISPLAY_XDISPLAY (gdk_display_get_default ()), xid, &root,
 		      &parent, &children, &nchildren) == 0)
 	{
 	  g_warning ("Couldn't find window manager window");
@@ -79,7 +79,8 @@ screenshot_window_is_desktop (Window xid)
   if (xid == root_window)
     return TRUE;
 
-  if (gdk_net_wm_supports (gdk_atom_intern ("_NET_WM_WINDOW_TYPE", FALSE)))
+  if (gdk_x11_screen_supports_net_wm_hint (gdk_screen_get_default (),
+                                           gdk_atom_intern ("_NET_WM_WINDOW_TYPE", FALSE)))
     {
       gboolean retval;
       Atom property;
@@ -106,7 +107,7 @@ screenshot_find_pointer_window (void)
 
   root_window = GDK_ROOT_WINDOW ();
 
-  XQueryPointer (GDK_DISPLAY (), root_window,
+  XQueryPointer (GDK_DISPLAY_XDISPLAY (gdk_display_get_default ()), root_window,
 		 &root_return, &child, &unused,
 		 &unused, &unused, &unused, &mask);
 
@@ -128,7 +129,8 @@ look_for_hint_helper (Window    xid,
   Window root, parent, *children, window;
   guint nchildren, i;
 
-  if (XGetWindowProperty (GDK_DISPLAY (), xid, property, 0, 1,
+  if (XGetWindowProperty (GDK_DISPLAY_XDISPLAY (gdk_display_get_default ()),
+                          xid, property, 0, 1,
 			  False, AnyPropertyType, &actual_type,
 			  &actual_format, &nitems, &bytes_after,
 			  (gpointer) &prop) == Success
@@ -144,7 +146,7 @@ look_for_hint_helper (Window    xid,
 
   if (depth < MAXIMUM_WM_REPARENTING_DEPTH)
     {
-      if (XQueryTree (GDK_DISPLAY (), xid, &root,
+      if (XQueryTree (GDK_DISPLAY_XDISPLAY (gdk_display_get_default ()), xid, &root,
 		      &parent, &children, &nchildren) != 0)
 	{
 	  window = None;

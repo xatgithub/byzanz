@@ -38,7 +38,7 @@ typedef struct _ByzanzLayerWindowClass ByzanzLayerWindowClass;
 struct _ByzanzLayerWindow {
   ByzanzLayer           layer;
 
-  GdkRegion *           invalid;                /* TRUE if we need to repaint */
+  cairo_region_t *      invalid;                /* TRUE if we need to repaint */
   Damage		damage;		        /* the Damage object */
 };
 

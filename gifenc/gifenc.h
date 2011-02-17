@@ -99,16 +99,16 @@ void		gifenc_dither_rgb	(guint8 *		target,
 					 guint			height,
 					 guint			rowstride);
 gboolean	gifenc_dither_rgb_with_full_image
-					(guint8 *		target,
-					 guint			target_rowstride,
-					 guint8 *		full,
-					 guint			full_rowstride,
-					 const GifencPalette *	palette,
-					 const guint8 *		data,
-					 guint			width,
-					 guint			height,
-					 guint			rowstride,
-					 GdkRectangle *		rect_out);
+					(guint8 *		 target,
+					 guint			 target_rowstride,
+					 guint8 *		 full,
+					 guint			 full_rowstride,
+					 const GifencPalette *	 palette,
+					 const guint8 *		 data,
+					 guint			 width,
+					 guint			 height,
+					 guint			 rowstride,
+					 cairo_rectangle_int_t * rect_out);
 
 /* from quantize.c */
 void		gifenc_palette_free	(GifencPalette *	palette);

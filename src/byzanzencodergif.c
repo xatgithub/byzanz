@@ -109,16 +109,16 @@ byzanz_encoder_write_image (ByzanzEncoderGif *gif, guint64 msecs, GError **error
 }
 
 static gboolean
-byzanz_encoder_gif_encode_image (ByzanzEncoderGif * gif,
-                                 cairo_surface_t *  surface,
-                                 const GdkRegion *  region,
-                                 GdkRectangle *     area_out)
+byzanz_encoder_gif_encode_image (ByzanzEncoderGif *      gif,
+                                 cairo_surface_t *       surface,
+                                 const cairo_region_t *  region,
+                                 cairo_rectangle_int_t * area_out)
 {
-  GdkRectangle extents, area, *rects;
+  cairo_rectangle_int_t extents, area, rect;
   guint8 transparent;
   guint i, n_rects, stride, width;
 
-  gdk_region_get_clipbox (region, &extents);
+  cairo_region_get_extents (region, &extents);
   transparent = gifenc_palette_get_alpha_index (gif->gifenc->palette);
   stride = cairo_image_surface_get_stride (surface);
   width = gifenc_get_width (gif->gifenc);
@@ -130,32 +130,32 @@ byzanz_encoder_gif_encode_image (ByzanzEncoderGif * gif,
   }
 
   /* render changed parts */
-  gdk_region_get_rectangles (region, &rects, (int *) &n_rects);
-  memset (area_out, 0, sizeof (GdkRectangle));
+  n_rects = cairo_region_num_rectangles (region);
+  memset (area_out, 0, sizeof (cairo_rectangle_int_t));
   for (i = 0; i < n_rects; i++) {
+    cairo_region_get_rectangle (region, i, &rect);
     if (gifenc_dither_rgb_with_full_image (
-          gif->cached_tmp + width * rects[i].y + rects[i].x, width,
-	  gif->image_data + width * rects[i].y + rects[i].x, width, 
+          gif->cached_tmp + width * rect.y + rect.x, width,
+	  gif->image_data + width * rect.y + rect.x, width, 
 	  gif->gifenc->palette, 
-          cairo_image_surface_get_data (surface) + (rects[i].x - extents.x) * 4
-              + (rects[i].y - extents.y) * stride,
-          rects[i].width, rects[i].height, stride, &area)) {
-      area.x += rects[i].x;
-      area.y += rects[i].y;
+          cairo_image_surface_get_data (surface) + (rect.x - extents.x) * 4
+              + (rect.y - extents.y) * stride,
+          rect.width, rect.height, stride, &area)) {
+      area.x += rect.x;
+      area.y += rect.y;
       if (area_out->width > 0 && area_out->height > 0)
-        gdk_rectangle_union (area_out, &area, area_out);
+        gdk_rectangle_union ((const GdkRectangle*)area_out, (const GdkRectangle*) &area, (GdkRectangle*)area_out);
       else
         *area_out = area;
     }
   }
-  g_free (rects);
 
   return area_out->width > 0 && area_out->height > 0;
 }
 
 static void
-byzanz_encoder_swap_image (ByzanzEncoderGif * gif,
-                           GdkRectangle *     area)
+byzanz_encoder_swap_image (ByzanzEncoderGif *      gif,
+                           cairo_rectangle_int_t * area)
 {
   guint8 *swap;
 
@@ -166,16 +166,16 @@ byzanz_encoder_swap_image (ByzanzEncoderGif * gif,
 }
 
 static gboolean
-byzanz_encoder_gif_process (ByzanzEncoder *   encoder,
-                            GOutputStream *   stream,
-                            guint64           msecs,
-                            cairo_surface_t * surface,
-                            const GdkRegion * region,
-                            GCancellable *    cancellable,
-                            GError **	      error)
+byzanz_encoder_gif_process (ByzanzEncoder *        encoder,
+                            GOutputStream *        stream,
+                            guint64                msecs,
+                            cairo_surface_t *      surface,
+                            const cairo_region_t * region,
+                            GCancellable *         cancellable,
+                            GError **	           error)
 {
   ByzanzEncoderGif *gif = BYZANZ_ENCODER_GIF (encoder);
-  GdkRectangle area;
+  cairo_rectangle_int_t area;
 
   if (!gif->has_quantized) {
     if (!byzanz_encoder_gif_quantize (gif, surface, error))
