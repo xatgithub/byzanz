@@ -361,9 +361,8 @@ gifenc_quantize_image (const guint8 *data, guint width, guint height,
   info.tree->color = (guint) -2; /* special node */
 
   if (TRUE) {
-    guint r, g, b, count;
+    guint r, g, b;
     static const guint8 colors[] = { 0, 85, 170, 255 };
-    count = (width * height) / (4 * 4 * 4);
     for (r = 0; r < 4; r++) {
       for (g = 0; g < 4; g++) {
 	for (b = 0; b < 4; b++) {
