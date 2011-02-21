@@ -14,6 +14,7 @@ noinst_HEADERS = \
 	byzanzencodergif.h \
 	byzanzencodergstreamer.h \
 	byzanzencoderogv.h \
+	byzanzencoderwebm.h \
 	byzanzlayer.h \
 	byzanzlayercursor.h \
 	byzanzlayerwindow.h \
@@ -34,6 +35,7 @@ libbyzanz_la_SOURCES = \
 	byzanzencodergif.c \
 	byzanzencodergstreamer.c \
 	byzanzencoderogv.c \
+	byzanzencoderwebm.c \
 	byzanzlayer.c \
 	byzanzlayercursor.c \
 	byzanzlayerwindow.c \
