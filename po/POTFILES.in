@@ -8,6 +8,7 @@ src/byzanzencoderflv.c
 src/byzanzencodergif.c
 src/byzanzencodergstreamer.c
 src/byzanzencoderogv.c
+src/byzanzencoderwebm.c
 src/byzanzlayer.c
 src/byzanzlayercursor.c
 src/byzanzlayerwindow.c
