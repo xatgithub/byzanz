@@ -97,22 +97,10 @@ byzanz_layer_window_snapshot (ByzanzLayer *layer)
   return region;
 }
 
-#if CAIRO_VERSION < CAIRO_VERSION_ENCODE (1, 8, 8)
-  /* This fix is for RHEL6 only */
-static void
-byzanz_layer_window_render (ByzanzLayer *layer,
-                            cairo_t *    cr)
-{
-  cairo_t *tmp;
-
-  byzanz_cairo_set_source_window (cr, layer->recorder->window, 0, 0);
-  cairo_paint (cr);
-}
-#else
 static void
 byzanz_cairo_set_source_window (cairo_t *cr, GdkWindow *window, double x, double y)
 {
-#if CAIRO_VERSION < CAIRO_VERSION_ENCODE (1, 80, 10)
+#if CAIRO_VERSION < CAIRO_VERSION_ENCODE (1, 8, 10)
   /* This fix is for RHEL6 only */
   {
     static const cairo_user_data_key_t key;
@@ -162,7 +150,6 @@ byzanz_layer_window_render (ByzanzLayer *layer,
   byzanz_cairo_set_source_window (cr, layer->recorder->window, 0, 0);
   cairo_paint (cr);
 }
-#endif
 
 static void
 byzanz_layer_window_finalize (GObject *object)
