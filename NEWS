@@ -1,3 +1,11 @@
+0.2.3
+=====
+ Features:
+ - WebM support
+ - Updated translations
+ Bugfixes:
+ - Fix compile on 64bit machines
+
 0.2.2
 =====
  Features:
