@@ -23,6 +23,7 @@
 
 #include "byzanzlayerwindow.h"
 
+#include <math.h>
 #include <gdk/gdkx.h>
 
 G_DEFINE_TYPE (ByzanzLayerWindow, byzanz_layer_window, BYZANZ_TYPE_LAYER)
@@ -96,14 +97,62 @@ byzanz_layer_window_snapshot (ByzanzLayer *layer)
   return region;
 }
 
+#if CAIRO_VERSION < CAIRO_VERSION_ENCODE (1, 8, 8)
+  /* This fix is for RHEL6 only */
+static void
+byzanz_layer_window_render (ByzanzLayer *layer,
+                            cairo_t *    cr)
+{
+  cairo_t *tmp;
+
+  byzanz_cairo_set_source_window (cr, layer->recorder->window, 0, 0);
+  cairo_paint (cr);
+}
+#else
 static void
 byzanz_cairo_set_source_window (cairo_t *cr, GdkWindow *window, double x, double y)
 {
+#if CAIRO_VERSION < CAIRO_VERSION_ENCODE (1, 80, 10)
+  /* This fix is for RHEL6 only */
+  {
+    static const cairo_user_data_key_t key;
+    double x1, y1_, x2, y2;
+    int w, h;
+    GdkPixmap *pixmap;
+    GdkGC *gc;
+    
+    cairo_clip_extents (cr, &x1, &y1_, &x2, &y2);
+    gdk_drawable_get_size (window, &w, &h);
+    
+    x1 = floor (x1);
+    y1_ = floor (y1_);
+    x2 = floor (x2);
+    y2 = floor (y2);
+    x1 = MAX (x1, 0);
+    y1_ = MAX (y1_, 0);
+    x2 = MIN (x2, w);
+    y2 = MIN (y2, h);
+
+    pixmap = gdk_pixmap_new (window, x2 - x1, y2 - y1_, -1);
+    gc = gdk_gc_new (pixmap);
+    gdk_gc_set_subwindow (gc, GDK_INCLUDE_INFERIORS);
+
+    gdk_draw_drawable (pixmap, gc, window,
+                       x1, y1_,
+                       0, 0,
+                       x2 - x1, y2 - y1_);
+    gdk_cairo_set_source_pixmap (cr, pixmap, x1, y1_);
+
+    g_object_unref (gc);
+    cairo_set_user_data (cr, &key, pixmap, g_object_unref);
+  }
+#else
   cairo_t *tmp;
 
   tmp = gdk_cairo_create (window);
   cairo_set_source_surface (cr, cairo_get_target (tmp), x, y);
   cairo_destroy (tmp);
+#endif
 }
 
 static void
@@ -113,6 +162,7 @@ byzanz_layer_window_render (ByzanzLayer *layer,
   byzanz_cairo_set_source_window (cr, layer->recorder->window, 0, 0);
   cairo_paint (cr);
 }
+#endif
 
 static void
 byzanz_layer_window_finalize (GObject *object)
