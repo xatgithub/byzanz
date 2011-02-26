@@ -5,16 +5,19 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Byzanz\n"
+"Project-Id-Version: byzanz master\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=byzanz&component=general\n"
-"POT-Creation-Date: 2010-02-20 11:13+0000\n"
-"PO-Revision-Date: 2010-02-21 13:34+0100\n"
+"POT-Creation-Date: 2011-02-21 18:35+0000\n"
+"PO-Revision-Date: 2011-02-26 21:05+0100\n"
 "Last-Translator: Mario Blättermann <mariobl@gnome.org>\n"
-"Language-Team: German <de@li.org>\n"
+"Language-Team: German <gnome-de@gnome.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"X-Poedit-Language: German\n"
+"X-Poedit-Country: GERMANY\n"
 
 #: ../src/byzanz.schemas.in.h:1
 msgid ""
@@ -25,7 +28,7 @@ msgstr ""
 "das Format es unterstützt. Dies erlaubt Erläuterungen während der "
 "Aufzeichnung."
 
-#: ../src/byzanz.schemas.in.h:2 ../src/byzanzapplet.c:294 ../src/record.c:40
+#: ../src/byzanz.schemas.in.h:2 ../src/byzanzapplet.c:292 ../src/record.c:40
 msgid "Record audio"
 msgstr "Ton aufzeichnen"
 
@@ -49,48 +52,48 @@ msgid ""
 "\" to select a window."
 msgstr ""
 "Diese Methode als Standard-Aufnahmemethode benutzen. Muss einer der Werte "
-"»screen« zur Aufnahme des ganzen Bildschirms, »area« zur Auswahl eines Bereichs "
-"oder »window« zur Auswahl eines Fensters sein."
+"»screen« zur Aufnahme des ganzen Bildschirms, »area« zur Auswahl eines "
+"Bereichs oder »window« zur Auswahl eines Fensters sein."
 
-#: ../src/byzanzapplet.c:103 ../src/byzanzapplet.c:268
+#: ../src/byzanzapplet.c:102 ../src/byzanzapplet.c:266
 msgid "Record your desktop"
 msgstr "Aufzeichnen Ihrer Arbeitsfläche"
 
-#: ../src/byzanzapplet.c:104
+#: ../src/byzanzapplet.c:103
 msgid "Select area to record"
 msgstr "Bereich zur Aufzeichnung auswählen"
 
-#: ../src/byzanzapplet.c:105
+#: ../src/byzanzapplet.c:104
 msgid "End current recording"
 msgstr "Aktuelle Aufzeichnung beenden"
 
-#: ../src/byzanzapplet.c:106
+#: ../src/byzanzapplet.c:105
 msgid "Abort encoding of recording"
 msgstr "Enkodierung der Aufzeichnung abbrechen"
 
-#: ../src/byzanzapplet.c:278
+#: ../src/byzanzapplet.c:276
 msgid "All files"
 msgstr "Alle Dateien"
 
-#: ../src/byzanzapplet.c:368
+#: ../src/byzanzapplet.c:366
 msgid "Desktop Session"
 msgstr "Desktop-Sitzung"
 
-#: ../src/byzanzapplet.c:371 ../src/ByzanzApplet.server.in.in.h:3
+#: ../src/byzanzapplet.c:369
 msgid "Record what's happening on your desktop"
 msgstr "Zeichnen Sie auf, was auf Ihrem Desktop passiert"
 
-#: ../src/byzanzapplet.c:373
+#: ../src/byzanzapplet.c:371
 msgid "translator-credits"
 msgstr ""
 "Benjamin Otte <otte@gnome.org>\n"
 "Mario Blättermann <mariobl@gnome.org>"
 
-#: ../src/byzanzapplet.xml.h:1
+#: ../src/byzanzapplet.c:376
 msgid "_About"
 msgstr "_Info"
 
-#: ../src/byzanzencoder.c:89 ../src/byzanzencodergstreamer.c:118
+#: ../src/byzanzencoder.c:89 ../src/byzanzencodergstreamer.c:127
 msgid "This format does not support recording audio."
 msgstr "Dieses Format unterstützt keine Tonaufzeichnung."
 
@@ -110,7 +113,7 @@ msgstr "Kein Bild zur Enkodierung vorhanden."
 msgid "GIF images"
 msgstr "GIF-Bilder"
 
-#: ../src/byzanzencodergstreamer.c:156
+#: ../src/byzanzencodergstreamer.c:165
 msgid "Failed to start GStreamer pipeline"
 msgstr "Start der GStreamer-Weiterleitung ist gescheitert"
 
@@ -118,27 +121,32 @@ msgstr "Start der GStreamer-Weiterleitung ist gescheitert"
 msgid "Theora video"
 msgstr "Theora-Video"
 
-#: ../src/byzanzselect.c:354
+#: ../src/byzanzencoderwebm.c:38
+#| msgid "Theora video"
+msgid "WebM video"
+msgstr "WebM-Video"
+
+#: ../src/byzanzselect.c:357
 msgid "Record _Desktop"
 msgstr "Ganzen _Bildschirm aufzeichnen"
 
-#: ../src/byzanzselect.c:354
+#: ../src/byzanzselect.c:357
 msgid "Record the entire desktop"
-msgstr "Ganzen Bildschirm aufnehmen"
+msgstr "Ganzen Bildschirm aufzeichnen"
 
-#: ../src/byzanzselect.c:356
+#: ../src/byzanzselect.c:359
 msgid "Record _Area"
 msgstr "_Aufzuzeichnenden Bereich auswählen"
 
-#: ../src/byzanzselect.c:356
+#: ../src/byzanzselect.c:359
 msgid "Record a selected area of the desktop"
 msgstr "Aufzuzeichnenden Bereich auswählen"
 
-#: ../src/byzanzselect.c:358
+#: ../src/byzanzselect.c:361
 msgid "Record _Window"
 msgstr "_Fenster zum Aufzeichnen auswählen"
 
-#: ../src/byzanzselect.c:358
+#: ../src/byzanzselect.c:361
 msgid "Record a selected window"
 msgstr "Fenster zum Aufzeichnen auswählen"
 
@@ -150,17 +158,8 @@ msgstr "Keine Byzanz-Aufzeichnung"
 msgid "Unsupported byte order"
 msgstr "Nicht unterstützte Byte-Reihenfolge"
 
-#: ../src/ByzanzApplet.server.in.in.h:1
-msgid "Byzanz Factory"
-msgstr "Byzanz-Fabrik"
-
-#: ../src/ByzanzApplet.server.in.in.h:2
-msgid "Desktop Recorder"
-msgstr "Desktop-Rekorder"
-
 #: ../src/playback.c:37
 #, c-format
-#| msgid "usage: %s [OPTIONS] filename\n"
 msgid "usage: %s [OPTIONS] INFILE OUTFILE\n"
 msgstr "Aufruf: %s [OPTIONEN] EINGABEDATEI AUSGABEDATEI\n"
 
@@ -173,7 +172,7 @@ msgstr "           %s --help\n"
 msgid "process a Byzanz debug recording"
 msgstr "eine Fehlerdiagnoseaufzeichnung von Byzanz verarbeiten"
 
-#: ../src/playback.c:84 ../src/record.c:140
+#: ../src/playback.c:84 ../src/record.c:143
 #, c-format
 msgid "Wrong option: %s\n"
 msgstr "Falsche Option: %s\n"
@@ -196,7 +195,7 @@ msgstr "Mauszeiger aufnehmen"
 
 #: ../src/record.c:41
 msgid "X coordinate of rectangle to record"
-msgstr "X Koordinate des aufzuzeichnenden Rechtecks"
+msgstr "X-Koordinate des aufzuzeichnenden Rechtecks"
 
 #: ../src/record.c:41 ../src/record.c:42 ../src/record.c:43 ../src/record.c:44
 msgid "PIXEL"
@@ -204,7 +203,7 @@ msgstr "PIXEL"
 
 #: ../src/record.c:42
 msgid "Y coordinate of rectangle to record"
-msgstr "Y Koordinate des aufzuzeichnenden Rechtecks"
+msgstr "Y-Koordinate des aufzuzeichnenden Rechtecks"
 
 #: ../src/record.c:43
 msgid "Width of recording rectangle"
@@ -241,14 +240,20 @@ msgstr "Aufzeichnung abgeschlossen. Enkodierung wird beendet …\n"
 msgid "Recording starts. Will record %d seconds...\n"
 msgstr "Aufzeichnung beginnt. Sie wird %d Sekunden dauern …\n"
 
-#: ../src/record.c:132
+#: ../src/record.c:135
 msgid "record your current desktop session"
 msgstr "Zeichnen Sie Ihre Arbeitsfläche auf"
 
-#: ../src/record.c:149
+#: ../src/record.c:152
 #, c-format
 msgid "Given area is not inside desktop.\n"
 msgstr "Angegebener Bereich befindet sich außerhalb der Arbeitsfläche.\n"
+
+#~ msgid "Byzanz Factory"
+#~ msgstr "Byzanz-Fabrik"
+
+#~ msgid "Desktop Recorder"
+#~ msgstr "Desktop-Rekorder"
 
 #~ msgid ""
 #~ "If set, Byzanz will record the mouse cursor. While useful, recording the "
