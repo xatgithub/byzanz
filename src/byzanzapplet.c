@@ -437,7 +437,6 @@ byzanz_applet_fill (PanelApplet *applet, const gchar *iid, gpointer data)
 
 PANEL_APPLET_OUT_PROCESS_FACTORY ("ByzanzAppletFactory",
 				  PANEL_TYPE_APPLET,
-				  "ByzanzApplet",
 				  byzanz_applet_fill,
 				  NULL)
 

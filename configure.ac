@@ -66,7 +66,7 @@ dnl ====================================
 CAIRO_REQ="1.10"
 GTK_REQ="3.0.0"
 GTHREAD_REQ="2.6.0"
-APPLET_REQ="2.91.6"
+APPLET_REQ="2.91.91"
 XDAMAGE_REQ="1.0"
 GST_REQ="0.10.24"
 
