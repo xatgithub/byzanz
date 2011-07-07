@@ -113,7 +113,7 @@ org.gnome.panel.applet.ByzanzAppletFactory.service: $(service_in_files)
 	    -e "s|\@LIBEXECDIR\@|$(libexecdir)|" \
 	    $< > $@
 
-uidir = $(datadir)/gnome-2.0/ui
+uidir = $(datadir)/byzanz
 ui_DATA = byzanzapplet.xml
 
 CLEANFILES = $(applet_DATA) $(applet_DATA).in $(service_DATA) $(schemas_DATA) $(BUILT_SOURCES)
