@@ -227,7 +227,7 @@ realize_cb (GtkWidget *widget, gpointer datap)
       GDK_POINTER_MOTION_MASK);
   cursor = gdk_cursor_new (GDK_CROSSHAIR);
   gdk_window_set_cursor (window, cursor);
-  gdk_cursor_unref (cursor);
+  g_object_unref (cursor);
   gdk_window_set_background_pattern (window, NULL);
 }
 
@@ -308,7 +308,7 @@ select_window_button_pressed_cb (GtkWidget *widget, GdkEventButton *event, gpoin
   ByzanzSelectData *data = datap;
   GdkWindow *window;
 
-  gdk_pointer_ungrab (event->time);
+  gdk_device_ungrab (gdk_event_get_device ((GdkEvent*)event), event->time);
   if (event->button == 1) {
     Window w;
 
@@ -335,14 +335,22 @@ static void
 byzanz_select_window (ByzanzSelectData *data)
 {
   GdkCursor *cursor;
-  
+  GdkWindow *window;
+  GdkDevice *device;
+  GdkDeviceManager *device_manager;
+  GdkDisplay *display;
+
   cursor = gdk_cursor_new (GDK_CROSSHAIR);
   data->window = gtk_invisible_new ();
   g_signal_connect (data->window, "button-press-event", 
       G_CALLBACK (select_window_button_pressed_cb), data);
   gtk_widget_show (data->window);
-  gdk_pointer_grab (gtk_widget_get_window (data->window), FALSE, GDK_BUTTON_PRESS_MASK, NULL, cursor, GDK_CURRENT_TIME);
-  gdk_cursor_unref (cursor);
+  window = gtk_widget_get_window (data->window);
+  display = gdk_window_get_display (window);
+  device_manager = gdk_display_get_device_manager (display);
+  device = gdk_device_manager_get_client_pointer (device_manager);
+  gdk_device_grab (device, window, GDK_OWNERSHIP_NONE, FALSE, GDK_BUTTON_PRESS_MASK, cursor, GDK_CURRENT_TIME);
+  g_object_unref (cursor);
 }
   
 /*** API ***/

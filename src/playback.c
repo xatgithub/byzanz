@@ -71,7 +71,6 @@ main (int argc, char **argv)
   textdomain (GETTEXT_PACKAGE);
 #endif
 
-  g_thread_init (NULL);
   g_type_init ();
 
   context = g_option_context_new (_("process a Byzanz debug recording"));

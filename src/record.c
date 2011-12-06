@@ -131,7 +131,6 @@ main (int argc, char **argv)
   textdomain (GETTEXT_PACKAGE);
 #endif
 
-  g_thread_init (NULL);
   context = g_option_context_new (_("record your current desktop session"));
 #ifdef GETTEXT_PACKAGE
   g_option_context_set_translation_domain(context, GETTEXT_PACKAGE);

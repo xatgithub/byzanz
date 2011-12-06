@@ -64,8 +64,16 @@ byzanz_layer_cursor_poll (gpointer data)
 {
   ByzanzLayerCursor *clayer = data;
   int x, y;
-  
-  gdk_window_get_pointer (BYZANZ_LAYER (clayer)->recorder->window, &x, &y, NULL);
+  GdkDevice *device;
+  GdkDeviceManager *device_manager;
+  GdkDisplay *display;
+  GdkWindow *window;
+
+  window = BYZANZ_LAYER (clayer)->recorder->window;
+  display = gdk_window_get_display (window);
+  device_manager = gdk_display_get_device_manager (display);
+  device = gdk_device_manager_get_client_pointer (device_manager);
+  gdk_window_get_device_position (window, device, &x, &y, NULL);
   if (x == clayer->cursor_x &&
       y == clayer->cursor_y)
     return TRUE;
@@ -107,8 +115,16 @@ byzanz_layer_cursor_snapshot (ByzanzLayer *layer)
   ByzanzLayerCursor *clayer = BYZANZ_LAYER_CURSOR (layer);
   cairo_region_t *region, *area;
   int x, y;
-  
-  gdk_window_get_pointer (layer->recorder->window, &x, &y, NULL);
+  GdkDevice *device;
+  GdkDeviceManager *device_manager;
+  GdkDisplay *display;
+  GdkWindow *window;
+
+  window = layer->recorder->window;
+  display = gdk_window_get_display (window);
+  device_manager = gdk_display_get_device_manager (display);
+  device = gdk_device_manager_get_client_pointer (device_manager);
+  gdk_window_get_device_position (window, device, &x, &y, NULL);
   if (x == clayer->cursor_x &&
       y == clayer->cursor_y &&
       clayer->cursor_next == clayer->cursor)

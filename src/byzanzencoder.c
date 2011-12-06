@@ -276,8 +276,7 @@ byzanz_encoder_constructed (GObject *object)
 {
   ByzanzEncoder *encoder = BYZANZ_ENCODER (object);
 
-  encoder->thread = g_thread_create (byzanz_encoder_thread, encoder, 
-      TRUE, &encoder->error);
+  encoder->thread = g_thread_new ("encoder", byzanz_encoder_thread, encoder);
   if (encoder->thread)
     g_object_ref (encoder);
 
